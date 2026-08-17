@@ -1,0 +1,55 @@
+1. Build During the Hackathon
+All projects must be created during the hackathon period. You may brainstorm ideas and plan ahead, but the actual development work should begin once the event starts.
+
+ 
+2. AI Must Be Meaningfully Integrated
+Your submission must include Artificial Intelligence as a core part of the experience. This can be an AI agent, chatbot, automation system, recommendation engine, AI workflow, or another meaningful AI implementation.
+
+Simply adding AI as a minor feature without clear purpose may affect judging.
+
+3. Open Source Required
+All submissions must be open source.
+
+You are required to provide a public code repository that includes a valid open-source license file for judging and testing purposes.
+
+4. Work Individually or in Teams
+You may participate solo or in a team. A Team can have maximum 4 Members!
+
+Team members should contribute meaningfully to the project.
+
+5. Be Respectful & Appropriate
+Projects must not contain:
+
+Hate speech or harassment
+Harmful, illegal, or malicious content
+Spam or deceptive behavior
+Content intended to exploit or harm users
+Keep projects respectful and appropriate for all participants.
+
+6. No Plagiarism
+Do not copy another project and present it as your own.
+
+Using libraries, APIs, frameworks, and open-source tools is completely fine, but your submission should demonstrate original effort and meaningful work.
+
+7. Existing Projects
+You may use existing tools, frameworks, or starter templates, but the submission must include substantial new work completed during the hackathon.
+
+8. Submission Requirements
+To qualify for judging, submissions must include:
+
+A hosted/live project URL
+A public open-source repository
+A valid open-source license
+A demo video (~3 minutes recommended)
+A completed Devpost submission
+9. Have Fun & Experiment
+Try new ideas, explore AI, collaborate, and build something exciting. Creativity is encouraged!
+
+
+Your mission is to engineer a functional AI-powered solution that tackles a real-world challenge.
+
+Build something that solves a problem related to work, personal life, hobbies, productivity, education, creativity, or everyday routines. We want to see how AI can meaningfully improve real experiences and solve practical problems.
+
+Your project must meaningfully incorporate Artificial Intelligence. This can range from a simple chatbot or assistant to a fully autonomous AI agent — what matters most is impact, creativity, and usefulness.
+
+Think beyond prototypes: build something functional that demonstrates how AI can help people in the real world.
