@@ -1,0 +1,68 @@
+"use client";
+
+import { useState } from "react";
+import { List, X } from "@phosphor-icons/react";
+import type { ReactNode } from "react";
+import { TopBar } from "@/components/shell/top-bar";
+import { cn } from "@/lib/cn";
+
+/**
+ * The persistent frame for every signed-in surface: top bar across the top,
+ * a 240px left nav (collapsing to a drawer below lg), and the content area.
+ */
+export function AppShell({
+  displayName,
+  nav,
+  searchScope,
+  onSignOut,
+  children,
+}: {
+  displayName: string;
+  nav: ReactNode;
+  searchScope?: { potId: string; potTitle: string };
+  onSignOut?: () => void;
+  children: ReactNode;
+}) {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  return (
+    <div className="flex min-h-dvh flex-col">
+      <TopBar displayName={displayName} searchScope={searchScope} onSignOut={onSignOut} />
+      <div className="flex flex-1 min-h-0">
+        <aside className="hidden lg:block w-60 shrink-0 border-r border-edge bg-surface">
+          <div className="sticky top-14 max-h-[calc(100dvh-3.5rem)] overflow-y-auto">{nav}</div>
+        </aside>
+        <button
+          type="button"
+          onClick={() => setDrawerOpen(true)}
+          aria-label="Open navigation"
+          className="lg:hidden fixed bottom-5 left-5 z-30 inline-flex size-11 items-center justify-center rounded-full bg-surface border border-edge-strong shadow-(--shadow-raised) text-ink"
+        >
+          <List className="size-5" />
+        </button>
+        {drawerOpen ? (
+          <div className="lg:hidden fixed inset-0 z-40">
+            <div
+              className="absolute inset-0 bg-black/40"
+              aria-hidden
+              onClick={() => setDrawerOpen(false)}
+            />
+            <div className="absolute inset-y-0 left-0 w-72 bg-surface border-r border-edge overflow-y-auto">
+              <div className="flex justify-end p-2">
+                <button
+                  type="button"
+                  onClick={() => setDrawerOpen(false)}
+                  aria-label="Close navigation"
+                  className="inline-flex size-9 items-center justify-center rounded-(--radius-control) text-ink-muted hover:bg-sunken"
+                >
+                  <X className="size-5" />
+                </button>
+              </div>
+              <div onClick={() => setDrawerOpen(false)}>{nav}</div>
+            </div>
+          </div>
+        ) : null}
+        <main className={cn("flex-1 min-w-0 flex flex-col")}>{children}</main>
+      </div>
+    </div>
+  );
+}

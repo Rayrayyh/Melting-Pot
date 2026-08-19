@@ -17,12 +17,15 @@ Next.js (App Router, TypeScript, Tailwind) in `web/`, Supabase (Postgres + Auth 
 
 ## Commands
 
-Run these from `web/` once it exists (build step 1 creates it; update this section then):
+Run these from `web/`:
 
-- `pnpm dev` - dev server
+- `pnpm dev` - dev server (Turbopack)
 - `pnpm build` - production build; must pass before every push
 - `pnpm lint` and `pnpm typecheck` - fast checks; run before every commit
-- `pnpm test:e2e` - Playwright end-to-end flows (uses the preinstalled Chromium at `/opt/pw-browsers`; never run `playwright install`)
+- `pnpm test:unit` - vitest unit tests
+- `pnpm test:e2e` - Playwright end-to-end flows on port 3111 (launches the container Chromium via launchOptions.executablePath; never run `playwright install`)
+
+Next is v16: `proxy.ts` instead of `middleware.ts`, `params`/`searchParams` are async, docs bundled at `web/node_modules/next/dist/docs/`. See `memory/lessons/002`.
 
 Database changes go through Supabase MCP migrations (`apply_migration`), one migration per schema change, mirrored into `supabase/migrations/` in the repo.
 
