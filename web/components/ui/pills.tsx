@@ -77,14 +77,14 @@ export function SectionPill({
   return (
     <span
       className={cn(
-        "inline-flex items-center h-7 px-3 rounded-full text-[13px] font-medium border transition-colors",
+        "inline-flex items-center h-7 px-3 rounded-full text-[13px] font-medium border transition-colors max-w-full",
         active
           ? "bg-primary-soft border-primary/30 text-primary"
           : "bg-surface border-edge text-ink-muted",
         className,
       )}
     >
-      {children}
+      <span className="truncate">{children}</span>
     </span>
   );
 }

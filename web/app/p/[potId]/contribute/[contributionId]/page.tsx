@@ -1,5 +1,8 @@
 import { notFound, redirect } from "next/navigation";
-import { ContributeFlow } from "@/components/contribute/contribute-flow";
+import {
+  ContributeFlow,
+  type StoredOrganized,
+} from "@/components/contribute/contribute-flow";
 import { PotShell } from "@/components/shell/pot-shell";
 import { requireUser } from "@/lib/data/user";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -13,7 +16,7 @@ export default async function ResumeContributionPage({
   const supabase = await supabaseServer();
   const { data: contribution } = await supabase
     .from("contributions")
-    .select("id, raw_text, section_id, status, shared_note_id")
+    .select("id, raw_text, section_id, status, shared_note_id, organized")
     .eq("id", contributionId)
     .eq("pot_id", potId)
     .maybeSingle();
@@ -29,6 +32,17 @@ export default async function ResumeContributionPage({
       .eq("id", contribution.id);
   }
 
+  // A draft that reached review keeps its organized result, so resuming
+  // reopens the review step instead of re-organizing from scratch.
+  const stored = contribution.organized as StoredOrganized | null;
+  const organized =
+    contribution.status === "ready_to_review" &&
+    stored &&
+    Array.isArray(stored.blocks) &&
+    typeof stored.title === "string"
+      ? stored
+      : null;
+
   return (
     <PotShell potId={potId}>
       {(pot) => (
@@ -41,6 +55,7 @@ export default async function ResumeContributionPage({
             id: contribution.id,
             rawText: contribution.raw_text,
             sectionId: contribution.section_id,
+            organized,
           }}
         />
       )}

@@ -36,10 +36,19 @@ type Step = "write" | "section" | "organizing" | "failed" | "review" | "shared";
 
 type SectionOption = { id: string; title: string };
 
+export type StoredOrganized = {
+  title: string;
+  summary: string;
+  blocks: NoteBlock[];
+  takeaways: string[];
+  suggested_section_id: string | null;
+};
+
 export type InitialContribution = {
   id: string;
   rawText: string;
   sectionId: string | null;
+  organized?: StoredOrganized | null;
 };
 
 type EditableOrganized = {
@@ -71,7 +80,19 @@ export function ContributeFlow({
   initial?: InitialContribution;
 }) {
   const router = useRouter();
-  const [step, setStep] = useState<Step>("write");
+  // A draft resumed after it reached review rehydrates its organized result
+  // and reopens at the review step, so the organized version and any edits
+  // are not silently thrown away and re-derived from scratch.
+  const initialOrganized: EditableOrganized | null = initial?.organized
+    ? {
+        title: initial.organized.title,
+        summary: initial.organized.summary,
+        bodyDraft: blocksToEditableText(initial.organized.blocks),
+        takeawaysDraft: initial.organized.takeaways.join("\n"),
+        suggestedSectionId: initial.organized.suggested_section_id,
+      }
+    : null;
+  const [step, setStep] = useState<Step>(initialOrganized ? "review" : "write");
   const [contributionId, setContributionId] = useState<string | null>(initial?.id ?? null);
   const [rawText, setRawText] = useState(initial?.rawText ?? "");
   const [saved, setSaved] = useState<"idle" | "saving" | "saved" | "error">(
@@ -86,7 +107,7 @@ export function ContributeFlow({
   >([]);
   const [linkDraft, setLinkDraft] = useState<string | null>(null);
   const [stageStates, setStageStates] = useState<StageState[]>([]);
-  const [organized, setOrganized] = useState<EditableOrganized | null>(null);
+  const [organized, setOrganized] = useState<EditableOrganized | null>(initialOrganized);
   const [editing, setEditing] = useState(false);
   const [sharedNoteId, setSharedNoteId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -557,11 +578,16 @@ export function ContributeFlow({
             Back
           </Button>
           <Button
+            className="min-w-0"
             onClick={() => void runOrganize(sectionChoice === undefined ? null : sectionChoice)}
           >
-            {sectionChoice
-              ? `Continue with ${sectionTitle(sectionChoice)}`
-              : "Continue"}
+            {sectionChoice ? (
+              <span className="truncate">
+                Continue with {sectionTitle(sectionChoice)}
+              </span>
+            ) : (
+              "Continue"
+            )}
           </Button>
         </StickyActionBar>
       </div>

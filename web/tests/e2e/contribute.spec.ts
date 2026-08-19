@@ -97,6 +97,35 @@ test.describe("contribution loop", () => {
     );
   });
 
+  test("a draft that reached review resumes at review, not re-organized", async ({
+    page,
+  }) => {
+    await loginAs(page, "omar@meltingpot.dev");
+    await openComposer(page);
+
+    const marker = `photosynthesis review resume ${Date.now()}`;
+    await page
+      .getByLabel("Your contribution")
+      .fill(
+        `${marker}: light reactions in the thylakoid make ATP and NADPH, the calvin cycle fixes carbon.`,
+      );
+    await expect(page.getByText("Saved", { exact: true })).toBeVisible({ timeout: 10_000 });
+    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await page.getByRole("button", { name: /Not sure where it belongs/ }).click();
+    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await expect(page.getByText("Review required")).toBeVisible({ timeout: 20_000 });
+
+    // Leave from review (save draft), then reopen it: it must come back at
+    // review with the organized version intact, not restart at write.
+    const url = page.url();
+    const contributionId = url.split("/contribute/")[1] ?? "";
+    await page.goto("/me/contributions?tab=drafts");
+    await page.getByText(new RegExp(marker)).first().click();
+    await expect(page.getByText("Review required")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText("Original preserved")).toBeVisible();
+    expect(page.url()).toContain(contributionId || "/contribute/");
+  });
+
   test("organization failure keeps the draft safe with all three exits", async ({
     page,
   }) => {

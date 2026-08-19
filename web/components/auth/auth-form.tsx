@@ -50,9 +50,21 @@ export function AuthForm({
     const supabase = supabaseBrowser();
     const pendingCode = code ?? takePendingJoin();
     if (pendingCode) {
-      const { data: potId } = await supabase.rpc("join_pot_with_code", {
+      const { data: potId, error: joinError } = await supabase.rpc("join_pot_with_code", {
         p_code: pendingCode,
       });
+      if (joinError) {
+        // The account exists now, but the join failed (rate limit, or the
+        // Pot was archived or its code changed since the preview). Keep the
+        // pending code so a retry can still land it, and say what happened.
+        setError(
+          joinError.message.includes("rate_limited")
+            ? "Your account is ready, but joining was rate limited. Open the class code again in a moment."
+            : "Your account is ready, but that class code is no longer valid. Ask for a fresh code.",
+        );
+        setBusy(false);
+        return;
+      }
       clearPendingJoin();
       if (potId) {
         router.push(`/p/${potId}`);

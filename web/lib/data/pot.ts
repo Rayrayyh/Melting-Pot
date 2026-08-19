@@ -51,11 +51,9 @@ export async function getPotContext(potId: string): Promise<PotContext | null> {
       .from("shared_notes")
       .select("id", { count: "exact", head: true })
       .eq("pot_id", potId),
-    supabase
-      .from("revision_proposals")
-      .select("id", { count: "exact", head: true })
-      .eq("pot_id", potId)
-      .eq("status", "pending"),
+    // Pot-wide pending count via a security-definer function so members and
+    // maintainers see the same number (RLS would show a member only theirs).
+    supabase.rpc("open_correction_count", { p_pot_id: potId }),
   ]);
 
   return {
@@ -66,7 +64,7 @@ export async function getPotContext(potId: string): Promise<PotContext | null> {
     role: membership.role,
     memberCount: memberCount.count ?? 0,
     noteCount: noteCount.count ?? 0,
-    openProposalCount: openProposals.count ?? 0,
+    openProposalCount: openProposals.data ?? 0,
     sections: sections.data ?? [],
     archived: pot.archived_at !== null,
   };

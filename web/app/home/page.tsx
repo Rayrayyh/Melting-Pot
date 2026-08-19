@@ -44,6 +44,34 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
     dashboard.revisionRequested.length > 0 ||
     dashboard.drafts.length > 0;
 
+  const archivedGroup =
+    dashboard.archivedPots.length > 0 ? (
+      <details>
+        <summary className="cursor-pointer text-[13px] text-ink-muted hover:text-ink transition-colors">
+          Archived Pots ({dashboard.archivedPots.length})
+        </summary>
+        <div className="mt-3 space-y-2">
+          {dashboard.archivedPots.map((pot) => (
+            <Link
+              key={pot.id}
+              href={pot.role === "owner" ? `/p/${pot.id}/settings` : `/p/${pot.id}`}
+              className="block group"
+            >
+              <Card className="group-hover:border-edge-strong transition-colors">
+                <CardSection className="flex items-center gap-3 py-3.5">
+                  <Archive className="size-4 text-ink-faint shrink-0" aria-hidden />
+                  <p className="min-w-0 flex-1 text-sm text-ink truncate">{pot.title}</p>
+                  <span className="text-[12px] text-ink-faint shrink-0">
+                    {pot.role === "owner" ? "Open settings to unarchive" : "Still readable"}
+                  </span>
+                </CardSection>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </details>
+    ) : null;
+
   return (
     <UserShell>
       <div className="mx-auto w-full max-w-5xl px-6 py-12 space-y-10">
@@ -69,15 +97,19 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
         </header>
 
         {dashboard.pots.length === 0 ? (
-          <Card>
-            <EmptyState
-              title="Join your first Pot"
-              body="Enter a class code to see what your class is building."
-            />
-            <div className="px-6 pb-8 max-w-sm mx-auto">
-              <HomeJoinCard initialCode={joinCode} initialError={joinError} />
-            </div>
-          </Card>
+          <div className="space-y-6">
+            <Card>
+              <EmptyState
+                title="Join your first Pot"
+                body="Enter a class code to see what your class is building."
+              />
+              <div className="px-6 pb-8 max-w-sm mx-auto">
+                <HomeJoinCard initialCode={joinCode} initialError={joinError} />
+              </div>
+            </Card>
+            {/* A user whose only Pot is archived still needs a path to it. */}
+            {archivedGroup}
+          </div>
         ) : (
           <div className="grid lg:grid-cols-[1fr_300px] gap-8 items-start">
             <div className="space-y-6 min-w-0">
@@ -98,38 +130,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
                 </div>
               </section>
 
-              {dashboard.archivedPots.length > 0 ? (
-                <details>
-                  <summary className="cursor-pointer text-[13px] text-ink-muted hover:text-ink transition-colors">
-                    Archived Pots ({dashboard.archivedPots.length})
-                  </summary>
-                  <div className="mt-3 space-y-2">
-                    {dashboard.archivedPots.map((pot) => (
-                      <Link
-                        key={pot.id}
-                        href={
-                          pot.role === "owner" ? `/p/${pot.id}/settings` : `/p/${pot.id}`
-                        }
-                        className="block group"
-                      >
-                        <Card className="group-hover:border-edge-strong transition-colors">
-                          <CardSection className="flex items-center gap-3 py-3.5">
-                            <Archive className="size-4 text-ink-faint shrink-0" aria-hidden />
-                            <p className="min-w-0 flex-1 text-sm text-ink truncate">
-                              {pot.title}
-                            </p>
-                            <span className="text-[12px] text-ink-faint shrink-0">
-                              {pot.role === "owner"
-                                ? "Open settings to unarchive"
-                                : "Still readable"}
-                            </span>
-                          </CardSection>
-                        </Card>
-                      </Link>
-                    ))}
-                  </div>
-                </details>
-              ) : null}
+              {archivedGroup}
             </div>
 
             <aside className="space-y-4 lg:sticky lg:top-20">

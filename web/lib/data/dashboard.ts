@@ -112,11 +112,9 @@ export async function getDashboard(userId: string): Promise<Dashboard> {
           .from("shared_notes")
           .select("id", { count: "exact", head: true })
           .eq("pot_id", potId),
-        supabase
-          .from("revision_proposals")
-          .select("id", { count: "exact", head: true })
-          .eq("pot_id", potId)
-          .eq("status", "pending"),
+        // Pot-wide via security-definer so the card matches the feed vitals
+        // regardless of role (RLS would show a member only their own).
+        supabase.rpc("open_correction_count", { p_pot_id: potId }),
         supabase
           .from("shared_notes")
           .select("shared_at")
@@ -129,7 +127,7 @@ export async function getDashboard(userId: string): Promise<Dashboard> {
         potId,
         memberCount: members.count ?? 0,
         noteCount: notes.count ?? 0,
-        pendingCount: pending.count ?? 0,
+        pendingCount: pending.data ?? 0,
         lastActivityAt: last.data?.shared_at ?? null,
       };
     }),

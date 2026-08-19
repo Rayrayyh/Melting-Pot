@@ -502,6 +502,10 @@ export type Database = {
         Returns: undefined;
       };
       join_pot_with_code: { Args: { p_code: string }; Returns: string };
+      open_correction_count: {
+        Args: { p_pot_id: string };
+        Returns: number;
+      };
       lookup_pot_by_code: { Args: { p_code: string }; Returns: Json };
       regenerate_class_code: { Args: { p_pot_id: string }; Returns: string };
       register_student: {
