@@ -61,12 +61,49 @@ describe("organize", () => {
     expect(bullets && bullets.type === "bullets" ? bullets.items.length : 0).toBeGreaterThanOrEqual(4);
   });
 
-  it("turns dashed lines into bullet lists", async () => {
+  it("turns dashed lines into bullet lists without dropping the lead-in", async () => {
     const result = await organize(
       "things the exam covers\n- scientific method vocab\n- organelle functions\n- osmosis problems",
     );
     const bullets = result.blocks.find((b) => b.type === "bullets");
     expect(bullets && bullets.type === "bullets" ? bullets.items : []).toHaveLength(3);
+    // The non-bullet line above the list survives as its own paragraph.
+    expect(JSON.stringify(result.blocks)).toContain("exam covers");
+  });
+
+  it("keeps non-bullet lines from a mixed paragraph anywhere in the note", async () => {
+    const result = await organize(
+      "photosynthesis stores energy as glucose using light and water.\n\nstuff to review before friday\n- calvin cycle steps\n- membrane transport types",
+    );
+    expect(JSON.stringify(result.blocks)).toContain("review before friday");
+    const bullets = result.blocks.find((b) => b.type === "bullets");
+    expect(bullets && bullets.type === "bullets" ? bullets.items : []).toHaveLength(2);
+  });
+
+  it("organizes non-Latin scripts instead of rejecting them as too short", async () => {
+    const arabic =
+      "تنتج الميتوكوندريا الطاقة في الخلية من خلال التنفس الخلوي وتحتاج الى الأكسجين.";
+    const result = await organize(arabic);
+    expect(result.blocks.length).toBeGreaterThan(0);
+    expect(result.title.length).toBeGreaterThan(0);
+    const chinese =
+      "线粒体通过呼吸作用为细胞提供能量，这个过程需要氧气和葡萄糖参与。";
+    const chineseResult = await organize(chinese);
+    expect(chineseResult.blocks.length).toBeGreaterThan(0);
+  });
+
+  it("still summarizes a note where every sentence is uncertain", async () => {
+    const result = await organize(
+      "i think the mitral valve might be on the left side of the heart. not sure if the aorta carries blood upward from there.",
+    );
+    expect(result.summary.length).toBeGreaterThan(0);
+  });
+
+  it("joins body text with newlines so sentences stay inside blocks", async () => {
+    const result = await organize(
+      "things the exam covers\n- scientific method vocab\n- organelle functions",
+    );
+    expect(result.bodyText).toContain("\n");
   });
 
   it("extracts marked sentences as takeaways", async () => {

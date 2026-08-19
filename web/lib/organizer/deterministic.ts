@@ -1,4 +1,5 @@
 import type { NoteBlock } from "@/lib/data/pot";
+import { blocksToBodyText } from "@/lib/organizer/edit";
 import {
   OrganizeError,
   type OrganizedResult,
@@ -57,7 +58,7 @@ const STOP_WORDS = new Set(
 function tokens(text: string): string[] {
   return text
     .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
     .split(/\s+/)
     .filter((t) => t.length > 2 && !STOP_WORDS.has(t));
 }
@@ -89,7 +90,7 @@ export function deriveTitle(rawText: string): string {
 
 /** Detects "Term: description" or "Term = description" definition shapes. */
 function parseDefinition(sentence: string): { term: string; text: string } | null {
-  const match = sentence.match(/^([A-Za-z][A-Za-z0-9 ()-]{1,40}?)\s*(?:=|:)\s+(.{10,})$/);
+  const match = sentence.match(/^([\p{L}][\p{L}\p{N} ()-]{1,40}?)\s*(?:=|:)\s+(.{10,})$/u);
   if (!match) return null;
   const term = match[1].trim();
   if (tokens(term).length === 0 || term.split(" ").length > 4) return null;
@@ -114,18 +115,46 @@ function parseFactRun(paragraph: string): string[] | null {
   return null;
 }
 
+const BULLET_LINE = /^([-*•]|\d+[.)])\s+/;
+
 function explicitBullets(paragraph: string): string[] | null {
   const lines = paragraph
     .split("\n")
     .map((l) => l.trim())
     .filter(Boolean);
-  const bulletLines = lines.filter((l) => /^([-*•]|\d+[.)])\s+/.test(l));
+  const bulletLines = lines.filter((l) => BULLET_LINE.test(l));
   if (bulletLines.length >= 2) {
     return bulletLines.map((l) =>
-      ensurePeriod(capitalize(l.replace(/^([-*•]|\d+[.)])\s+/, ""))),
+      ensurePeriod(capitalize(l.replace(BULLET_LINE, ""))),
     );
   }
   return null;
+}
+
+/**
+ * Splits a blank-line paragraph into consecutive runs of bullet lines and
+ * non-bullet lines, so a lead-in line above a list is never dropped: it
+ * flows through the sentence pipeline while the bullets become a list.
+ */
+function segmentByBulletRuns(paragraph: string): string[] {
+  const lines = paragraph
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+  const runs: string[] = [];
+  let current: string[] = [];
+  let currentIsBullet: boolean | null = null;
+  for (const line of lines) {
+    const isBullet = BULLET_LINE.test(line);
+    if (currentIsBullet !== null && isBullet !== currentIsBullet) {
+      runs.push(current.join("\n"));
+      current = [];
+    }
+    current.push(line);
+    currentIsBullet = isBullet;
+  }
+  if (current.length > 0) runs.push(current.join("\n"));
+  return runs;
 }
 
 export function suggestSection(
@@ -168,12 +197,15 @@ export const deterministicOrganizer: OrganizerProvider = {
     if (text.length === 0) {
       throw new OrganizeError("Nothing to organize", "empty");
     }
-    if (tokens(text).length < 5) {
+    // Token count alone would reject unspaced scripts (Chinese, Japanese...)
+    // as one giant "word", so genuinely long text always passes.
+    if (tokens(text).length < 5 && text.replace(/\s+/g, "").length < 30) {
       throw new OrganizeError("Too short to organize", "too_short");
     }
 
     const paragraphs = text
       .split(/\n{2,}/)
+      .flatMap(segmentByBulletRuns)
       .flatMap((p) => (explicitBullets(p) ? [p] : p.split(/\n/)))
       .map((p) => p.trim())
       .filter(Boolean);
@@ -227,8 +259,10 @@ export const deterministicOrganizer: OrganizerProvider = {
     }
 
     const allSentences = splitSentences(text).map(cleanSentence);
-    const summarySource = allSentences
-      .filter((s) => !UNCERTAINTY_MARKERS.test(s))
+    // Prefer certain sentences, but an all-uncertain note still gets a
+    // summary rather than a blank line in the feed.
+    const certainSentences = allSentences.filter((s) => !UNCERTAINTY_MARKERS.test(s));
+    const summarySource = (certainSentences.length > 0 ? certainSentences : allSentences)
       .slice(0, 2)
       .join(" ");
     const summary =
@@ -240,18 +274,7 @@ export const deterministicOrganizer: OrganizerProvider = {
       .filter((s) => TAKEAWAY_MARKERS.test(s) && !UNCERTAINTY_MARKERS.test(s))
       .slice(0, 3);
 
-    const bodyText = blocks
-      .map((b) => {
-        switch (b.type) {
-          case "bullets":
-            return b.items.join(" ");
-          case "definition":
-            return `${b.term}: ${b.text}`;
-          default:
-            return b.text;
-        }
-      })
-      .join(" ");
+    const bodyText = blocksToBodyText(blocks);
 
     const section = suggestSection(text, input.sections);
 

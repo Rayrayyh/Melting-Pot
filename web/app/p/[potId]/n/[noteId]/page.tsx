@@ -48,7 +48,9 @@ export default async function NotePage({ params }: PageProps<"/p/[potId]/n/[note
                 <StatusPill tone="primary">Version {note.versionNumber}</StatusPill>
               ) : null}
             </div>
-            <p className="text-[15px] text-ink-muted leading-relaxed">{note.summary}</p>
+            {note.summary ? (
+              <p className="text-[15px] text-ink-muted leading-relaxed">{note.summary}</p>
+            ) : null}
             <div className="flex flex-wrap items-center justify-between gap-3 border-y border-edge py-3">
               <AttributionRow
                 name={note.contributorName}
@@ -130,7 +132,11 @@ function AttachmentRow({
   url: string | null;
   storagePath: string | null;
 }) {
-  const href = url ?? (storagePath ? `/api/attachments/${encodeURIComponent(storagePath)}` : null);
+  const href =
+    url ??
+    (storagePath
+      ? `/api/attachments/${storagePath.split("/").map(encodeURIComponent).join("/")}`
+      : null);
   const icon =
     kind === "link" ? (
       <LinkSimple className="size-4 text-ink-faint" aria-hidden />

@@ -490,6 +490,7 @@ export type Database = {
         Args: {
           p_change_summary?: string;
           p_decision: string;
+          p_expected_version_id?: string;
           p_new_body?: Json;
           p_new_body_text?: string;
           p_new_summary?: string;

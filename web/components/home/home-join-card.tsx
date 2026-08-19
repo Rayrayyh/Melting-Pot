@@ -8,10 +8,16 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import { INVALID_CODE_MESSAGE } from "@/components/landing/join-card";
 
 /** Compact inline join field for the dashboard. */
-export function HomeJoinCard() {
+export function HomeJoinCard({
+  initialCode = "",
+  initialError = null,
+}: {
+  initialCode?: string;
+  initialError?: string | null;
+}) {
   const router = useRouter();
-  const [code, setCode] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [code, setCode] = useState(normalizeClassCode(initialCode));
+  const [error, setError] = useState<string | null>(initialError);
   const [busy, setBusy] = useState(false);
 
   async function submit(e: React.FormEvent) {

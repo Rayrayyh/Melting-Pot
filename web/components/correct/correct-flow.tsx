@@ -46,7 +46,11 @@ export function CorrectFlow({
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setError("You're signed out. Sign in again to send this correction.");
+      setBusy(false);
+      return;
+    }
     const { data, error: insertError } = await supabase
       .from("revision_proposals")
       .insert({

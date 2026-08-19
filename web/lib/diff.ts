@@ -93,26 +93,29 @@ export function replaceInBlocks(
   proposed: string,
 ): NoteBlock[] | null {
   let replaced = false;
+  // The picker selects a sentence by its text, so every occurrence of that
+  // text is what the proposer flagged; all of them get the correction.
+  // split/join keeps the proposed text literal ($ has no special meaning).
+  const swap = (text: string): string => {
+    replaced = true;
+    return text.split(selected).join(proposed);
+  };
   const next = blocks.map((block): NoteBlock => {
-    if (replaced) return block;
     switch (block.type) {
       case "paragraph":
       case "heading":
       case "example": {
         if (block.text.includes(selected)) {
-          replaced = true;
-          return { ...block, text: block.text.replace(selected, proposed) };
+          return { ...block, text: swap(block.text) };
         }
         return block;
       }
       case "definition": {
         if (block.text.includes(selected)) {
-          replaced = true;
-          return { ...block, text: block.text.replace(selected, proposed) };
+          return { ...block, text: swap(block.text) };
         }
         if (`${block.term}: ${block.text}`.includes(selected)) {
-          replaced = true;
-          const combined = `${block.term}: ${block.text}`.replace(selected, proposed);
+          const combined = swap(`${block.term}: ${block.text}`);
           const split = combined.match(/^([^:]{1,60}):\s*(.*)$/s);
           if (split) return { type: "definition", term: split[1], text: split[2] };
           return { type: "paragraph", text: combined };
@@ -120,24 +123,33 @@ export function replaceInBlocks(
         return block;
       }
       case "bullets": {
-        const index = block.items.findIndex((item) => item.includes(selected));
-        if (index >= 0) {
-          replaced = true;
-          const items = [...block.items];
-          items[index] = items[index].replace(selected, proposed);
-          return { ...block, items };
-        }
-        return block;
+        if (!block.items.some((item) => item.includes(selected))) return block;
+        return {
+          ...block,
+          items: block.items.map((item) =>
+            item.includes(selected) ? swap(item) : item,
+          ),
+        };
       }
     }
   });
   return replaced ? next : null;
 }
 
-/** Splits body text into selectable sentences for the correction picker. */
+/** How many times the selected text occurs across the whole body. */
+export function countOccurrences(haystack: string, needle: string): number {
+  if (!needle) return 0;
+  return haystack.split(needle).length - 1;
+}
+
+/**
+ * Splits body text into selectable sentences for the correction picker.
+ * body_text joins blocks with newlines (see blocksToBodyText), so splitting
+ * on newlines too keeps every sentence inside a single block.
+ */
 export function selectableSentences(bodyText: string): string[] {
   return bodyText
-    .split(/(?<=[.!?])\s+/)
+    .split(/(?<=[.!?])\s+|\n+/)
     .map((s) => s.trim())
     .filter((s) => s.length > 0);
 }

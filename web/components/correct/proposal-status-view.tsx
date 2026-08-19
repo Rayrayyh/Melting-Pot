@@ -65,8 +65,9 @@ export function ProposalStatusView({
 
       {proposal.status === "pending" ? (
         <NoticeBanner tone="warning" icon={<HourglassMedium />} title="Waiting on maintainer">
-          A maintainer will compare both versions and decide. You can still edit
-          this proposal; edits keep the same proposal and its history.
+          {isProposer
+            ? "A maintainer will compare both versions and decide. You can still edit this proposal; edits keep the same proposal and its history."
+            : `A maintainer will compare both versions and decide. ${proposal.proposerName} can still edit this proposal while it waits.`}
         </NoticeBanner>
       ) : null}
       {proposal.status === "accepted" ? (
@@ -80,13 +81,20 @@ export function ProposalStatusView({
             </Button>
           }
         >
-          Your correction became the newest version and is credited to you.
-          {proposal.decidedByName ? ` Reviewed by ${proposal.decidedByName}.` : ""}
+          {isProposer
+            ? `Your correction became the newest version and is credited to you.${
+                proposal.decidedByName ? ` Reviewed by ${proposal.decidedByName}.` : ""
+              }`
+            : `${proposal.proposerName}'s correction became the newest version and is credited to them.${
+                proposal.decidedByName ? ` Reviewed by ${proposal.decidedByName}.` : ""
+              }`}
         </NoticeBanner>
       ) : null}
       {proposal.status === "revision_requested" ? (
         <NoticeBanner tone="warning" title="Revision requested">
-          Keep working on this same proposal; nothing was thrown away.
+          {isProposer
+            ? "Keep working on this same proposal; nothing was thrown away."
+            : `${proposal.proposerName} can keep working on this same proposal; nothing was thrown away.`}
         </NoticeBanner>
       ) : null}
       {proposal.status === "declined" ? (
@@ -95,7 +103,9 @@ export function ProposalStatusView({
           icon={<ProhibitInset />}
           title="Declined. This proposal won't change the note."
         >
-          The note stays as it is, and your proposal stays visible here.
+          {isProposer
+            ? "The note stays as it is, and your proposal stays visible here."
+            : `The note stays as it is, and the proposal stays visible to ${proposal.proposerName}.`}
         </NoticeBanner>
       ) : null}
 

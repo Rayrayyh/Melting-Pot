@@ -1,4 +1,5 @@
-import { Plus } from "@phosphor-icons/react/dist/ssr";
+import Link from "next/link";
+import { Archive, Plus } from "@phosphor-icons/react/dist/ssr";
 import { ActivityList } from "@/components/home/activity-list";
 import {
   DraftsModule,
@@ -11,6 +12,7 @@ import { UserShell } from "@/components/shell/user-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { INVALID_CODE_MESSAGE } from "@/components/landing/join-card";
 import { getDashboard } from "@/lib/data/dashboard";
 import { requireUser } from "@/lib/data/user";
 
@@ -22,8 +24,13 @@ function greeting(name: string) {
   return `${part}, ${name.split(" ")[0]}`;
 }
 
-export default async function HomePage() {
+export default async function HomePage({ searchParams }: PageProps<"/home">) {
   const user = await requireUser();
+  const params = await searchParams;
+  // A dead invite link followed while signed in lands here with the failed
+  // code, so the error is shown instead of silently swallowed.
+  const joinCode = typeof params.code === "string" ? params.code : "";
+  const joinError = params.error === "notfound" ? INVALID_CODE_MESSAGE : null;
   const dashboard = await getDashboard(user.id);
   const hasAttention =
     dashboard.reviewQueue.length > 0 ||
@@ -59,7 +66,7 @@ export default async function HomePage() {
               body="Enter a class code to see what your class is building."
             />
             <div className="px-6 pb-8 max-w-sm mx-auto">
-              <HomeJoinCard />
+              <HomeJoinCard initialCode={joinCode} initialError={joinError} />
             </div>
           </Card>
         ) : (
@@ -81,6 +88,39 @@ export default async function HomePage() {
                   ))}
                 </div>
               </section>
+
+              {dashboard.archivedPots.length > 0 ? (
+                <details>
+                  <summary className="cursor-pointer text-[13px] text-ink-muted hover:text-ink transition-colors">
+                    Archived Pots ({dashboard.archivedPots.length})
+                  </summary>
+                  <div className="mt-3 space-y-2">
+                    {dashboard.archivedPots.map((pot) => (
+                      <Link
+                        key={pot.id}
+                        href={
+                          pot.role === "owner" ? `/p/${pot.id}/settings` : `/p/${pot.id}`
+                        }
+                        className="block group"
+                      >
+                        <Card className="group-hover:border-edge-strong transition-colors">
+                          <CardSection className="flex items-center gap-3 py-3.5">
+                            <Archive className="size-4 text-ink-faint shrink-0" aria-hidden />
+                            <p className="min-w-0 flex-1 text-sm text-ink truncate">
+                              {pot.title}
+                            </p>
+                            <span className="text-[12px] text-ink-faint shrink-0">
+                              {pot.role === "owner"
+                                ? "Open settings to unarchive"
+                                : "Still readable"}
+                            </span>
+                          </CardSection>
+                        </Card>
+                      </Link>
+                    ))}
+                  </div>
+                </details>
+              ) : null}
             </div>
 
             <aside className="space-y-4 lg:sticky lg:top-20">
@@ -88,7 +128,7 @@ export default async function HomePage() {
               <Card>
                 <CardSection className="space-y-2.5">
                   <p className="text-sm font-semibold text-ink">Have a class code?</p>
-                  <HomeJoinCard />
+                  <HomeJoinCard initialCode={joinCode} initialError={joinError} />
                 </CardSection>
               </Card>
             </aside>

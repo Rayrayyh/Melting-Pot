@@ -61,24 +61,28 @@ export function ContributeFlow({
   potId,
   potTitle,
   sections,
+  viewerName,
   initial,
 }: {
   potId: string;
   potTitle: string;
   sections: SectionOption[];
+  viewerName?: string;
   initial?: InitialContribution;
 }) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("write");
   const [contributionId, setContributionId] = useState<string | null>(initial?.id ?? null);
   const [rawText, setRawText] = useState(initial?.rawText ?? "");
-  const [saved, setSaved] = useState<"idle" | "saving" | "saved">(initial ? "saved" : "idle");
+  const [saved, setSaved] = useState<"idle" | "saving" | "saved" | "error">(
+    initial ? "saved" : "idle",
+  );
   const [sectionChoice, setSectionChoice] = useState<string | null | undefined>(
     initial?.sectionId ?? undefined,
   );
   const [sectionQuery, setSectionQuery] = useState("");
   const [attachments, setAttachments] = useState<
-    Array<{ id: string; name: string; kind: string }>
+    Array<{ id: string; name: string; kind: string; storage_path?: string | null }>
   >([]);
   const [linkDraft, setLinkDraft] = useState<string | null>(null);
   const [stageStates, setStageStates] = useState<StageState[]>([]);
@@ -110,7 +114,15 @@ export function ContributeFlow({
       if (data) setContributionId(data.id);
       return data?.id ?? null;
     })();
-    return creating.current;
+    const id = await creating.current;
+    if (!id) {
+      // A failed create must not poison the flow: drop the cached promise
+      // so the next action retries, and say what happened.
+      creating.current = null;
+      setSaved("error");
+      setErrorNote("Your note couldn't be saved. Check your connection and try again.");
+    }
+    return id;
   }, [contributionId, potId, rawText, supabase]);
 
   // Autosave the raw text from the first meaningful keystroke. The "saving"
@@ -121,7 +133,17 @@ export function ContributeFlow({
     saveTimer.current = setTimeout(async () => {
       const id = await ensureContribution();
       if (!id) return;
-      await supabase.from("contributions").update({ raw_text: rawText }).eq("id", id);
+      // .select proves the write landed: an RLS-blocked or signed-out
+      // update returns zero rows without an error, which is not "Saved".
+      const { data, error } = await supabase
+        .from("contributions")
+        .update({ raw_text: rawText })
+        .eq("id", id)
+        .select("id");
+      if (error || !data || data.length === 0) {
+        setSaved("error");
+        return;
+      }
       setSaved("saved");
     }, 700);
     return () => {
@@ -139,7 +161,7 @@ export function ContributeFlow({
     if (!initial?.id) return;
     void supabase
       .from("attachments")
-      .select("id, name, kind")
+      .select("id, name, kind, storage_path")
       .eq("contribution_id", initial.id)
       .then(({ data }) => {
         if (data) setAttachments(data);
@@ -204,13 +226,19 @@ export function ContributeFlow({
         storage_path: path,
         created_by: user.id,
       })
-      .select("id, name, kind")
+      .select("id, name, kind, storage_path")
       .single();
     if (data) setAttachments((prev) => [...prev, data]);
   }
 
   async function removeAttachment(id: string) {
+    const target = attachments.find((a) => a.id === id);
     await supabase.from("attachments").delete().eq("id", id);
+    // Detaching an uploaded file also removes the object, so nothing
+    // orphans in storage. Best effort; the row is the source of truth.
+    if (target?.storage_path) {
+      await supabase.storage.from("attachments").remove([target.storage_path]);
+    }
     setAttachments((prev) => prev.filter((a) => a.id !== id));
   }
 
@@ -310,7 +338,13 @@ export function ContributeFlow({
       p_section_id: sectionChoice ?? undefined,
     });
     if (error || !data) {
-      setErrorNote("Sharing didn't go through. Your note is safe; try again.");
+      setErrorNote(
+        error?.message.includes("not_pot_member")
+          ? "You are no longer a member of this Pot, so this can't be shared here."
+          : error?.message.includes("pot_archived")
+            ? "This Pot has been archived, so nothing new can be shared to it."
+            : "Sharing didn't go through. Your note is safe; try again.",
+      );
       setBusy(false);
       return;
     }
@@ -348,8 +382,14 @@ export function ContributeFlow({
               className="text-[15px] min-h-[280px]"
             />
             <div className="flex items-center justify-between text-[12px] text-ink-muted">
-              <span>
-                {saved === "saving" ? "Saving" : saved === "saved" ? "Saved" : ""}
+              <span className={saved === "error" ? "text-danger" : undefined}>
+                {saved === "saving"
+                  ? "Saving"
+                  : saved === "saved"
+                    ? "Saved"
+                    : saved === "error"
+                      ? "Couldn't save. Your next keystroke retries."
+                      : ""}
               </span>
               <span className="tabular-nums">{rawText.length.toLocaleString()} / 20,000</span>
             </div>
@@ -398,29 +438,10 @@ export function ContributeFlow({
               </form>
             ) : null}
             {attachments.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {attachments.map((attachment) => (
-                  <span
-                    key={attachment.id}
-                    className="inline-flex items-center gap-1.5 h-7 pl-2.5 pr-1.5 rounded-full bg-sunken border border-edge text-[12px] text-ink"
-                  >
-                    {attachment.kind === "link" ? (
-                      <LinkSimple className="size-3.5 text-ink-faint" aria-hidden />
-                    ) : (
-                      <Paperclip className="size-3.5 text-ink-faint" aria-hidden />
-                    )}
-                    <span className="max-w-48 truncate">{attachment.name}</span>
-                    <button
-                      type="button"
-                      aria-label={`Remove ${attachment.name}`}
-                      onClick={() => void removeAttachment(attachment.id)}
-                      className="inline-flex size-4 items-center justify-center rounded-full hover:bg-edge text-ink-faint"
-                    >
-                      <X className="size-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
+              <AttachmentChips
+                attachments={attachments}
+                onRemove={(id) => void removeAttachment(id)}
+              />
             ) : null}
             {errorNote ? <p className="text-[13px] text-danger">{errorNote}</p> : null}
           </div>
@@ -434,7 +455,11 @@ export function ContributeFlow({
           </Button>
           <Button
             disabled={!ready}
-            onClick={() => setStep("section")}
+            onClick={() =>
+              sections.length === 0
+                ? void runOrganize(null)
+                : setStep("section")
+            }
           >
             Continue
           </Button>
@@ -617,6 +642,11 @@ export function ContributeFlow({
                 </option>
               ))}
             </select>
+            {viewerName ? (
+              <span className="ml-auto text-[13px] text-ink-muted">
+                Shared as <span className="font-medium text-ink">{viewerName}</span>
+              </span>
+            ) : null}
           </div>
 
           <div className="grid lg:grid-cols-2 gap-5 items-start">
@@ -709,6 +739,16 @@ export function ContributeFlow({
             </section>
           </div>
 
+          {attachments.length > 0 ? (
+            <section aria-label="Attachments" className="space-y-2">
+              <Eyebrow>Attachments included with this note</Eyebrow>
+              <AttachmentChips
+                attachments={attachments}
+                onRemove={(id) => void removeAttachment(id)}
+              />
+            </section>
+          ) : null}
+
           {errorNote ? (
             <p role="alert" className="text-[13px] text-danger">
               {errorNote}
@@ -796,6 +836,40 @@ export function ContributeFlow({
   }
 
   return null;
+}
+
+function AttachmentChips({
+  attachments,
+  onRemove,
+}: {
+  attachments: Array<{ id: string; name: string; kind: string }>;
+  onRemove: (id: string) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-2">
+      {attachments.map((attachment) => (
+        <span
+          key={attachment.id}
+          className="inline-flex items-center gap-1.5 h-7 pl-2.5 pr-1.5 rounded-full bg-sunken border border-edge text-[12px] text-ink"
+        >
+          {attachment.kind === "link" ? (
+            <LinkSimple className="size-3.5 text-ink-faint" aria-hidden />
+          ) : (
+            <Paperclip className="size-3.5 text-ink-faint" aria-hidden />
+          )}
+          <span className="max-w-48 truncate">{attachment.name}</span>
+          <button
+            type="button"
+            aria-label={`Remove ${attachment.name}`}
+            onClick={() => onRemove(attachment.id)}
+            className="inline-flex size-4 items-center justify-center rounded-full hover:bg-edge text-ink-faint"
+          >
+            <X className="size-3" />
+          </button>
+        </span>
+      ))}
+    </div>
+  );
 }
 
 function SectionOptionRow({

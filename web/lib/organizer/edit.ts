@@ -64,17 +64,21 @@ export function editableTextToBlocks(text: string): NoteBlock[] {
   return blocks;
 }
 
+// Blocks and bullet items join with newlines so a sentence boundary can
+// never sit inside a block. selectableSentences splits on those newlines,
+// which guarantees every selectable sentence lives inside a single block
+// and replaceInBlocks can always find it.
 export function blocksToBodyText(blocks: NoteBlock[]): string {
   return blocks
     .map((block) => {
       switch (block.type) {
         case "bullets":
-          return block.items.join(" ");
+          return block.items.join("\n");
         case "definition":
           return `${block.term}: ${block.text}`;
         default:
           return block.text;
       }
     })
-    .join(" ");
+    .join("\n");
 }

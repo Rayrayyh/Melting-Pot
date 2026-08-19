@@ -6,12 +6,21 @@ import { ArrowSquareOut, GraduationCap, Plugs } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { NoticeBanner } from "@/components/ui/notice-banner";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Field, Input, TextArea } from "@/components/ui/input";
 import type { PotContext } from "@/lib/data/pot";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
-export function SettingsPanel({ pot, isOwner }: { pot: PotContext; isOwner: boolean }) {
+export function SettingsPanel({
+  pot,
+  isOwner,
+  sectionsSlot,
+}: {
+  pot: PotContext;
+  isOwner: boolean;
+  sectionsSlot?: React.ReactNode;
+}) {
   const router = useRouter();
   const [title, setTitle] = useState(pot.title);
   const [description, setDescription] = useState(pot.description ?? "");
@@ -73,6 +82,22 @@ export function SettingsPanel({ pot, isOwner }: { pot: PotContext; isOwner: bool
     }
   }
 
+  async function unarchive() {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    const { error: updateError } = await supabase
+      .from("pots")
+      .update({ archived_at: null })
+      .eq("id", pot.id);
+    setBusy(false);
+    if (updateError) {
+      setError("Unarchiving didn't go through. Try again.");
+    } else {
+      router.refresh();
+    }
+  }
+
   async function deletePot() {
     setBusy(true);
     const { error: deleteError } = await supabase.from("pots").delete().eq("id", pot.id);
@@ -91,7 +116,12 @@ export function SettingsPanel({ pot, isOwner }: { pot: PotContext; isOwner: bool
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setDialog(null);
+      setBusy(false);
+      setError("You're signed out. Sign in again to leave this Pot.");
+      return;
+    }
     const { error: leaveError } = await supabase
       .from("memberships")
       .delete()
@@ -109,6 +139,13 @@ export function SettingsPanel({ pot, isOwner }: { pot: PotContext; isOwner: bool
 
   return (
     <div className="space-y-6">
+      {pot.archived ? (
+        <NoticeBanner tone="warning" title="This Pot is archived">
+          Everything stays readable, but it is hidden from dashboards and
+          closed to new joins and contributions.
+          {isOwner ? " Unarchive it below to bring it back." : ""}
+        </NoticeBanner>
+      ) : null}
       <Card>
         <CardSection className="space-y-4">
           <Eyebrow>Identity</Eyebrow>
@@ -181,6 +218,8 @@ export function SettingsPanel({ pot, isOwner }: { pot: PotContext; isOwner: bool
         </CardSection>
       </Card>
 
+      {sectionsSlot}
+
       <Card>
         <CardSection className="space-y-3">
           <Eyebrow>Integrations</Eyebrow>
@@ -211,9 +250,20 @@ export function SettingsPanel({ pot, isOwner }: { pot: PotContext; isOwner: bool
           ) : null}
           {isOwner ? (
             <div className="flex flex-wrap gap-2">
-              <Button variant="secondary" size="sm" onClick={() => setDialog("archive")}>
-                Archive Pot
-              </Button>
+              {pot.archived ? (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => void unarchive()}
+                  disabled={busy}
+                >
+                  Unarchive Pot
+                </Button>
+              ) : (
+                <Button variant="secondary" size="sm" onClick={() => setDialog("archive")}>
+                  Archive Pot
+                </Button>
+              )}
               <Button variant="danger" size="sm" onClick={() => setDialog("delete")}>
                 Delete Pot
               </Button>

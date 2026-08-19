@@ -37,7 +37,7 @@ export type DraftItem = {
   potId: string;
   potTitle: string;
   excerpt: string;
-  status: "draft" | "ready_to_review" | "failed";
+  status: "draft" | "organizing" | "ready_to_review" | "failed";
   updatedAt: string;
 };
 
@@ -51,8 +51,15 @@ export type ActivityItem = {
   sharedAt: string;
 };
 
+export type ArchivedPot = {
+  id: string;
+  title: string;
+  role: PotRole;
+};
+
 export type Dashboard = {
   pots: DashboardPot[];
+  archivedPots: ArchivedPot[];
   isMaintainerAnywhere: boolean;
   reviewQueue: ReviewQueueItem[];
   revisionRequested: RevisionRequestedItem[];
@@ -74,10 +81,16 @@ export async function getDashboard(userId: string): Promise<Dashboard> {
   const maintainedPotIds = active
     .filter((m) => m.role === "maintainer" || m.role === "owner")
     .map((m) => m.pots!.id);
+  // Archived Pots stay reachable (collapsed on the dashboard) so archiving
+  // is never a dead end; owners can unarchive from settings.
+  const archivedPots: ArchivedPot[] = (memberships ?? [])
+    .filter((m) => m.pots && m.pots.archived_at)
+    .map((m) => ({ id: m.pots!.id, title: m.pots!.title, role: m.role }));
 
   if (potIds.length === 0) {
     return {
       pots: [],
+      archivedPots,
       isMaintainerAnywhere: false,
       reviewQueue: [],
       revisionRequested: [],
@@ -86,24 +99,46 @@ export async function getDashboard(userId: string): Promise<Dashboard> {
     };
   }
 
-  const [
-    membershipRows,
-    noteRows,
-    pendingRows,
-    queueRows,
-    revisionRows,
-    draftRows,
-    activityRows,
-    lastSeenRows,
-  ] = await Promise.all([
-    supabase.from("memberships").select("pot_id").in("pot_id", potIds),
-    supabase.from("shared_notes").select("pot_id, shared_at").in("pot_id", potIds),
-    supabase
-      .from("revision_proposals")
-      .select("pot_id")
-      .in("pot_id", potIds)
-      .eq("status", "pending"),
-    maintainedPotIds.length > 0
+  // Per-pot head counts instead of fetching every row: row fetches truncate
+  // silently at PostgREST's max-rows cap, counts do not.
+  const statsPromise = Promise.all(
+    potIds.map(async (potId) => {
+      const [members, notes, pending, last] = await Promise.all([
+        supabase
+          .from("memberships")
+          .select("user_id", { count: "exact", head: true })
+          .eq("pot_id", potId),
+        supabase
+          .from("shared_notes")
+          .select("id", { count: "exact", head: true })
+          .eq("pot_id", potId),
+        supabase
+          .from("revision_proposals")
+          .select("id", { count: "exact", head: true })
+          .eq("pot_id", potId)
+          .eq("status", "pending"),
+        supabase
+          .from("shared_notes")
+          .select("shared_at")
+          .eq("pot_id", potId)
+          .order("shared_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
+      return {
+        potId,
+        memberCount: members.count ?? 0,
+        noteCount: notes.count ?? 0,
+        pendingCount: pending.count ?? 0,
+        lastActivityAt: last.data?.shared_at ?? null,
+      };
+    }),
+  );
+
+  const [potStats, queueRows, revisionRows, draftRows, activityRows, lastSeenRows] =
+    await Promise.all([
+      statsPromise,
+      maintainedPotIds.length > 0
       ? supabase
           .from("revision_proposals")
           .select(
@@ -129,12 +164,17 @@ export async function getDashboard(userId: string): Promise<Dashboard> {
       )
       .eq("proposer_id", userId)
       .eq("status", "revision_requested")
+      // Scoped to current memberships: rows in Pots the user left would
+      // render as dead links (the Pot pages 404 without membership).
+      .in("pot_id", potIds)
       .order("updated_at", { ascending: false }),
     supabase
       .from("contributions")
       .select("id, pot_id, raw_text, status, updated_at, pots(title)")
       .eq("author_id", userId)
-      .in("status", ["draft", "ready_to_review", "failed"])
+      // "organizing" counts as a draft: a closed tab mid-organize must stay reachable.
+      .in("status", ["draft", "organizing", "ready_to_review", "failed"])
+      .in("pot_id", potIds)
       .order("updated_at", { ascending: false }),
     supabase
       .from("shared_notes")
@@ -158,21 +198,7 @@ export async function getDashboard(userId: string): Promise<Dashboard> {
       ),
   ]);
 
-  const membersByPot = new Map<string, number>();
-  for (const row of membershipRows.data ?? []) {
-    membersByPot.set(row.pot_id, (membersByPot.get(row.pot_id) ?? 0) + 1);
-  }
-  const notesByPot = new Map<string, { count: number; last: string | null }>();
-  for (const row of noteRows.data ?? []) {
-    const entry = notesByPot.get(row.pot_id) ?? { count: 0, last: null };
-    entry.count += 1;
-    if (!entry.last || row.shared_at > entry.last) entry.last = row.shared_at;
-    notesByPot.set(row.pot_id, entry);
-  }
-  const pendingByPot = new Map<string, number>();
-  for (const row of pendingRows.data ?? []) {
-    pendingByPot.set(row.pot_id, (pendingByPot.get(row.pot_id) ?? 0) + 1);
-  }
+  const statsByPot = new Map(potStats.map((s) => [s.potId, s]));
   const lastSeenTitles = new Map<string, string>();
   for (const row of lastSeenRows.data ?? []) {
     if (row.current?.title) lastSeenTitles.set(row.id, row.current.title);
@@ -180,7 +206,7 @@ export async function getDashboard(userId: string): Promise<Dashboard> {
 
   const pots: DashboardPot[] = active.map((m) => {
     const pot = m.pots!;
-    const notes = notesByPot.get(pot.id) ?? { count: 0, last: null };
+    const stats = statsByPot.get(pot.id);
     const continueNoteId =
       m.last_seen_note_id && lastSeenTitles.has(m.last_seen_note_id)
         ? m.last_seen_note_id
@@ -189,10 +215,10 @@ export async function getDashboard(userId: string): Promise<Dashboard> {
       id: pot.id,
       title: pot.title,
       role: m.role,
-      memberCount: membersByPot.get(pot.id) ?? 0,
-      noteCount: notes.count,
-      openProposalCount: pendingByPot.get(pot.id) ?? 0,
-      lastActivityAt: notes.last,
+      memberCount: stats?.memberCount ?? 0,
+      noteCount: stats?.noteCount ?? 0,
+      openProposalCount: stats?.pendingCount ?? 0,
+      lastActivityAt: stats?.lastActivityAt ?? null,
       continueNoteId,
       continueNoteTitle: continueNoteId
         ? (lastSeenTitles.get(continueNoteId) ?? null)
@@ -202,6 +228,7 @@ export async function getDashboard(userId: string): Promise<Dashboard> {
 
   return {
     pots,
+    archivedPots,
     isMaintainerAnywhere: maintainedPotIds.length > 0,
     reviewQueue: (queueRows.data ?? []).map((row) => ({
       proposalId: row.id,

@@ -42,6 +42,14 @@ export default async function MyContributionsPage({
     : "shared";
   const supabase = await supabaseServer();
 
+  // Everything on this page deep-links into Pot routes, which 404 without
+  // membership, so rows are scoped to the Pots the user currently belongs to.
+  const { data: membershipRows } = await supabase
+    .from("memberships")
+    .select("pot_id")
+    .eq("user_id", user.id);
+  const potIds = (membershipRows ?? []).map((m) => m.pot_id);
+
   const [sharedRows, draftRows, proposalRows] = await Promise.all([
     supabase
       .from("contributions")
@@ -53,12 +61,15 @@ export default async function MyContributionsPage({
       )
       .eq("author_id", user.id)
       .eq("status", "shared")
+      .in("pot_id", potIds)
       .order("updated_at", { ascending: false }),
     supabase
       .from("contributions")
       .select("id, pot_id, raw_text, status, updated_at, pots(title)")
       .eq("author_id", user.id)
-      .in("status", ["draft", "ready_to_review", "failed"])
+      // "organizing" counts as a draft: a closed tab mid-organize must stay reachable.
+      .in("status", ["draft", "organizing", "ready_to_review", "failed"])
+      .in("pot_id", potIds)
       .order("updated_at", { ascending: false }),
     supabase
       .from("revision_proposals")
@@ -69,6 +80,7 @@ export default async function MyContributionsPage({
          )`,
       )
       .eq("proposer_id", user.id)
+      .in("pot_id", potIds)
       .order("updated_at", { ascending: false }),
   ]);
 

@@ -114,4 +114,64 @@ test.describe("search and settings", () => {
     await expect(visitor.getByRole("heading", { name: "Biology 101H" })).toBeVisible();
     await anon.close();
   });
+
+  test("maintainers organize sections: add, rename, reorder, delete", async ({
+    page,
+  }) => {
+    await loginAs(page, "maya@meltingpot.dev");
+    await page
+      .getByRole("main")
+      .getByRole("link", { name: /Biology 101/ })
+      .first()
+      .click();
+    await page.getByRole("link", { name: "Settings", exact: true }).click();
+
+    // Add. The section list is the only list on the page; section titles
+    // also appear in the left nav, so assertions stay scoped to list items.
+    const rows = page.getByRole("listitem");
+    await page.getByLabel("New section name").fill("Lab safety");
+    await page.getByRole("button", { name: "Add section" }).click();
+    await expect(rows.filter({ hasText: "Lab safety" })).toHaveCount(1, {
+      timeout: 10_000,
+    });
+
+    // Rename.
+    await page.getByRole("button", { name: "Rename Lab safety" }).click();
+    await page.getByRole("textbox", { name: "Rename Lab safety" }).fill("Lab safety basics");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(rows.filter({ hasText: "Lab safety basics" })).toHaveCount(1, {
+      timeout: 10_000,
+    });
+
+    // Reorder: the new section starts last; moving it up changes the order.
+    await expect(rows.last()).toContainText("Lab safety basics");
+    await page.getByRole("button", { name: "Move Lab safety basics up" }).click();
+    await expect(rows.last()).not.toContainText("Lab safety basics", { timeout: 10_000 });
+
+    // The section is live for members: it appears as a feed filter.
+    await page.getByRole("link", { name: "Feed", exact: true }).click();
+    await expect(page.getByRole("main").getByText("Lab safety basics").first()).toBeVisible();
+
+    // Delete, and it disappears everywhere.
+    await page.getByRole("link", { name: "Settings", exact: true }).click();
+    await page.getByRole("button", { name: "Delete Lab safety basics" }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Delete section" }).click();
+    await expect(rows.filter({ hasText: "Lab safety basics" })).toHaveCount(0, {
+      timeout: 10_000,
+    });
+
+    // Plain members never see the section manager.
+    const memberCtx = await page.context().browser()!.newContext();
+    const memberPage = await memberCtx.newPage();
+    await loginAs(memberPage, "ava@meltingpot.dev");
+    await memberPage
+      .getByRole("main")
+      .getByRole("link", { name: /Biology 101/ })
+      .first()
+      .click();
+    await memberPage.getByRole("link", { name: "Settings", exact: true }).click();
+    await expect(memberPage.getByRole("button", { name: "Copy code" })).toBeVisible();
+    await expect(memberPage.getByRole("button", { name: "Add section" })).toHaveCount(0);
+    await memberCtx.close();
+  });
 });

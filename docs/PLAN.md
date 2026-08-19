@@ -104,7 +104,7 @@ Verify: screenshot sweep at 1440/1024/860 in light and dark; clean grep; reduced
 
 ## Step 12: Consistent bug pass
 
-Status: [pending]
+Status: [in progress] 2026-08-19. Round 1 done: a 32-agent five-lens adversarial review (security, correctness, spec, state, ux-states) confirmed 27 defects; all 27 fixed, including two access-control holes (share_contribution missing the membership check; contributions_update RLS allowing cross-Pot draft relocation), a decide_proposal lost-update race, the cross-block sentence-selection false-conflict family, Unicode-blind tokenization, the missing attachment download route, and the absent section management UI. Migrations 0011 and 0012 applied; 31 unit + 29 e2e green, build green. See BUILDLOG for the full list. Next rounds: visual UI/UX screenshot pass, further adversarial sweeps.
 
 Full e2e suite + manual pass of every SPEC final-standard flow + adversarial review of the whole diff. Log every issue, fix, re-run; repeat until a completely clean pass. Keep lessons in `memory/lessons/`.
 

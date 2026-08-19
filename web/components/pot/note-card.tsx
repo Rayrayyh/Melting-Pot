@@ -21,9 +21,11 @@ export function NoteCard({ potId, note }: { potId: string; note: FeedNote }) {
             <StatusPill tone="primary">v{note.versionCount}</StatusPill>
           ) : null}
         </div>
-        <p className="text-sm text-ink-muted leading-relaxed line-clamp-2">
-          {note.summary}
-        </p>
+        {note.summary ? (
+          <p className="text-sm text-ink-muted leading-relaxed line-clamp-2">
+            {note.summary}
+          </p>
+        ) : null}
         <div className="flex items-center justify-between gap-3 pt-1">
           <div className="flex items-center gap-2 min-w-0 text-[12px] text-ink-muted">
             <AvatarInitial name={note.contributorName} size="sm" />

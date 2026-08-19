@@ -1,3 +1,4 @@
+import { SectionsPanel } from "@/components/pot/sections-panel";
 import { SettingsPanel } from "@/components/pot/settings-panel";
 import { PotShell } from "@/components/shell/pot-shell";
 import { requireUser } from "@/lib/data/user";
@@ -7,11 +8,15 @@ export default async function SettingsPage({ params }: PageProps<"/p/[potId]/set
   const { potId } = await params;
   const user = await requireUser();
   const supabase = await supabaseServer();
-  const { data: pot } = await supabase
-    .from("pots")
-    .select("owner_id")
-    .eq("id", potId)
-    .maybeSingle();
+  const [{ data: pot }, { data: sectionRows }] = await Promise.all([
+    supabase.from("pots").select("owner_id").eq("id", potId).maybeSingle(),
+    supabase
+      .from("sections")
+      .select("id, title, position")
+      .eq("pot_id", potId)
+      .order("position", { ascending: true })
+      .order("title", { ascending: true }),
+  ]);
 
   return (
     <PotShell potId={potId}>
@@ -20,10 +25,18 @@ export default async function SettingsPage({ params }: PageProps<"/p/[potId]/set
           <header className="space-y-1">
             <h1 className="text-2xl font-semibold tracking-tight">Pot settings</h1>
             <p className="text-sm text-ink-muted">
-              Identity, class code, and membership.
+              Identity, class code, sections, and membership.
             </p>
           </header>
-          <SettingsPanel pot={potContext} isOwner={pot?.owner_id === user.id} />
+          <SettingsPanel
+            pot={potContext}
+            isOwner={pot?.owner_id === user.id}
+            sectionsSlot={
+              potContext.role !== "member" ? (
+                <SectionsPanel potId={potContext.id} sections={sectionRows ?? []} />
+              ) : undefined
+            }
+          />
         </div>
       )}
     </PotShell>

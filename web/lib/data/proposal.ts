@@ -8,6 +8,7 @@ export type ProposalDetail = {
   noteId: string;
   noteTitle: string;
   noteContributorName: string;
+  currentVersionId: string | null;
   currentBlocks: NoteBlock[];
   currentBodyText: string;
   currentTitle: string;
@@ -50,6 +51,7 @@ export async function getProposalDetail(
        decider:profiles!revision_proposals_decided_by_fkey(display_name),
        note:shared_notes!revision_proposals_note_id_fkey(
          id,
+         current_version_id,
          contributor:profiles!shared_notes_contributor_id_fkey(display_name),
          current:note_versions!shared_notes_current_version_fk(
            title, summary, body, body_text, takeaways
@@ -73,6 +75,7 @@ export async function getProposalDetail(
     noteId: proposal.note.id,
     noteTitle: proposal.note.current.title,
     noteContributorName: proposal.note.contributor?.display_name ?? "Unknown",
+    currentVersionId: proposal.note.current_version_id,
     currentBlocks: parseBlocks(proposal.note.current.body),
     currentBodyText: proposal.note.current.body_text,
     currentTitle: proposal.note.current.title,

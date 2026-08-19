@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { Robot, ShieldCheck, Warning } from "@phosphor-icons/react";
 import { BeforeAfter, DiffText } from "@/components/correct/diff-view";
 import { ProposalTimeline } from "@/components/correct/proposal-timeline";
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { Field, TextArea } from "@/components/ui/input";
 import { StatusPill } from "@/components/ui/pills";
-import { replaceInBlocks, summarizeDiff } from "@/lib/diff";
+import { countOccurrences, replaceInBlocks, summarizeDiff } from "@/lib/diff";
 import { blocksToBodyText } from "@/lib/organizer/edit";
 import type { ProposalDetail } from "@/lib/data/proposal";
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -38,6 +38,13 @@ export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
       notes.push({
         tone: "warn",
         text: "The selected sentence no longer appears in the current version. The note may have changed since this was proposed; accepting is disabled.",
+      });
+    }
+    const occurrences = countOccurrences(proposal.currentBodyText, proposal.selectedText);
+    if (!conflict && occurrences > 1) {
+      notes.push({
+        tone: "warn",
+        text: `The selected sentence appears ${occurrences} times in this note. Accepting updates every occurrence.`,
       });
     }
     const elsewhere = proposal.currentBodyText
@@ -76,6 +83,7 @@ export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
             p_change_summary:
               proposal.diffSummary ??
               summarizeDiff(proposal.selectedText, proposal.proposedText),
+            p_expected_version_id: proposal.currentVersionId ?? undefined,
           }
         : {};
 
@@ -86,6 +94,14 @@ export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
       ...payload,
     });
     if (rpcError) {
+      if (rpcError.message.includes("proposal_conflict")) {
+        setError(
+          "The note changed while this page was open. Review the newest version before deciding.",
+        );
+        setBusy(false);
+        router.refresh();
+        return;
+      }
       setError("The decision didn't go through. Try again.");
       setBusy(false);
       return;
@@ -135,18 +151,21 @@ export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
         <Eyebrow>In context</Eyebrow>
         <Card>
           <CardSection>
-            <p className="font-serif text-[15px] leading-relaxed text-ink-muted">
-              {proposal.currentBodyText.includes(proposal.selectedText) ? (
-                <>
-                  {proposal.currentBodyText.split(proposal.selectedText)[0]}
-                  <mark className="bg-pending-soft text-ink rounded px-0.5">
-                    {proposal.selectedText}
-                  </mark>
-                  {proposal.currentBodyText.split(proposal.selectedText).slice(1).join(proposal.selectedText)}
-                </>
-              ) : (
-                proposal.currentBodyText
-              )}
+            <p className="font-serif text-[15px] leading-relaxed text-ink-muted whitespace-pre-line">
+              {proposal.currentBodyText.includes(proposal.selectedText)
+                ? proposal.currentBodyText
+                    .split(proposal.selectedText)
+                    .map((part, i, parts) => (
+                      <Fragment key={i}>
+                        {part}
+                        {i < parts.length - 1 ? (
+                          <mark className="bg-pending-soft text-ink rounded px-0.5">
+                            {proposal.selectedText}
+                          </mark>
+                        ) : null}
+                      </Fragment>
+                    ))
+                : proposal.currentBodyText}
             </p>
           </CardSection>
         </Card>

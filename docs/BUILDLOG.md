@@ -95,3 +95,41 @@ Running record of deductions, actions, and verification evidence, newest entries
 - Responsive sweep at 1440/1024/860 across home, feed, note, and composer, plus dark-theme home and feed: nav collapses to the drawer below lg with the FAB present, vitals wrap cleanly, cards hold their hierarchy at 860. Sweep also confirmed the note page intentionally relies on the drawer for Add contribution below lg.
 - Motion: one Framer Motion moment added (the success settle on Shared with the class), joining the organizing checklist and the landing melt as the app's three orchestrated moments; useReducedMotion renders it statically, and global CSS still zeroes all animation under prefers-reduced-motion.
 - Verified: 22/22 unit, 28/28 e2e, build green after all changes.
+
+## Step 12, round 1: Adversarial bug pass (2026-08-19)
+
+Ran a 32-agent five-lens adversarial review (security, correctness, spec compliance, state machines, UX states) with per-finding skeptic verification. 27 findings confirmed, zero rejected as noise. All 27 fixed in this round.
+
+Security (migrations 0011 rpc_publish_guards + 0012 rls_hardening, applied and mirrored):
+
+- share_contribution never checked current membership, so a removed or departed member could still publish into the Pot; it also ignored archived_at. Now raises not_pot_member / pot_archived, and the composer maps both to plain-language errors.
+- contributions_update RLS re-validated nothing about the mutable pot_id, letting an author relocate a draft into any Pot by UUID and (with the hole above) inject notes cross-Pot. WITH CHECK now requires is_pot_member(pot_id).
+- attachments_insert (table and storage) skipped the status guard, so new files/links could be attached to already-shared notes without review; storage delete let authors destroy files behind published notes. All three policies now require the contribution to be unshared.
+- proposal_events_insert accepted any event kind, letting a proposer forge "accepted" history entries. Client inserts are now limited to comment, plus submitted by the proposer; decision kinds only come from the RPCs.
+- decide_proposal published client-computed content with no staleness check: two review tabs could silently revert an accepted correction. Accepts now lock the note row, take p_expected_version_id, and verify the selected sentence still appears; conflicts surface as "the note changed while this page was open" with a refresh.
+- resubmit_proposal gained the same membership guard.
+
+Correctness (organizer and diff library):
+
+- body_text was space-joined, so sentences could span blocks; the correction picker then offered selections replaceInBlocks could never find, producing a false "note has changed" conflict with accept permanently disabled. Blocks and bullet items now join with newlines, selectable sentences split on newlines too, and a unit test locks the invariant that every selectable sentence is replaceable.
+- replaceInBlocks used String.replace, so $$ and $& in a proposed correction were interpreted as substitution patterns, and only the first occurrence of a repeated sentence was corrected while the picker highlighted all of them. Replacement is now literal and covers every occurrence; the review workspace marks all occurrences in context and says how many an accept updates.
+- explicitBullets dropped non-bullet lines from paragraphs mixing prose with a list ("things the exam covers" above three dashes vanished). Paragraphs now segment into bullet and non-bullet runs first.
+- tokens() stripped every non-ASCII character, so notes in Arabic, Chinese, or any non-Latin script were rejected as "too short" regardless of length. Tokenization is Unicode-aware and the length gate no longer depends on space-delimited words alone.
+- A note where every sentence matched an uncertainty marker produced an empty summary rendered as a blank line; the summary now falls back to the uncertain sentences, and empty summaries are not rendered.
+
+Product and UX:
+
+- File attachments linked to /api/attachments/... with no such route: every uploaded file 404ed. Added the route handler (viewer-scoped storage download, so bucket RLS decides access) and per-segment path encoding.
+- The review-before-sharing step omitted attachments and contributor identity, both required by the SPEC; it now shows removable attachment chips and "Shared as {name}".
+- There was no way to create, rename, reorder, or delete sections anywhere, leaving the whole section system inert in real Pots. Settings now has a maintainer sections panel (add, rename, up/down reorder, delete with a confirm naming the consequence), covered by a new e2e test.
+- Archiving was a dead end: pots vanished from every list with no unarchive anywhere. Settings shows an archived banner and an Unarchive button for owners, and the dashboard lists archived Pots in a collapsed group.
+- A signed-in user following a dead invite link was silently bounced to /home with no message; the failure now lands next to the dashboard join field with the code prefilled.
+- Autosave reported "Saved" without checking the write (including the zero-rows RLS case); it now verifies the row came back and shows "Couldn't save. Your next keystroke retries." A failed first save also no longer poisons the composer: the creation guard clears and retries instead of leaving Continue silently dead.
+- Dashboard drafts and revision-requested lists included Pots the user had left (dead links), and stats were computed by fetching every row (silent truncation at PostgREST's 1000-row cap). Queries are membership-scoped and stats use per-Pot head counts; /me/contributions is membership-scoped the same way.
+- decided proposals showed proposer-voiced banners to the maintainer who decided ("credited to you"); copy now branches on the viewer.
+- Sending a correction while signed out left the button stuck on "Sending" forever (same in leave Pot); both now release and explain.
+- Detaching an uploaded file now also removes the storage object so nothing orphans.
+
+Verified after all fixes: lint and typecheck clean, 31/31 unit (9 new regression tests), 29/29 e2e (new sections test), production build green, Supabase security advisors show only the known intentional WARNs (security-definer RPCs that validate their callers; dev_reseed remains until the pre-deploy cleanup).
+
+One transient: dashboard.spec "review queue is not reachable" failed once on the 404 navigation in a full run and passed on isolation and on the full re-run; watching for recurrence.
