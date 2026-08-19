@@ -91,19 +91,25 @@ export function ContributeFlow({
 
   const supabase = supabaseBrowser();
 
+  // Guarded against concurrent callers (autosave + attach can fire together):
+  // exactly one contribution row is ever created per flow.
+  const creating = useRef<Promise<string | null> | null>(null);
   const ensureContribution = useCallback(async (): Promise<string | null> => {
     if (contributionId) return contributionId;
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return null;
-    const { data } = await supabase
-      .from("contributions")
-      .insert({ pot_id: potId, author_id: user.id, raw_text: rawText })
-      .select("id")
-      .single();
-    if (data) setContributionId(data.id);
-    return data?.id ?? null;
+    creating.current ??= (async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return null;
+      const { data } = await supabase
+        .from("contributions")
+        .insert({ pot_id: potId, author_id: user.id, raw_text: rawText })
+        .select("id")
+        .single();
+      if (data) setContributionId(data.id);
+      return data?.id ?? null;
+    })();
+    return creating.current;
   }, [contributionId, potId, rawText, supabase]);
 
   // Autosave the raw text from the first meaningful keystroke. The "saving"
@@ -772,6 +778,7 @@ export function ContributeFlow({
             onClick={() => {
               setStep("write");
               setContributionId(null);
+              creating.current = null;
               setRawText("");
               setSectionChoice(undefined);
               setOrganized(null);

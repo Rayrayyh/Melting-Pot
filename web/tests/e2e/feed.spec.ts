@@ -30,7 +30,7 @@ test.describe("Pot feed", () => {
     await expect(page.getByText("What exam 1 covers")).toBeVisible();
 
     // The corrected note carries a version pill.
-    await expect(page.getByText("v2", { exact: true })).toBeVisible();
+    await expect(page.getByText("v2", { exact: true }).first()).toBeVisible();
 
     // Section filter narrows the feed.
     await page.getByRole("link", { name: "Week 2: Cell structure" }).first().click();

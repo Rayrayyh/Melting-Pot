@@ -1,26 +1,25 @@
 import { notFound } from "next/navigation";
 import { ProposalStatusView } from "@/components/correct/proposal-status-view";
-import { ReviewWorkspace } from "@/components/correct/review-workspace";
 import { PotShell } from "@/components/shell/pot-shell";
 import { getProposalDetail } from "@/lib/data/proposal";
+import { requireUser } from "@/lib/data/user";
 
-export default async function ReviewProposalPage({
+export default async function ProposalPage({
   params,
-}: PageProps<"/p/[potId]/review/[proposalId]">) {
+}: PageProps<"/p/[potId]/proposals/[proposalId]">) {
   const { potId, proposalId } = await params;
+  const user = await requireUser();
   const proposal = await getProposalDetail(potId, proposalId);
   if (!proposal) notFound();
 
   return (
     <PotShell potId={potId}>
-      {(pot) => {
-        if (pot.role === "member") notFound();
-        return proposal.status === "pending" ? (
-          <ReviewWorkspace proposal={proposal} />
-        ) : (
-          <ProposalStatusView proposal={proposal} isProposer={false} />
-        );
-      }}
+      {() => (
+        <ProposalStatusView
+          proposal={proposal}
+          isProposer={proposal.proposerId === user.id}
+        />
+      )}
     </PotShell>
   );
 }

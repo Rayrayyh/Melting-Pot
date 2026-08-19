@@ -62,8 +62,8 @@ test.describe("role-based dashboard", () => {
 
     await queueItem.click();
     await expect(page).toHaveURL(/\/review\//);
-    await expect(page.getByText("Before", { exact: true })).toBeVisible();
-    await expect(page.getByText("After", { exact: true })).toBeVisible();
+    await expect(page.getByText("Current version", { exact: true })).toBeVisible();
+    await expect(page.getByText("Suggested version", { exact: true })).toBeVisible();
     await expect(page.getByText(/net movement/).first()).toBeVisible();
   });
 

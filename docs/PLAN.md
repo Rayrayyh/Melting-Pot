@@ -64,7 +64,7 @@ Verify: vitest organizer tests; Playwright `contribute.spec` (full loop, draft p
 
 ## Step 7: Correction loop
 
-Status: [pending]
+Status: [done] 2026-08-19. 22 unit + 21 e2e green; guarded dev_reseed in globalSetup (migration 0009); workspace screenshot reviewed.
 
 Word-level diff util + tests. Note detail sentence selection -> correction panel (reason chips, plain text, explanation, source) -> before/after with labeled additions/removals + provider difference summary -> Send to maintainer -> `/p/[potId]/proposals/[id]` status page (pending / accepted / revision requested with edit-and-resubmit-same-proposal / declined with reason). `/p/[potId]/review` queue + `/review/[id]` workspace (comparison, explanation, sources, provider assistance, "AI cannot publish this change. A maintainer must decide.", Accept / Request revision / Decline). Atomic accept RPC creates the credited new version.
 
