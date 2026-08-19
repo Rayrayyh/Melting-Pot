@@ -74,40 +74,56 @@ export function BrandLanding({
         </nav>
       </header>
 
-      <section id="join" className="px-6 sm:px-10 pt-10 pb-20 sm:pt-16 sm:pb-28">
-        <div className="mx-auto w-full max-w-5xl grid lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-16 items-center">
-          <div className="space-y-6">
+      <section
+        id="join"
+        className="px-6 sm:px-10 flex flex-col justify-center min-h-[calc(100vh-4rem)] py-16 sm:py-20"
+      >
+        <div className="mx-auto w-full max-w-6xl grid lg:grid-cols-[1.1fr_0.9fr] gap-14 lg:gap-24 items-center">
+          <div className="space-y-8">
             <p className="text-[12px] font-semibold tracking-[0.14em] uppercase text-clay">
               A shared class vault
             </p>
-            <h1 className="font-serif text-4xl sm:text-5xl xl:text-[56px] font-semibold tracking-tight leading-[1.08] text-ink">
+            <h1 className="font-serif text-5xl sm:text-6xl xl:text-[68px] font-semibold tracking-tight leading-[1.06] text-ink">
               Everything your class knows, in one Pot.
             </h1>
-            <p className="text-base sm:text-lg text-ink-muted leading-relaxed max-w-lg">
+            <p className="text-lg sm:text-xl text-ink-muted leading-relaxed max-w-xl">
               Join with a six-character code, write what you remember however
               it comes out, and MeltingPot shapes it into notes worth keeping.
               Nothing is shared until you say so.
             </p>
-            <ul className="flex flex-wrap gap-x-6 gap-y-2 text-[13px] text-ink-muted">
-              <li className="flex items-center gap-1.5">
+            <ul className="flex flex-wrap gap-x-8 gap-y-3 pt-2 text-[13px] text-ink-muted">
+              <li className="flex items-center gap-2">
                 <span aria-hidden className="size-1.5 rounded-full bg-clay" />
                 No formatting needed
               </li>
-              <li className="flex items-center gap-1.5">
+              <li className="flex items-center gap-2">
                 <span aria-hidden className="size-1.5 rounded-full bg-clay" />
                 Originals always preserved
               </li>
-              <li className="flex items-center gap-1.5">
+              <li className="flex items-center gap-2">
                 <span aria-hidden className="size-1.5 rounded-full bg-clay" />
                 You approve every share
               </li>
             </ul>
           </div>
-          <div className="lg:justify-self-end w-full max-w-md">
+          <div className="lg:justify-self-end w-full max-w-md space-y-4">
+            <p className="text-[12px] font-semibold tracking-[0.14em] uppercase text-ink-faint">
+              For students
+            </p>
             <JoinCard initialCode={initialCode} initialError={initialError} />
+            <p className="text-center text-[13px] text-ink-muted">
+              Teaching a class?{" "}
+              <Link
+                href="/pots/new"
+                className="font-medium text-primary hover:underline underline-offset-4"
+              >
+                Create a Pot
+              </Link>{" "}
+              and share the code.
+            </p>
           </div>
         </div>
-        <p className="flex items-center justify-center gap-2 pt-16 text-[12px] text-ink-faint">
+        <p className="flex items-center justify-center gap-2 pt-20 text-[12px] text-ink-faint">
           <ArrowDown className="size-3.5" aria-hidden />
           See how the melt works
         </p>
@@ -115,9 +131,9 @@ export function BrandLanding({
 
       <ScrollStopper />
 
-      <section className="px-6 sm:px-10 py-20 sm:py-28 bg-surface border-y border-edge">
-        <div className="mx-auto w-full max-w-5xl space-y-12">
-          <div className="max-w-md space-y-2">
+      <section className="px-6 sm:px-10 py-24 sm:py-36 bg-surface border-y border-edge">
+        <div className="mx-auto w-full max-w-5xl space-y-16">
+          <div className="max-w-lg space-y-3">
             <p className="text-[12px] font-semibold tracking-[0.14em] uppercase text-clay">
               Three steps, no friction
             </p>
@@ -125,16 +141,16 @@ export function BrandLanding({
               As easy as typing what you know.
             </h2>
           </div>
-          <div className="grid sm:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-3 gap-10 lg:gap-14">
             {STEPS.map((step) => (
-              <div key={step.number} className="space-y-3">
+              <div key={step.number} className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <span className="inline-flex size-9 items-center justify-center rounded-full bg-primary-soft text-primary font-serif text-lg font-semibold">
+                  <span className="inline-flex size-10 items-center justify-center rounded-full bg-primary-soft text-primary font-serif text-lg font-semibold">
                     {step.number}
                   </span>
                   <step.icon className="size-5 text-ink-faint" aria-hidden />
                 </div>
-                <h3 className="font-semibold text-ink">{step.title}</h3>
+                <h3 className="text-lg font-semibold text-ink">{step.title}</h3>
                 <p className="text-sm text-ink-muted leading-relaxed">{step.body}</p>
               </div>
             ))}
@@ -142,9 +158,9 @@ export function BrandLanding({
         </div>
       </section>
 
-      <section className="px-6 sm:px-10 py-20 sm:py-28">
-        <div className="mx-auto w-full max-w-5xl space-y-12">
-          <div className="max-w-md space-y-2">
+      <section className="px-6 sm:px-10 py-24 sm:py-36">
+        <div className="mx-auto w-full max-w-5xl space-y-16">
+          <div className="max-w-lg space-y-3">
             <p className="text-[12px] font-semibold tracking-[0.14em] uppercase text-clay">
               Built on trust
             </p>
@@ -152,14 +168,14 @@ export function BrandLanding({
               Your words stay yours.
             </h2>
           </div>
-          <div className="grid sm:grid-cols-3 gap-5">
+          <div className="grid sm:grid-cols-3 gap-6 lg:gap-8">
             {PRINCIPLES.map((principle) => (
               <div
                 key={principle.title}
-                className="bg-surface border border-edge rounded-(--radius-card) p-6 space-y-3 shadow-(--shadow-card)"
+                className="bg-surface border border-edge rounded-(--radius-card) p-8 space-y-4 shadow-(--shadow-card)"
               >
-                <principle.icon className="size-6 text-primary" weight="duotone" aria-hidden />
-                <h3 className="font-semibold text-ink">{principle.title}</h3>
+                <principle.icon className="size-7 text-primary" weight="duotone" aria-hidden />
+                <h3 className="text-lg font-semibold text-ink">{principle.title}</h3>
                 <p className="text-sm text-ink-muted leading-relaxed">{principle.body}</p>
               </div>
             ))}
@@ -167,16 +183,16 @@ export function BrandLanding({
         </div>
       </section>
 
-      <section className="px-6 sm:px-10 pb-24">
-        <div className="mx-auto w-full max-w-3xl bg-primary rounded-(--radius-card) px-8 py-12 sm:px-14 text-center space-y-5">
+      <section className="px-6 sm:px-10 pb-28 sm:pb-36">
+        <div className="mx-auto w-full max-w-4xl bg-primary rounded-(--radius-card) px-8 py-16 sm:px-16 sm:py-20 text-center space-y-6">
           <h2 className="font-serif text-3xl sm:text-4xl font-semibold tracking-tight text-on-primary">
             Start your class&apos;s Pot tonight.
           </h2>
-          <p className="text-sm sm:text-base text-on-primary/80 max-w-md mx-auto">
+          <p className="text-sm sm:text-base text-on-primary/80 max-w-md mx-auto leading-relaxed">
             Create it in ten seconds, share one code, and watch the vault fill
             before the next exam.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-3">
+          <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
             <Button
               href="/pots/new"
               size="lg"
@@ -194,7 +210,7 @@ export function BrandLanding({
         </div>
       </section>
 
-      <footer className="px-6 sm:px-10 py-8 border-t border-edge">
+      <footer className="px-6 sm:px-10 py-10 border-t border-edge">
         <div className="mx-auto w-full max-w-5xl flex flex-wrap items-center justify-between gap-3 text-[13px] text-ink-muted">
           <Wordmark />
           <p>A shared class vault. Open source under the MIT license.</p>

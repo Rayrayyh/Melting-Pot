@@ -43,7 +43,11 @@ export function ProposalStatusView({
       p_diff_summary: summarizeDiff(proposal.selectedText, proposed.trim()),
     });
     if (rpcError) {
-      setError("Resubmitting didn't go through. Try again.");
+      setError(
+        rpcError.message.includes("rate_limited")
+          ? "You're resubmitting very quickly. Wait a moment and try again."
+          : "Resubmitting didn't go through. Try again.",
+      );
       setBusy(false);
       return;
     }

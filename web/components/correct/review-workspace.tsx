@@ -102,7 +102,11 @@ export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
         router.refresh();
         return;
       }
-      setError("The decision didn't go through. Try again.");
+      setError(
+        rpcError.message.includes("rate_limited")
+          ? "You're deciding very quickly. Wait a moment and try again."
+          : "The decision didn't go through. Try again.",
+      );
       setBusy(false);
       return;
     }

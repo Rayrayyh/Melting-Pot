@@ -343,7 +343,9 @@ export function ContributeFlow({
           ? "You are no longer a member of this Pot, so this can't be shared here."
           : error?.message.includes("pot_archived")
             ? "This Pot has been archived, so nothing new can be shared to it."
-            : "Sharing didn't go through. Your note is safe; try again.",
+            : error?.message.includes("rate_limited")
+              ? "You're sharing very quickly. Wait a moment and try again."
+              : "Sharing didn't go through. Your note is safe; try again.",
       );
       setBusy(false);
       return;

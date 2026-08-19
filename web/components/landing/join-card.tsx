@@ -36,7 +36,11 @@ export function JoinCard({
       p_code: code,
     });
     if (rpcError) {
-      setError("Something went wrong checking that code. Try again.");
+      setError(
+        rpcError.message.includes("rate_limited")
+          ? "Too many tries from this network. Wait a few minutes and try again."
+          : "Something went wrong checking that code. Try again.",
+      );
       setChecking(false);
       return;
     }

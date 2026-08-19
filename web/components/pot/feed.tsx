@@ -24,8 +24,8 @@ export function PotFeed({
   const isMaintainer = pot.role !== "member";
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-6 py-8 space-y-6">
-      <header className="space-y-1">
+    <div className="mx-auto w-full max-w-3xl px-6 py-10 space-y-8">
+      <header className="space-y-1.5">
         <h1 className="text-2xl font-semibold tracking-tight">
           {activeSection ? activeSection.title : pot.title}
         </h1>
@@ -94,7 +94,10 @@ export function PotFeed({
               {activeSection ? "Notes in this section" : "Latest shared notes"}
             </p>
             {pot.archived ? null : (
-              <Button href={`/p/${pot.id}/contribute`} size="sm">
+              // The left nav already carries the primary contribute button on
+              // large screens; repeating it here only adds noise. Below lg
+              // the nav is in a drawer, so the feed keeps its own.
+              <Button href={`/p/${pot.id}/contribute`} size="sm" className="lg:hidden">
                 <Plus className="size-4" />
                 Add contribution
               </Button>

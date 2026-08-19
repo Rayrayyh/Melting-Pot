@@ -39,7 +39,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
 
   return (
     <UserShell>
-      <div className="mx-auto w-full max-w-5xl px-6 py-10 space-y-8">
+      <div className="mx-auto w-full max-w-5xl px-6 py-12 space-y-10">
         <header className="flex items-end justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">
@@ -53,10 +53,12 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
                 : "Pick up where your class left off."}
             </p>
           </div>
-          <Button href="/pots/new" variant="secondary">
-            <Plus className="size-4" />
-            Create a Pot
-          </Button>
+          {dashboard.isMaintainerAnywhere || dashboard.pots.length === 0 ? (
+            <Button href="/pots/new" variant="secondary">
+              <Plus className="size-4" />
+              Create a Pot
+            </Button>
+          ) : null}
         </header>
 
         {dashboard.pots.length === 0 ? (
@@ -124,13 +126,29 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
             </div>
 
             <aside className="space-y-4 lg:sticky lg:top-20">
-              <ActivityList items={dashboard.activity} />
-              <Card>
-                <CardSection className="space-y-2.5">
-                  <p className="text-sm font-semibold text-ink">Have a class code?</p>
-                  <HomeJoinCard initialCode={joinCode} initialError={joinError} />
-                </CardSection>
-              </Card>
+              {/* Students lead with joining the next class; teachers lead
+                  with what their classes are doing. */}
+              {dashboard.isMaintainerAnywhere ? (
+                <>
+                  <ActivityList items={dashboard.activity} />
+                  <Card>
+                    <CardSection className="space-y-2.5">
+                      <p className="text-sm font-semibold text-ink">Have a class code?</p>
+                      <HomeJoinCard initialCode={joinCode} initialError={joinError} />
+                    </CardSection>
+                  </Card>
+                </>
+              ) : (
+                <>
+                  <Card>
+                    <CardSection className="space-y-2.5">
+                      <p className="text-sm font-semibold text-ink">Have a class code?</p>
+                      <HomeJoinCard initialCode={joinCode} initialError={joinError} />
+                    </CardSection>
+                  </Card>
+                  <ActivityList items={dashboard.activity} />
+                </>
+              )}
             </aside>
           </div>
         )}

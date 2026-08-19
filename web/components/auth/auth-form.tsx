@@ -22,6 +22,9 @@ function friendlyError(message: string): string {
   if (message.includes("Invalid login credentials")) {
     return "That email and password don't match. Check them and try again.";
   }
+  if (message.includes("rate_limited")) {
+    return "Too many attempts from this network. Wait a few minutes and try again.";
+  }
   return "Something went wrong. Try again.";
 }
 

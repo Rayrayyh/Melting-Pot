@@ -30,7 +30,13 @@ export function HomeJoinCard({
       p_code: code,
     });
     if (rpcError || !data) {
-      setError(rpcError ? "Something went wrong. Try again." : INVALID_CODE_MESSAGE);
+      setError(
+        rpcError?.message.includes("rate_limited")
+          ? "Too many tries from this network. Wait a few minutes and try again."
+          : rpcError
+            ? "Something went wrong. Try again."
+            : INVALID_CODE_MESSAGE,
+      );
       setBusy(false);
       return;
     }

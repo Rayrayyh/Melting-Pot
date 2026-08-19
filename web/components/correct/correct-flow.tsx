@@ -67,7 +67,11 @@ export function CorrectFlow({
       .select("id")
       .single();
     if (insertError || !data) {
-      setError("Sending didn't go through. Your correction is still here; try again.");
+      setError(
+        insertError?.message.includes("rate_limited")
+          ? "You're sending corrections very quickly. Wait a moment and try again."
+          : "Sending didn't go through. Your correction is still here; try again.",
+      );
       setBusy(false);
       return;
     }
