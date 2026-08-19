@@ -13,7 +13,9 @@ export default defineConfig({
     ...devices["Desktop Chrome"],
     viewport: { width: 1440, height: 900 },
     // The sandbox provides Chromium at a fixed path; Playwright must not
-    // attempt to download its own build here.
+    // attempt to download its own build here. The browser only ever talks to
+    // localhost: Supabase traffic rides the same-origin /supabase rewrite
+    // (see next.config.ts and memory/lessons/004).
     launchOptions: {
       executablePath: process.env.PW_CHROMIUM_PATH ?? "/opt/pw-browsers/chromium",
     },

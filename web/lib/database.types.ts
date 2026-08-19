@@ -59,7 +59,22 @@ export type Database = {
           url?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["attachments"]["Insert"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "attachments_contribution_id_fkey";
+            columns: ["contribution_id"];
+            isOneToOne: false;
+            referencedRelation: "contributions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "attachments_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       contributions: {
         Row: {
@@ -87,7 +102,36 @@ export type Database = {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["contributions"]["Insert"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "contributions_author_id_fkey";
+            columns: ["author_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contributions_pot_id_fkey";
+            columns: ["pot_id"];
+            isOneToOne: false;
+            referencedRelation: "pots";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contributions_section_id_fkey";
+            columns: ["section_id"];
+            isOneToOne: false;
+            referencedRelation: "sections";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contributions_shared_note_fk";
+            columns: ["shared_note_id"];
+            isOneToOne: false;
+            referencedRelation: "shared_notes";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       memberships: {
         Row: {
@@ -105,7 +149,29 @@ export type Database = {
           user_id: string;
         };
         Update: Partial<Database["public"]["Tables"]["memberships"]["Insert"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "memberships_pot_id_fkey";
+            columns: ["pot_id"];
+            isOneToOne: false;
+            referencedRelation: "pots";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "memberships_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "memberships_last_seen_fk";
+            columns: ["last_seen_note_id"];
+            isOneToOne: false;
+            referencedRelation: "shared_notes";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       note_versions: {
         Row: {
@@ -143,7 +209,36 @@ export type Database = {
           version_number: number;
         };
         Update: Partial<Database["public"]["Tables"]["note_versions"]["Insert"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "note_versions_contributor_id_fkey";
+            columns: ["contributor_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "note_versions_correction_contributor_id_fkey";
+            columns: ["correction_contributor_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "note_versions_note_id_fkey";
+            columns: ["note_id"];
+            isOneToOne: false;
+            referencedRelation: "shared_notes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "note_versions_reviewed_by_fkey";
+            columns: ["reviewed_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       pots: {
         Row: {
@@ -165,7 +260,15 @@ export type Database = {
           title: string;
         };
         Update: Partial<Database["public"]["Tables"]["pots"]["Insert"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "pots_owner_id_fkey";
+            columns: ["owner_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       profiles: {
         Row: {
@@ -199,7 +302,22 @@ export type Database = {
           proposal_id: string;
         };
         Update: Partial<Database["public"]["Tables"]["proposal_events"]["Insert"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "proposal_events_actor_id_fkey";
+            columns: ["actor_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "proposal_events_proposal_id_fkey";
+            columns: ["proposal_id"];
+            isOneToOne: false;
+            referencedRelation: "revision_proposals";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       revision_proposals: {
         Row: {
@@ -239,7 +357,36 @@ export type Database = {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["revision_proposals"]["Insert"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "revision_proposals_decided_by_fkey";
+            columns: ["decided_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "revision_proposals_note_id_fkey";
+            columns: ["note_id"];
+            isOneToOne: false;
+            referencedRelation: "shared_notes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "revision_proposals_pot_id_fkey";
+            columns: ["pot_id"];
+            isOneToOne: false;
+            referencedRelation: "pots";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "revision_proposals_proposer_id_fkey";
+            columns: ["proposer_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       sections: {
         Row: {
@@ -257,7 +404,15 @@ export type Database = {
           title: string;
         };
         Update: Partial<Database["public"]["Tables"]["sections"]["Insert"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "sections_pot_id_fkey";
+            columns: ["pot_id"];
+            isOneToOne: false;
+            referencedRelation: "pots";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       shared_notes: {
         Row: {
@@ -279,7 +434,43 @@ export type Database = {
           shared_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["shared_notes"]["Insert"]>;
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "shared_notes_contribution_id_fkey";
+            columns: ["contribution_id"];
+            isOneToOne: false;
+            referencedRelation: "contributions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shared_notes_contributor_id_fkey";
+            columns: ["contributor_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shared_notes_current_version_fk";
+            columns: ["current_version_id"];
+            isOneToOne: false;
+            referencedRelation: "note_versions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shared_notes_pot_id_fkey";
+            columns: ["pot_id"];
+            isOneToOne: false;
+            referencedRelation: "pots";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shared_notes_section_id_fkey";
+            columns: ["section_id"];
+            isOneToOne: false;
+            referencedRelation: "sections";
+            referencedColumns: ["id"];
+          },
+        ];
       };
     };
     Views: { [_ in never]: never };

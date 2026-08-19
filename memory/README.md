@@ -30,3 +30,5 @@ This directory is the project's knowledge base. It makes the repo, not chat hist
 - 001 Reading the spec PDFs in this container requires poppler, not pypdf
 - 002 Next 16 conventions (proxy.ts, async params) and Playwright executablePath in this container
 - 003 Supabase hosted defaults: confirmations on + mailer limit force RPC registration; default privileges grant new functions to anon
+- 004 Browser TLS is blocked by the egress proxy here; dev routes browser Supabase calls through a Next rewrite
+- 005 RLS is authorization, not a query filter; queries still filter user_id themselves

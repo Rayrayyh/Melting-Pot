@@ -14,19 +14,17 @@ export function AppShell({
   displayName,
   nav,
   searchScope,
-  onSignOut,
   children,
 }: {
   displayName: string;
   nav: ReactNode;
   searchScope?: { potId: string; potTitle: string };
-  onSignOut?: () => void;
   children: ReactNode;
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   return (
     <div className="flex min-h-dvh flex-col">
-      <TopBar displayName={displayName} searchScope={searchScope} onSignOut={onSignOut} />
+      <TopBar displayName={displayName} searchScope={searchScope} />
       <div className="flex flex-1 min-h-0">
         <aside className="hidden lg:block w-60 shrink-0 border-r border-edge bg-surface">
           <div className="sticky top-14 max-h-[calc(100dvh-3.5rem)] overflow-y-auto">{nav}</div>

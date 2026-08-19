@@ -6,17 +6,16 @@ import { MagnifyingGlass, SignOut, User } from "@phosphor-icons/react";
 import { Wordmark } from "@/components/shell/wordmark";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AvatarInitial } from "@/components/ui/avatar";
+import { supabaseBrowser } from "@/lib/supabase/client";
 import { cn } from "@/lib/cn";
 
 export function TopBar({
   displayName,
   searchScope,
-  onSignOut,
 }: {
   displayName: string;
   /** When set, search submits scoped to this Pot. */
   searchScope?: { potId: string; potTitle: string };
-  onSignOut?: () => void;
 }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -82,9 +81,11 @@ export function TopBar({
                 <MenuItem
                   icon={<SignOut className="size-4" />}
                   label="Log out"
-                  onClick={() => {
+                  onClick={async () => {
                     setMenuOpen(false);
-                    onSignOut?.();
+                    await supabaseBrowser().auth.signOut();
+                    router.push("/");
+                    router.refresh();
                   }}
                 />
               </div>

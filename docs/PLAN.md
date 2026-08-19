@@ -32,7 +32,7 @@ Verify: anon key gets zero rows from direct selects but `lookup_pot_by_code` wor
 
 ## Step 3: Join flow, auth, create Pot
 
-Status: [pending]
+Status: [done] 2026-08-19. All 8 e2e tests green. Browser Supabase traffic rides a same-origin rewrite in dev (lesson 004); RLS-vs-filter bug fixed (lesson 005).
 
 Wire the landing code hero to the lookup; `/join/[code]` Pot preview with the four account-status branches; `/login` + `/signup` (display name, email, password) preserving the pending join and finalizing it server-side; `/pots/new` creating a Pot and showing the code with copy + invite link; proxy.ts session handling.
 

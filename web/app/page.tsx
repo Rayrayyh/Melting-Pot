@@ -1,21 +1,18 @@
-"use client";
-
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { redirect } from "next/navigation";
+import { JoinCard, INVALID_CODE_MESSAGE } from "@/components/landing/join-card";
 import { Wordmark } from "@/components/shell/wordmark";
-import { Button } from "@/components/ui/button";
-import { Card, CardSection } from "@/components/ui/card";
-import { CLASS_CODE_LENGTH, ClassCodeInput } from "@/components/ui/class-code-input";
+import { supabaseServer } from "@/lib/supabase/server";
 
-export default function LandingPage() {
-  const router = useRouter();
-  const [code, setCode] = useState("");
+export default async function LandingPage({ searchParams }: PageProps<"/">) {
+  const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) redirect("/home");
 
-  function submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (code.length !== CLASS_CODE_LENGTH) return;
-    router.push(`/join/${code}`);
-  }
+  const params = await searchParams;
+  const code = typeof params.code === "string" ? params.code : "";
+  const invalid = params.error === "notfound";
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-16 gap-8">
@@ -29,28 +26,10 @@ export default function LandingPage() {
           gets shared.
         </p>
       </div>
-      <Card className="w-full max-w-md">
-        <CardSection className="space-y-4 p-6">
-          <form onSubmit={submit} className="space-y-4">
-            <ClassCodeInput
-              value={code}
-              onValueChange={setCode}
-              label="Enter class code"
-            />
-            <Button
-              type="submit"
-              size="lg"
-              className="w-full"
-              disabled={code.length !== CLASS_CODE_LENGTH}
-            >
-              Join Pot
-            </Button>
-          </form>
-          <p className="text-center text-[13px] text-ink-muted">
-            Enter the 6-character code your class shared.
-          </p>
-        </CardSection>
-      </Card>
+      <JoinCard
+        initialCode={code}
+        initialError={invalid ? INVALID_CODE_MESSAGE : null}
+      />
       <div className="flex items-center gap-4 text-[13px] text-ink-muted">
         <a href="/login" className="hover:text-ink transition-colors">
           Sign in

@@ -3,15 +3,9 @@
 import { useId, useState } from "react";
 import type { ComponentProps } from "react";
 import { cn } from "@/lib/cn";
+import { CLASS_CODE_LENGTH, normalizeClassCode } from "@/lib/class-code";
 
-export const CLASS_CODE_LENGTH = 6;
-
-export function normalizeClassCode(value: string) {
-  return value
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, "")
-    .slice(0, CLASS_CODE_LENGTH);
-}
+export { CLASS_CODE_LENGTH, normalizeClassCode };
 
 /**
  * The six-character class code field. Auto-uppercases, strips separators,
