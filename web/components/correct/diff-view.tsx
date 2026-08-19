@@ -1,9 +1,14 @@
+"use client";
+
+import { useMemo } from "react";
 import { diffWords } from "@/lib/diff";
 import { cn } from "@/lib/cn";
 
 /** Inline word-level highlights; labels accompany color everywhere. */
 export function DiffText({ before, after }: { before: string; after: string }) {
-  const segments = diffWords(before, after);
+  // Memoized so re-renders (timeline clicks in history) never recompute the
+  // diff, and bounded inside diffWords so a large note cannot hang the tab.
+  const segments = useMemo(() => diffWords(before, after), [before, after]);
   return (
     // pre-line: body text separates blocks with newlines; keep them visible.
     <p className="text-sm leading-relaxed text-ink whitespace-pre-line">

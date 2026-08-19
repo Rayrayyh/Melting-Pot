@@ -748,9 +748,13 @@ export function ContributeFlow({
                           <TextArea
                             {...props}
                             rows={10}
+                            maxLength={20000}
                             value={organized.bodyDraft}
                             onChange={(e) =>
-                              setOrganized({ ...organized, bodyDraft: e.target.value })
+                              setOrganized({
+                                ...organized,
+                                bodyDraft: e.target.value.slice(0, 20000),
+                              })
                             }
                           />
                         )}

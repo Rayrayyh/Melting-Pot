@@ -31,6 +31,30 @@ describe("diffWords", () => {
   });
 });
 
+describe("diffWords bounds", () => {
+  it("stays cheap for a one-word change in a very long body", () => {
+    const long = Array.from({ length: 12000 }, (_, i) => `word${i}`).join(" ");
+    const edited = long.replace("word6000", "changed6000");
+    const start = Date.now();
+    const segments = diffWords(long, edited);
+    // The shared head and tail are trimmed, so this is near-instant and the
+    // change is captured, not the whole body.
+    expect(Date.now() - start).toBeLessThan(200);
+    expect(segments.some((s) => s.type === "added" && s.text.includes("changed6000"))).toBe(true);
+    expect(segments.some((s) => s.type === "removed" && s.text.includes("word6000"))).toBe(true);
+  });
+
+  it("falls back to whole-block replace when the changed region is huge", () => {
+    const a = Array.from({ length: 6000 }, (_, i) => `a${i}`).join(" ");
+    const b = Array.from({ length: 6000 }, (_, i) => `b${i}`).join(" ");
+    const start = Date.now();
+    const segments = diffWords(a, b);
+    expect(Date.now() - start).toBeLessThan(500);
+    expect(segments.some((s) => s.type === "removed")).toBe(true);
+    expect(segments.some((s) => s.type === "added")).toBe(true);
+  });
+});
+
 describe("summarizeDiff", () => {
   it("counts words honestly", () => {
     expect(summarizeDiff("a b c", "a b c d e")).toBe("This correction adds 2 words.");
