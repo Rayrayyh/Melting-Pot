@@ -4,7 +4,9 @@
 -- data in production. Local development against a fresh project can
 -- re-apply 0006/0009/0010 to get them back.
 
-delete from storage.objects where bucket_id = 'attachments';
+-- The attachments bucket held zero objects at cleanup time (verified), so
+-- no Storage API deletion was needed; storage tables reject direct SQL
+-- deletes by design.
 
 delete from public.pots
 where owner_id in (

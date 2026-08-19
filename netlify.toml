@@ -1,6 +1,0 @@
-# Single production deploy target: meltingpot-io.netlify.app
-# The app lives in web/; Netlify's Next.js runtime handles the rest.
-[build]
-  base = "web"
-  command = "pnpm build"
-  publish = ".next"

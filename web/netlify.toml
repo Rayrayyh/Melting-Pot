@@ -1,0 +1,10 @@
+# The production deploy uploads web/ as the package root, so no base here.
+# A git-linked Netlify build from the repo root would set base = "web".
+# The Next.js runtime plugin must be declared explicitly for zip deploys;
+# without it Netlify publishes the raw .next directory and every route 404s.
+[build]
+  command = "pnpm build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

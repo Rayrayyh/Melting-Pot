@@ -26,6 +26,7 @@ This directory is the project's knowledge base. It makes the repo, not chat hist
 - 005 Dashboard-first and brand: role-based dashboard, landing secondary, Phosphor icons, light + dark, clean production, one deploy
 - 006 Process directives: fully autonomous long runs, frontend-design skill, iterate with bug and visual passes, log everything in the repo
 - 007 body_text joins blocks with newlines so correction selections never span blocks
+- 008 Production deployment: meltingpot-io.netlify.app, web/ as package root, Next runtime plugin required for zip deploys, clean database
 
 ### Lessons
 - 001 Reading the spec PDFs in this container requires poppler, not pypdf

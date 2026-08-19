@@ -110,7 +110,7 @@ Full e2e suite + manual pass of every SPEC final-standard flow + adversarial rev
 
 ## Step 13: Single Netlify deploy and deliverables
 
-Status: [pending]
+Status: [done] 2026-08-19. Live at https://meltingpot-io.netlify.app ("meltingpot" was taken; closest available name). Production database wiped clean and dev seed functions dropped (migration 0013) before going live. Deployed web/ as the package root with the Next runtime plugin declared (two upload attempts failed first: the zip tool only excludes top-level node_modules, and zip deploys need @netlify/plugin-nextjs declared explicitly; both recorded in decision 008). Post-deploy smoke test against the live stack passed every check: hosted pages, register and sign in, create Pot, code lookup, contribute and share, correction accepted with credits, RLS guards, then full cleanup, leaving production at zero rows everywhere. README for judges at repo root. Organizer stays deterministic; the Claude provider remains a config flip.
 
 ONE production deploy to meltingpot.netlify.app or nearest available. Env: Supabase URL + anon key public, service role server-only secret. Production stays clean: live smoke test creates a temporary account + Pot, runs join/contribute/correction, then deletes the Pot. README for judges (live URL, screenshots, local setup, architecture, MIT). Record the live URL in memory. Decision point for the owner: flip organizer provider to Claude API for the demo or keep deterministic.
 
