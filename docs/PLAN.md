@@ -88,7 +88,7 @@ Verify: Playwright `settings.spec` (search hit, regenerated code invalidates old
 
 ## Step 10: Brand landing page with scroll stopper
 
-Status: [pending]
+Status: [done] 2026-08-19. 28/28 e2e; pinned melt sequence gated to desktop + full motion; static story otherwise; screenshots reviewed at four depths.
 
 Expand `/` into the full landing (secondary by design, built after the core loops): code entry stays the hero; catchy human copy, no AI-sounding language; unique editorial layout; how-it-works, trust principles, create-a-Pot CTA, footer; the scroll stopper (pinned GSAP ScrollTrigger, messy raw note reorganizes into a clean shared-note card, original preserved beside it) with an explicit iteration loop: test at multiple scroll speeds, 1440/1024/860, trackpad + keyboard, reduced-motion static fallback; fix and repeat until clean.
 
