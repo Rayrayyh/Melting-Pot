@@ -74,6 +74,13 @@ export type Database = {
             referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "attachments_pot_id_fkey";
+            columns: ["pot_id"];
+            isOneToOne: false;
+            referencedRelation: "pots";
+            referencedColumns: ["id"];
+          },
         ];
       };
       contributions: {

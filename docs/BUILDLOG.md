@@ -70,3 +70,13 @@ Running record of deductions, actions, and verification evidence, newest entries
 - History data loader with per-version attribution (contributor, correction contributor, reviewing maintainer, source, change summary); two-pane view: selectable timeline left (Current pill, attribution lines, "Every version stays visible. Nothing is silently overwritten."), readable version right with its blocks and takeaways, plus a marked-up "Changes from version N-1" diff card using the stored change summary.
 - Spec deduction: paragraph blocks render as separate DOM nodes, so cross-paragraph regexes never match; assert on exact block text instead.
 - Verified: 22/22 e2e green (full suite with reseed).
+
+## Step 9: Search, settings, members, frameworks, errors (2026-08-19)
+
+- Search across the user's Pots: note titles, summaries, body text, contributor names (server-filtered with excerpt extraction and term highlighting), section names, attachment names (shared notes only); Pot-scoped via the topbar inside a Pot with a one-tap widen to all Pots; empty and no-match states.
+- Settings: owner edits identity, everyone sees and copies the class code, owner regenerates with a confirm that names the consequence; archive and delete (confirmed, cascade); non-owners get Leave this Pot; Integrations block ships the Google Classroom and Canvas hooks disabled, settings-only per SPEC.
+- Members: roster sorted by role, owner promotes/demotes via set_member_role, maintainers remove members, confirm dialog notes that credit survives removal.
+- Root not-found and error boundaries in product voice.
+- Rate limiting on the code lookup deliberately NOT faked: a per-instance in-memory counter on serverless would be security theater; recorded as an accepted MVP risk to revisit with real infrastructure (documented here rather than shipped broken).
+- Bugs fixed along the way: attachments->pots relationship missing from the hand-maintained DB types; dev_reseed failing after code regeneration because the seed wipe keyed on the mutable class_code (migration 0010 wipes by owner email); two Playwright races (count() does not auto-wait; assertions running before navigation commits) plus an exact-match assertion against a composite text node.
+- Verified: 25/25 e2e, build green.

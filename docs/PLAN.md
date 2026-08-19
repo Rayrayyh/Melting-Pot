@@ -80,7 +80,7 @@ Verify: Playwright `history.spec` shows v1 + v2 with correct credits after the s
 
 ## Step 9: Search, settings, members, frameworks, error states
 
-Status: [pending]
+Status: [done] 2026-08-19. 25/25 e2e green; lookup rate limiting documented as accepted MVP risk instead of shipping a fake limiter.
 
 `/search` (global and Pot-scoped) over titles, summaries, content, sections, contributors, attachment names with excerpts; `/p/[potId]/settings` (rename, description, code copy/regenerate with confirm, archive/delete); `/p/[potId]/members` (roles, maintainer add/remove, member removal, leave); quiet disabled Integrations block (Google Classroom / Canvas hooks, settings only); 404/error boundaries; remaining empty states; lookup rate limiting.
 
