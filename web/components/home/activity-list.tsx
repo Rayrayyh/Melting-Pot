@@ -19,8 +19,8 @@ export function ActivityList({ items }: { items: ActivityItem[] }) {
                 className="flex items-start gap-2.5 py-2.5 group"
               >
                 <AvatarInitial name={item.contributorName} size="sm" className="mt-0.5" />
-                <span className="min-w-0">
-                  <span className="block text-[13px] font-medium text-ink leading-snug group-hover:text-primary transition-colors">
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[13px] font-medium text-ink leading-snug group-hover:text-primary transition-colors line-clamp-2 break-words">
                     {item.title}
                   </span>
                   <span className="block text-[12px] text-ink-muted truncate">

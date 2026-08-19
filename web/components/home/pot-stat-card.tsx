@@ -15,7 +15,7 @@ export function PotStatCard({ pot }: { pot: DashboardPot }) {
         <div className="flex items-start justify-between gap-3">
           <Link
             href={`/p/${pot.id}`}
-            className="font-semibold text-ink leading-snug hover:text-primary transition-colors"
+            className="min-w-0 flex-1 font-semibold text-ink leading-snug hover:text-primary transition-colors break-words"
           >
             {pot.title}
           </Link>

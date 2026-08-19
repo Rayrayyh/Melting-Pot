@@ -30,7 +30,14 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
   // A dead invite link followed while signed in lands here with the failed
   // code, so the error is shown instead of silently swallowed.
   const joinCode = typeof params.code === "string" ? params.code : "";
-  const joinError = params.error === "notfound" ? INVALID_CODE_MESSAGE : null;
+  const joinError =
+    params.error === "notfound"
+      ? INVALID_CODE_MESSAGE
+      : params.error === "busy"
+        ? "Too many tries from this network. Wait a few minutes and try again."
+        : params.error === "error"
+          ? "We couldn't reach that Pot just now. Try again in a moment."
+          : null;
   const dashboard = await getDashboard(user.id);
   const hasAttention =
     dashboard.reviewQueue.length > 0 ||

@@ -22,10 +22,15 @@ export async function GET(
     return new Response("Not found", { status: 404 });
   }
 
-  // Object names are stored as {timestamp}-{original name}; the timestamp
-  // prefix is an upload artifact, not part of the student's filename.
+  // Object keys are ASCII-safe upload artifacts; the student's real file
+  // name lives on the attachments row and becomes the download filename.
+  const { data: row } = await supabase
+    .from("attachments")
+    .select("name")
+    .eq("storage_path", storagePath)
+    .maybeSingle();
   const baseName = storagePath.split("/").pop() ?? "attachment";
-  const fileName = baseName.replace(/^\d+-/, "");
+  const fileName = row?.name ?? baseName.replace(/^\d+-/, "");
 
   return new Response(data, {
     headers: {

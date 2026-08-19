@@ -5,7 +5,10 @@
 -- authenticated actions and per IP (x-forwarded-for) for anonymous ones.
 -- This works regardless of client because the database is the only door.
 -- Limits are far above honest classroom usage and far below abuse volume.
--- dev_seed/dev_reseed set app.bypass_rate_limit for their bulk inserts.
+-- The anonymous per-IP limits (registration, code lookup) are sized for a
+-- whole class arriving from behind one school NAT at once: a class is tens
+-- of requests, abuse is thousands. dev_seed/dev_reseed set
+-- app.bypass_rate_limit for their bulk inserts.
 
 create table public.rate_limits (
   action text not null,
@@ -126,7 +129,7 @@ declare
   v_note_count int;
   v_last_shared timestamptz;
 begin
-  perform consume_rate_limit('lookup_pot_by_code', 'ip:' || client_ip(), 60, interval '10 minutes');
+  perform consume_rate_limit('lookup_pot_by_code', 'ip:' || client_ip(), 400, interval '10 minutes');
   select * into v_pot
   from pots
   where class_code = upper(trim(p_code)) and archived_at is null;
@@ -170,7 +173,7 @@ declare
   v_email text := lower(trim(p_email));
   v_user_id uuid := gen_random_uuid();
 begin
-  perform consume_rate_limit('register_student', 'ip:' || client_ip(), 20, interval '1 hour');
+  perform consume_rate_limit('register_student', 'ip:' || client_ip(), 200, interval '1 hour');
   if v_email !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' then
     raise exception 'invalid_email';
   end if;
@@ -246,7 +249,7 @@ begin
   if v_uid is null then
     raise exception 'not_authenticated';
   end if;
-  perform consume_rate_limit('join_pot_with_code', 'user:' || v_uid::text, 60, interval '1 hour');
+  perform consume_rate_limit('join_pot_with_code', 'user:' || v_uid::text, 120, interval '1 hour');
 
   select id into v_pot_id
   from pots

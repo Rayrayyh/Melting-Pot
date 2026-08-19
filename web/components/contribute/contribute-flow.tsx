@@ -152,8 +152,11 @@ export function ContributeFlow({
   }, [rawText, ensureContribution, supabase]);
 
   function handleRawTextChange(next: string) {
-    setRawText(next.slice(0, 20000));
-    setSaved("saving");
+    const trimmed = next.slice(0, 20000);
+    setRawText(trimmed);
+    // Autosave only fires for non-empty text; clearing to whitespace must
+    // not leave the indicator stuck on "Saving" for a write that never runs.
+    setSaved(trimmed.trim().length === 0 ? "idle" : "saving");
   }
 
   // Attachments load for resumed drafts.
@@ -203,12 +206,24 @@ export function ContributeFlow({
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return;
-    const path = `${potId}/${id}/${Date.now()}-${file.name}`;
+    setErrorNote(null);
+    // Storage keys must stay ASCII-safe (unicode file names are rejected by
+    // the storage API); the original name lives on the attachments row and
+    // comes back as the download filename.
+    const extension = (file.name.match(/\.[A-Za-z0-9]{1,8}$/)?.[0] ?? "").toLowerCase();
+    const path = `${potId}/${id}/${Date.now()}${extension}`;
     const { error: uploadError } = await supabase.storage
       .from("attachments")
-      .upload(path, file);
+      .upload(path, file, { contentType: file.type || "application/octet-stream" });
     if (uploadError) {
-      setErrorNote("That file couldn't be uploaded. Try a smaller file.");
+      const message = uploadError.message ?? "";
+      setErrorNote(
+        /mime|content.?type|not.?allowed|invalid/i.test(message)
+          ? "That file type isn't supported. Use an image, PDF, text, or Office document."
+          : /exceed|size|too large|payload|maximum/i.test(message)
+            ? "That file is over the 10 MB limit. Try a smaller one."
+            : "That file couldn't be uploaded. Check your connection and try again.",
+      );
       return;
     }
     const kind = file.type.startsWith("image/")
@@ -385,13 +400,15 @@ export function ContributeFlow({
             />
             <div className="flex items-center justify-between text-[12px] text-ink-muted">
               <span className={saved === "error" ? "text-danger" : undefined}>
-                {saved === "saving"
-                  ? "Saving"
-                  : saved === "saved"
-                    ? "Saved"
-                    : saved === "error"
-                      ? "Couldn't save. Your next keystroke retries."
-                      : ""}
+                {rawText.trim().length > 0 && rawText.trim().length < 20
+                  ? "A few more words and this can be organized. Notes need at least 20 characters."
+                  : saved === "saving"
+                    ? "Saving"
+                    : saved === "saved"
+                      ? "Saved"
+                      : saved === "error"
+                        ? "Couldn't save. Your next keystroke retries."
+                        : ""}
               </span>
               <span className="tabular-nums">{rawText.length.toLocaleString()} / 20,000</span>
             </div>
@@ -677,8 +694,9 @@ export function ContributeFlow({
                           <Input
                             {...props}
                             value={organized.title}
+                            maxLength={160}
                             onChange={(e) =>
-                              setOrganized({ ...organized, title: e.target.value })
+                              setOrganized({ ...organized, title: e.target.value.slice(0, 160) })
                             }
                           />
                         )}
@@ -688,9 +706,10 @@ export function ContributeFlow({
                           <TextArea
                             {...props}
                             rows={2}
+                            maxLength={400}
                             value={organized.summary}
                             onChange={(e) =>
-                              setOrganized({ ...organized, summary: e.target.value })
+                              setOrganized({ ...organized, summary: e.target.value.slice(0, 400) })
                             }
                           />
                         )}

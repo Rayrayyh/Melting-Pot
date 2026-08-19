@@ -25,7 +25,14 @@ export default async function JoinConfirmPage({ params }: PageProps<"/join/[code
   if (code.length !== 6) redirect("/");
 
   const supabase = await supabaseServer();
-  const { data } = await supabase.rpc("lookup_pot_by_code", { p_code: code });
+  const { data, error } = await supabase.rpc("lookup_pot_by_code", { p_code: code });
+  // A rate-limited or failed lookup is not the same as a missing Pot; only
+  // a clean null means "no such code". Everything else keeps the code and
+  // says to try again rather than falsely claiming the Pot does not exist.
+  if (error) {
+    const flag = error.message.includes("rate_limited") ? "busy" : "error";
+    redirect(`/?code=${encodeURIComponent(code)}&error=${flag}`);
+  }
   if (!data) redirect(`/?code=${encodeURIComponent(code)}&error=notfound`);
   const pot = data as unknown as Lookup;
 

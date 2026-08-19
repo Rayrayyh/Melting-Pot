@@ -167,6 +167,23 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/*
+  User-written text can be one unbroken run (a pasted URL, a mashed key).
+  Break it inside its container everywhere instead of letting any single
+  surface overflow; truncation stays an opt-in refinement per component.
+*/
+h1,
+h2,
+h3,
+p,
+li,
+dt,
+dd,
+blockquote {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
 ::selection {
   background: var(--primary-soft);
   color: var(--ink);

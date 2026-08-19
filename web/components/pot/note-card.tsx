@@ -13,7 +13,7 @@ export function NoteCard({ potId, note }: { potId: string; note: FeedNote }) {
         <div className="flex items-start justify-between gap-3">
           <Link
             href={`/p/${potId}/n/${note.id}`}
-            className="font-semibold text-ink leading-snug hover:text-primary transition-colors"
+            className="min-w-0 flex-1 font-semibold text-ink leading-snug hover:text-primary transition-colors break-words"
           >
             {note.title}
           </Link>

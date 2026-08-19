@@ -149,4 +149,50 @@ test.describe("contribution loop", () => {
     await expect(page.getByText("Attachments")).toBeVisible();
     await expect(page.getByText(/khanacademy\.org/)).toBeVisible();
   });
+
+  test("a file upload with a unicode name survives to the shared note and downloads", async ({
+    page,
+  }) => {
+    await loginAs(page, "priya@meltingpot.dev");
+    await openComposer(page);
+
+    await page
+      .getByLabel("Your contribution")
+      .fill(
+        "membrane transport summary: passive transport needs no energy, active transport uses ATP to move against the gradient.",
+      );
+    await expect(page.getByText("Saved", { exact: true })).toBeVisible({ timeout: 10_000 });
+
+    // A tiny valid PNG with a non-ASCII file name, the case phone uploads hit.
+    const pngBase64 =
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+    await page.getByLabel("Attach file").setInputFiles({
+      name: "ملاحظات الخلية.png",
+      mimeType: "image/png",
+      buffer: Buffer.from(pngBase64, "base64"),
+    });
+    await expect(page.getByText(/ملاحظات الخلية\.png/)).toBeVisible({ timeout: 15_000 });
+
+    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await page.getByRole("button", { name: /Not sure where it belongs/ }).click();
+    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await expect(page.getByText("Review required")).toBeVisible({ timeout: 20_000 });
+    // The review step lists the attachment before approval.
+    await expect(page.getByText(/ملاحظات الخلية\.png/)).toBeVisible();
+    await page.getByRole("button", { name: "Share with class" }).click();
+    await expect(page.getByRole("heading", { name: "Shared with the class" })).toBeVisible({
+      timeout: 15_000,
+    });
+    await page.getByRole("link", { name: "View in class notes" }).click();
+    await expect(page.getByText("Attachments")).toBeVisible();
+    const attachmentLink = page.getByRole("link", { name: /ملاحظات الخلية\.png/ });
+    await expect(attachmentLink).toBeVisible();
+
+    // The download route streams the bytes back with the viewer's session.
+    const href = await attachmentLink.getAttribute("href");
+    expect(href).toContain("/api/attachments/");
+    const response = await page.request.get(href!);
+    expect(response.status()).toBe(200);
+    expect((await response.body()).length).toBeGreaterThan(50);
+  });
 });
