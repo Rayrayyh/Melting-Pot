@@ -40,7 +40,12 @@ test.describe("role-based dashboard", () => {
     const continueLink = page.getByRole("link", {
       name: /Continue: The cell cycle and its checkpoints/,
     });
-    await expect(continueLink).toBeVisible();
+    // The last-seen write happens client-side on the note page; reload until
+    // the dashboard reflects it rather than racing the write.
+    await expect(async () => {
+      await page.reload();
+      await expect(continueLink).toBeVisible({ timeout: 2_500 });
+    }).toPass({ timeout: 20_000 });
     await continueLink.click();
     await expect(page).toHaveURL(/\/n\//);
     await expect(

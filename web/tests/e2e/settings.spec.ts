@@ -160,18 +160,46 @@ test.describe("search and settings", () => {
       timeout: 10_000,
     });
 
-    // Plain members never see the section manager.
+    // Plain members never see the section manager. Navigate straight to the
+    // settings URL: link-text navigation is ambiguous here because the drafts
+    // module also names the Pot.
+    const potId = page.url().split("/p/")[1].split("/")[0];
     const memberCtx = await page.context().browser()!.newContext();
     const memberPage = await memberCtx.newPage();
     await loginAs(memberPage, "ava@meltingpot.dev");
-    await memberPage
-      .getByRole("main")
-      .getByRole("link", { name: /Biology 101/ })
-      .first()
-      .click();
-    await memberPage.getByRole("link", { name: "Settings", exact: true }).click();
-    await expect(memberPage.getByRole("button", { name: "Copy code" })).toBeVisible();
+    await memberPage.goto(`/p/${potId}/settings`);
+    await expect(memberPage.getByRole("button", { name: "Copy code" })).toBeVisible({
+      timeout: 15_000,
+    });
     await expect(memberPage.getByRole("button", { name: "Add section" })).toHaveCount(0);
     await memberCtx.close();
+  });
+
+  test("archiving is reversible: banner, dashboard group, unarchive", async ({ page }) => {
+    await loginAs(page, "maya@meltingpot.dev");
+
+    await page.goto("/pots/new");
+    await page.getByLabel("Pot name").fill("Archive lifecycle check");
+    await page.getByRole("button", { name: "Create Pot" }).click();
+    await page.getByRole("link", { name: "Open your Pot" }).click();
+    await page.getByRole("link", { name: "Settings", exact: true }).click();
+    await page.getByRole("button", { name: "Archive Pot" }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Archive Pot" }).click();
+    await expect(page).toHaveURL(/\/home/, { timeout: 15_000 });
+
+    // The archived Pot stays reachable through the collapsed group.
+    await page.getByText(/Archived Pots \(/).click();
+    await page.getByRole("link", { name: /Archive lifecycle check/ }).click();
+    await expect(page.getByText("This Pot is archived")).toBeVisible({ timeout: 15_000 });
+    // No contribute affordance while archived.
+    await expect(page.getByRole("link", { name: "Add contribution" })).toHaveCount(0);
+
+    // Unarchive restores it, then delete to leave no residue.
+    await page.getByRole("button", { name: "Unarchive Pot" }).click();
+    await expect(page.getByText("This Pot is archived")).toHaveCount(0, { timeout: 15_000 });
+    await expect(page.getByRole("link", { name: "Add contribution" }).first()).toBeVisible();
+    await page.getByRole("button", { name: "Delete Pot" }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Delete Pot permanently" }).click();
+    await expect(page).toHaveURL(/\/home/, { timeout: 15_000 });
   });
 });

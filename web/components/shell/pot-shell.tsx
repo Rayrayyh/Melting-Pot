@@ -32,6 +32,7 @@ export async function PotShell({
           sections={pot.sections}
           role={pot.role}
           openReviewCount={pot.openProposalCount}
+          archived={pot.archived}
         />
       }
     >

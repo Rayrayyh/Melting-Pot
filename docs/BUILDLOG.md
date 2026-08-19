@@ -133,3 +133,11 @@ Product and UX:
 Verified after all fixes: lint and typecheck clean, 31/31 unit (9 new regression tests), 29/29 e2e (new sections test), production build green, Supabase security advisors show only the known intentional WARNs (security-definer RPCs that validate their callers; dev_reseed remains until the pre-deploy cleanup).
 
 One transient: dashboard.spec "review queue is not reachable" failed once on the 404 navigation in a full run and passed on isolation and on the full re-run; watching for recurrence.
+
+## Step 12, round 2: Visual and UX pass on the round 1 surfaces (2026-08-19)
+
+- Screenshot review (light + dark, 1440px) of the sections panel, the review step with attachments and identity, the archived settings banner, the dashboard archived group, and the dashboard join error: all render cleanly; dark keeps the warm undertone.
+- Flaw found and fixed: an archived Pot still offered "Add contribution" in the Pot nav and feed even though sharing there is now refused. The nav shows a quiet "Archived: readable, closed to new notes." note instead, the header says "archived", and the feed drops its contribute buttons with archived-aware empty-state copy.
+- The throwaway screenshot spec became a permanent e2e test: archive lifecycle (archive, collapsed dashboard group, archived banner, no contribute affordance, unarchive restores it, delete cleans up).
+- Two test-robustness fixes from full-suite flakes: the dashboard Continue test reload-polls instead of racing the client-side last-seen write, and the sections member check navigates by URL because link-text navigation is ambiguous when the drafts module also names the Pot (the same ambiguity produced a false composer-reset alarm during the visual pass; the app was fine, the test had clicked a seeded draft row).
+- Verified: 30/30 e2e, lint, typecheck, build green.

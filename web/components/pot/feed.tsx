@@ -72,12 +72,18 @@ export function PotFeed({
           <EmptyState
             icon={<Tray />}
             title={activeSection ? "Nothing in this section yet" : "Nothing in the pot yet"}
-            body="Be the first. Write it however it comes to you."
+            body={
+              pot.archived
+                ? "This Pot is archived, so nothing new is being added."
+                : "Be the first. Write it however it comes to you."
+            }
             action={
-              <Button href={`/p/${pot.id}/contribute`}>
-                <Plus className="size-4" />
-                Add contribution
-              </Button>
+              pot.archived ? undefined : (
+                <Button href={`/p/${pot.id}/contribute`}>
+                  <Plus className="size-4" />
+                  Add contribution
+                </Button>
+              )
             }
           />
         </Card>
@@ -87,10 +93,12 @@ export function PotFeed({
             <p className="text-[13px] font-medium text-ink-muted">
               {activeSection ? "Notes in this section" : "Latest shared notes"}
             </p>
-            <Button href={`/p/${pot.id}/contribute`} size="sm">
-              <Plus className="size-4" />
-              Add contribution
-            </Button>
+            {pot.archived ? null : (
+              <Button href={`/p/${pot.id}/contribute`} size="sm">
+                <Plus className="size-4" />
+                Add contribution
+              </Button>
+            )}
           </div>
           {notes.map((note) => (
             <NoteCard key={note.id} potId={pot.id} note={note} />

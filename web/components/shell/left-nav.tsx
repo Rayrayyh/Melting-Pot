@@ -103,6 +103,7 @@ export function PotNav({
   sections,
   role,
   openReviewCount = 0,
+  archived = false,
 }: {
   potId: string;
   potTitle: string;
@@ -110,6 +111,7 @@ export function PotNav({
   sections: PotNavSection[];
   role: PotRole;
   openReviewCount?: number;
+  archived?: boolean;
 }) {
   const pathname = usePathname();
   const base = `/p/${potId}`;
@@ -127,15 +129,22 @@ export function PotNav({
         <p className="font-semibold text-ink leading-snug">{potTitle}</p>
         <p className="text-[12px] text-ink-muted mt-0.5">
           {memberCount} {memberCount === 1 ? "member" : "members"}
+          {archived ? " · archived" : ""}
         </p>
       </div>
-      <Link
-        href={`${base}/contribute`}
-        className="mx-3 mb-3 inline-flex h-10 items-center justify-center gap-2 rounded-(--radius-control) bg-primary text-on-primary text-sm font-medium hover:bg-primary-hover transition-colors"
-      >
-        <Plus className="size-4" />
-        Add contribution
-      </Link>
+      {archived ? (
+        <p className="mx-3 mb-3 rounded-(--radius-control) border border-edge bg-sunken px-3 py-2 text-[12px] text-ink-muted">
+          Archived: readable, closed to new notes.
+        </p>
+      ) : (
+        <Link
+          href={`${base}/contribute`}
+          className="mx-3 mb-3 inline-flex h-10 items-center justify-center gap-2 rounded-(--radius-control) bg-primary text-on-primary text-sm font-medium hover:bg-primary-hover transition-colors"
+        >
+          <Plus className="size-4" />
+          Add contribution
+        </Link>
+      )}
       <NavLink
         href={base}
         label="Feed"
