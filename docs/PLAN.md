@@ -56,7 +56,7 @@ Verify: Playwright `dashboard.spec` with two contexts (member sees no review mod
 
 ## Step 6: Contribution loop
 
-Status: [pending]
+Status: [done] 2026-08-19. 13 unit + 19 e2e green; composer screenshots reviewed; suggestion never auto-applies after "Not sure".
 
 Organizer provider + `DeterministicOrganizer` in `web/lib/organizer/` with unit tests; `ClaudeOrganizer` stub behind env. `/p/[potId]/contribute`: Write anything (SPEC copy verbatim, autosave, uploads + links), optional section step, in-place organizing state with honest stages + failure path (Try again / Edit manually / Save draft), review step (two columns, tabs under 900px, full editing), Share with class -> success -> feed immediately. `/me/contributions` (Shared / Drafts / Proposals).
 
