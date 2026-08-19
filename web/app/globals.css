@@ -2,122 +2,122 @@
 
 /*
   MeltingPot design tokens.
-  Light theme: warm paper, white surfaces, charcoal ink, deep forest green
-  primary, small clay accents. Dark theme is a derived warm charcoal variant.
+  Light theme: cream paper, warm white surfaces, near-black ink, and the
+  brand orange as primary. Dark theme is a derived warm charcoal variant.
   Theme resolution: no data-theme attribute follows the system preference;
   data-theme="light" | "dark" is an explicit user choice (persisted in
   localStorage, applied before paint by the inline script in layout.tsx).
 */
 
 :root {
-  --paper: #f6f4ef;
-  --surface: #ffffff;
-  --surface-raised: #fdfcfa;
-  --sunken: #efece4;
-  --ink: #26231c;
-  --ink-muted: #6c675b;
-  --ink-faint: #7d7767;
-  --edge: #e6e2d7;
-  --edge-strong: #d5d0c2;
-  --primary: #2e5b41;
-  --primary-hover: #264d37;
-  --primary-active: #1f402e;
-  --primary-soft: #e9f0ea;
-  --on-primary: #f5f8f4;
-  --clay: #b56a4a;
-  --clay-soft: #f4e6dd;
-  --on-clay: #fdf8f5;
-  --success: #2e7d46;
-  --success-soft: #e4f2e7;
-  --warning: #96621c;
-  --warning-soft: #f8edda;
-  --danger: #b3402f;
-  --danger-soft: #f9e6e1;
-  --pending: #96621c;
-  --pending-soft: #f8edda;
-  --added: #2e7d46;
-  --added-soft: #e4f2e7;
-  --removed: #b3402f;
-  --removed-soft: #f9e6e1;
-  --focus-ring: #2e5b41;
-  --shadow-card: 0 1px 2px rgba(38, 35, 28, 0.05);
-  --shadow-raised: 0 4px 16px rgba(38, 35, 28, 0.08);
-  --scrollbar: #cfcaba;
+  --paper: #faf4e6;
+  --surface: #fffdf6;
+  --surface-raised: #ffffff;
+  --sunken: #f2e9d4;
+  --ink: #24222c;
+  --ink-muted: #5c5952;
+  --ink-faint: #756f5e;
+  --edge: #ede3cc;
+  --edge-strong: #dbcfaf;
+  --primary: #e0761a;
+  --primary-hover: #cd6812;
+  --primary-active: #ba5b0d;
+  --primary-soft: #fbead3;
+  --on-primary: #fff8ee;
+  --clay: #c36514;
+  --clay-soft: #f8e5c8;
+  --on-clay: #fff8ec;
+  --success: #43804c;
+  --success-soft: #e6f1e0;
+  --warning: #9a6a16;
+  --warning-soft: #f8ecd0;
+  --danger: #bf4b2b;
+  --danger-soft: #f9e4d9;
+  --pending: #9a6a16;
+  --pending-soft: #f8ecd0;
+  --added: #43804c;
+  --added-soft: #e6f1e0;
+  --removed: #bf4b2b;
+  --removed-soft: #f9e4d9;
+  --focus-ring: #e0761a;
+  --shadow-card: 0 1px 2px rgba(36, 34, 44, 0.05);
+  --shadow-raised: 0 4px 16px rgba(36, 34, 44, 0.08);
+  --scrollbar: #d9ccac;
   color-scheme: light;
 }
 
 :root[data-theme="dark"] {
-  --paper: #16140f;
-  --surface: #1e1b15;
-  --surface-raised: #24211a;
-  --sunken: #12100c;
-  --ink: #ebe7dc;
-  --ink-muted: #a59f8f;
-  --ink-faint: #8f8877;
-  --edge: #343026;
-  --edge-strong: #453f32;
-  --primary: #6da983;
-  --primary-hover: #82b795;
-  --primary-active: #5c9b74;
-  --primary-soft: #24352a;
-  --on-primary: #10190f;
-  --clay: #cf8a66;
-  --clay-soft: #3a2a20;
-  --on-clay: #1f130c;
-  --success: #7cbb90;
-  --success-soft: #22331f;
-  --warning: #d3a35c;
-  --warning-soft: #362b17;
-  --danger: #e08a77;
-  --danger-soft: #3b201a;
-  --pending: #d3a35c;
-  --pending-soft: #362b17;
-  --added: #7cbb90;
-  --added-soft: #22331f;
-  --removed: #e08a77;
-  --removed-soft: #3b201a;
-  --focus-ring: #6da983;
+  --paper: #1a1510;
+  --surface: #221b14;
+  --surface-raised: #2a211a;
+  --sunken: #150f0a;
+  --ink: #f4ebda;
+  --ink-muted: #b5a88f;
+  --ink-faint: #97896f;
+  --edge: #3b3122;
+  --edge-strong: #4d4130;
+  --primary: #f19a44;
+  --primary-hover: #f5ab60;
+  --primary-active: #e58a31;
+  --primary-soft: #3b2914;
+  --on-primary: #201204;
+  --clay: #e9a85d;
+  --clay-soft: #3d2b16;
+  --on-clay: #1f1408;
+  --success: #8cbe8c;
+  --success-soft: #24331d;
+  --warning: #dba859;
+  --warning-soft: #382b12;
+  --danger: #e68e70;
+  --danger-soft: #3d1f16;
+  --pending: #dba859;
+  --pending-soft: #382b12;
+  --added: #8cbe8c;
+  --added-soft: #24331d;
+  --removed: #e68e70;
+  --removed-soft: #3d1f16;
+  --focus-ring: #f19a44;
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-raised: 0 4px 16px rgba(0, 0, 0, 0.4);
-  --scrollbar: #454032;
+  --scrollbar: #4d4433;
   color-scheme: dark;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #16140f;
-    --surface: #1e1b15;
-    --surface-raised: #24211a;
-    --sunken: #12100c;
-    --ink: #ebe7dc;
-    --ink-muted: #a59f8f;
-    --ink-faint: #8f8877;
-    --edge: #343026;
-    --edge-strong: #453f32;
-    --primary: #6da983;
-    --primary-hover: #82b795;
-    --primary-active: #5c9b74;
-    --primary-soft: #24352a;
-    --on-primary: #10190f;
-    --clay: #cf8a66;
-    --clay-soft: #3a2a20;
-    --on-clay: #1f130c;
-    --success: #7cbb90;
-    --success-soft: #22331f;
-    --warning: #d3a35c;
-    --warning-soft: #362b17;
-    --danger: #e08a77;
-    --danger-soft: #3b201a;
-    --pending: #d3a35c;
-    --pending-soft: #362b17;
-    --added: #7cbb90;
-    --added-soft: #22331f;
-    --removed: #e08a77;
-    --removed-soft: #3b201a;
-    --focus-ring: #6da983;
+    --paper: #1a1510;
+    --surface: #221b14;
+    --surface-raised: #2a211a;
+    --sunken: #150f0a;
+    --ink: #f4ebda;
+    --ink-muted: #b5a88f;
+    --ink-faint: #97896f;
+    --edge: #3b3122;
+    --edge-strong: #4d4130;
+    --primary: #f19a44;
+    --primary-hover: #f5ab60;
+    --primary-active: #e58a31;
+    --primary-soft: #3b2914;
+    --on-primary: #201204;
+    --clay: #e9a85d;
+    --clay-soft: #3d2b16;
+    --on-clay: #1f1408;
+    --success: #8cbe8c;
+    --success-soft: #24331d;
+    --warning: #dba859;
+    --warning-soft: #382b12;
+    --danger: #e68e70;
+    --danger-soft: #3d1f16;
+    --pending: #dba859;
+    --pending-soft: #382b12;
+    --added: #8cbe8c;
+    --added-soft: #24331d;
+    --removed: #e68e70;
+    --removed-soft: #3d1f16;
+    --focus-ring: #f19a44;
     --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
     --shadow-raised: 0 4px 16px rgba(0, 0, 0, 0.4);
-    --scrollbar: #454032;
+    --scrollbar: #4d4433;
     color-scheme: dark;
   }
 }
@@ -153,6 +153,8 @@
   --color-removed-soft: var(--removed-soft);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-source-serif), ui-serif, Georgia, serif;
+  --font-display: var(--font-fraunces), var(--font-source-serif), ui-serif, Georgia, serif;
+  --font-brand: var(--font-baloo), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --radius-card: 0.875rem;
   --radius-control: 0.625rem;
   --shadow-card: var(--shadow-card);

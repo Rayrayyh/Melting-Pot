@@ -40,7 +40,7 @@ Database changes go through Supabase MCP migrations (`apply_migration`), one mig
 
 ## Design tokens (digest)
 
-Off-white paper background, white surfaces, dark charcoal text, deep forest green primary actions, small clay accents for contribution moments. Inter for UI, Source Serif 4 optional for long-form note bodies. Lucide icons. Flat cards, subtle borders, restrained shadows, rounded corners, generous whitespace. Functional color only for success, warning, error, additions, removals, pending review. Honor prefers-reduced-motion.
+Cream paper background (#faf4e6), warm white surfaces, near-black ink, brand orange primary actions (#e0761a light, #f19a44 dark), deeper orange accents. The brand mark is an orange pot with a lowercase m knockout and liquid blobs (web/components/brand/pot-mark.tsx, web/app/icon.svg); the gradient inside those SVGs is the one sanctioned gradient use. Inter for UI, Fraunces for display headlines, Baloo 2 for the lowercase wordmark, Source Serif 4 for long-form note bodies. Phosphor icons. Flat cards, subtle borders, restrained shadows, rounded corners, pill buttons, generous whitespace. Functional color only for success, warning, error, additions, removals, pending review. Honor prefers-reduced-motion. The owner replaced the original forest-green palette on 2026-08-19; see memory/decisions/010.
 
 ## Working agreements
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowDown,
+  ArrowRight,
   HandPalm,
   LockSimpleOpen,
   PencilSimple,
@@ -8,6 +9,7 @@ import {
   SignIn,
   UsersThree,
 } from "@phosphor-icons/react/dist/ssr";
+import { PotHeroArt } from "@/components/brand/pot-mark";
 import { JoinCard } from "@/components/landing/join-card";
 import { ScrollStopper } from "@/components/landing/scroll-stopper";
 import { Wordmark } from "@/components/shell/wordmark";
@@ -52,7 +54,8 @@ const PRINCIPLES = [
   },
 ];
 
-/** The public landing: code entry stays the hero; the story scrolls below. */
+/** The public landing: brand hero up top, the join and create paths one
+ * scroll below, then the melt story. */
 export function BrandLanding({
   initialCode,
   initialError,
@@ -62,51 +65,98 @@ export function BrandLanding({
 }) {
   return (
     <div className="flex flex-col">
-      <header className="flex items-center justify-between px-6 sm:px-10 h-16">
-        <Wordmark />
-        <nav className="flex items-center gap-4 text-[13px]">
-          <Link href="/login" className="text-ink-muted hover:text-ink transition-colors">
-            Sign in
-          </Link>
-          <Button href="/pots/new" variant="secondary" size="sm">
-            Create a Pot
-          </Button>
-        </nav>
+      <header className="w-full">
+        <div className="mx-auto w-full max-w-[1400px] px-6 sm:px-12 h-24 flex items-center justify-between">
+          <Wordmark size="lg" />
+          <nav className="flex items-center gap-6 lg:gap-10 text-[15px]">
+            <a href="#top" className="hidden md:block text-ink hover:text-primary transition-colors">
+              Home
+            </a>
+            <a href="#spaces" className="hidden md:block text-ink hover:text-primary transition-colors">
+              Spaces
+            </a>
+            <a href="#explore" className="hidden md:block text-ink hover:text-primary transition-colors">
+              Explore
+            </a>
+            <Link href="/login" className="text-ink hover:text-primary transition-colors">
+              Sign in
+            </Link>
+            <a
+              href="#spaces"
+              className="inline-flex h-11 items-center rounded-full bg-ink px-6 text-[15px] font-medium text-paper transition-opacity hover:opacity-90"
+            >
+              Get started
+            </a>
+          </nav>
+        </div>
       </header>
 
+      <section id="top" className="relative overflow-hidden">
+        <div className="mx-auto w-full max-w-[1400px] px-6 sm:px-12 grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] items-center gap-x-8 gap-y-12 min-h-[calc(100vh-6rem)] pt-10 lg:pt-0">
+          <div className="space-y-8 lg:pb-24">
+            <h1 className="font-display text-[52px] sm:text-[64px] xl:text-[74px] font-semibold leading-[1.05] tracking-tight text-ink">
+              Many ideas.
+              <br />
+              One shared
+              <br />
+              knowledge base.
+            </h1>
+            <p className="text-lg sm:text-xl text-ink-muted leading-relaxed max-w-md">
+              MeltingPot helps classes bring their knowledge together, so
+              everyone can learn, contribute, and grow together.
+            </p>
+            <div className="flex flex-wrap items-center gap-8 pt-2">
+              <Button href="#spaces" size="lg">
+                Get started
+              </Button>
+              <a
+                href="#explore"
+                className="inline-flex items-center gap-2 text-[16px] font-medium text-ink hover:text-primary transition-colors"
+              >
+                Learn more
+                <ArrowRight className="size-4" aria-hidden />
+              </a>
+            </div>
+          </div>
+          <div className="relative h-full min-h-[320px] lg:min-h-[calc(100vh-6rem)] flex items-end justify-center lg:justify-end">
+            <PotHeroArt className="w-full max-w-120 lg:max-w-150 translate-y-[4%]" />
+          </div>
+        </div>
+      </section>
+
       <section
-        id="join"
-        className="px-6 sm:px-10 flex flex-col justify-center min-h-[calc(100vh-4rem)] py-16 sm:py-20"
+        id="spaces"
+        className="px-6 sm:px-10 py-24 sm:py-32 bg-surface border-y border-edge scroll-mt-8"
       >
-        <div className="mx-auto w-full max-w-6xl grid lg:grid-cols-[1.1fr_0.9fr] gap-14 lg:gap-24 items-center">
-          <div className="space-y-8">
+        <div className="mx-auto w-full max-w-6xl grid lg:grid-cols-[1fr_minmax(0,26rem)] gap-14 lg:gap-24 items-center">
+          <div className="space-y-7">
             <p className="text-[12px] font-semibold tracking-[0.14em] uppercase text-clay">
               A shared class vault
             </p>
-            <h1 className="font-serif text-5xl sm:text-6xl xl:text-[68px] font-semibold tracking-tight leading-[1.06] text-ink">
+            <h2 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.08] text-ink">
               Everything your class knows, in one Pot.
-            </h1>
-            <p className="text-lg sm:text-xl text-ink-muted leading-relaxed max-w-xl">
+            </h2>
+            <p className="text-lg text-ink-muted leading-relaxed max-w-xl">
               Join with a six-character code, write what you remember however
               it comes out, and MeltingPot shapes it into notes worth keeping.
               Nothing is shared until you say so.
             </p>
-            <ul className="flex flex-wrap gap-x-8 gap-y-3 pt-2 text-[13px] text-ink-muted">
+            <ul className="flex flex-wrap gap-x-8 gap-y-3 pt-1 text-[13px] text-ink-muted">
               <li className="flex items-center gap-2">
-                <span aria-hidden className="size-1.5 rounded-full bg-clay" />
+                <span aria-hidden className="size-1.5 rounded-full bg-primary" />
                 No formatting needed
               </li>
               <li className="flex items-center gap-2">
-                <span aria-hidden className="size-1.5 rounded-full bg-clay" />
+                <span aria-hidden className="size-1.5 rounded-full bg-primary" />
                 Originals always preserved
               </li>
               <li className="flex items-center gap-2">
-                <span aria-hidden className="size-1.5 rounded-full bg-clay" />
+                <span aria-hidden className="size-1.5 rounded-full bg-primary" />
                 You approve every share
               </li>
             </ul>
           </div>
-          <div className="lg:justify-self-end w-full max-w-md space-y-4">
+          <div className="w-full space-y-4">
             <p className="text-[12px] font-semibold tracking-[0.14em] uppercase text-ink-faint">
               For students
             </p>
@@ -129,7 +179,9 @@ export function BrandLanding({
         </p>
       </section>
 
-      <ScrollStopper />
+      <div id="explore" className="scroll-mt-8">
+        <ScrollStopper />
+      </div>
 
       <section className="px-6 sm:px-10 py-24 sm:py-36 bg-surface border-y border-edge">
         <div className="mx-auto w-full max-w-5xl space-y-16">
@@ -137,7 +189,7 @@ export function BrandLanding({
             <p className="text-[12px] font-semibold tracking-[0.14em] uppercase text-clay">
               Three steps, no friction
             </p>
-            <h2 className="font-serif text-3xl sm:text-4xl font-semibold tracking-tight text-ink">
+            <h2 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-ink">
               As easy as typing what you know.
             </h2>
           </div>
@@ -145,7 +197,7 @@ export function BrandLanding({
             {STEPS.map((step) => (
               <div key={step.number} className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <span className="inline-flex size-10 items-center justify-center rounded-full bg-primary-soft text-primary font-serif text-lg font-semibold">
+                  <span className="inline-flex size-10 items-center justify-center rounded-full bg-primary-soft text-primary font-display text-lg font-semibold">
                     {step.number}
                   </span>
                   <step.icon className="size-5 text-ink-faint" aria-hidden />
@@ -164,7 +216,7 @@ export function BrandLanding({
             <p className="text-[12px] font-semibold tracking-[0.14em] uppercase text-clay">
               Built on trust
             </p>
-            <h2 className="font-serif text-3xl sm:text-4xl font-semibold tracking-tight text-ink">
+            <h2 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-ink">
               Your words stay yours.
             </h2>
           </div>
@@ -185,7 +237,7 @@ export function BrandLanding({
 
       <section className="px-6 sm:px-10 pb-28 sm:pb-36">
         <div className="mx-auto w-full max-w-4xl bg-primary rounded-(--radius-card) px-8 py-16 sm:px-16 sm:py-20 text-center space-y-6">
-          <h2 className="font-serif text-3xl sm:text-4xl font-semibold tracking-tight text-on-primary">
+          <h2 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-on-primary">
             Start your class&apos;s Pot tonight.
           </h2>
           <p className="text-sm sm:text-base text-on-primary/80 max-w-md mx-auto leading-relaxed">
@@ -201,7 +253,7 @@ export function BrandLanding({
               Create a Pot
             </Button>
             <a
-              href="#join"
+              href="#spaces"
               className="text-[14px] font-medium text-on-primary/90 hover:text-on-primary underline underline-offset-4"
             >
               or enter a class code

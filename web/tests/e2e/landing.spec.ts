@@ -1,11 +1,14 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("brand landing", () => {
-  test("the code entry stays the hero and still validates in place", async ({ page }) => {
+  test("the brand hero leads and code entry still validates in place", async ({ page }) => {
     await page.goto("/");
     await expect(
-      page.getByRole("heading", { name: "Everything your class knows, in one Pot." }),
+      page.getByRole("heading", { name: "Many ideas. One shared knowledge base." }),
     ).toBeVisible();
+    // The nav offers both paths: sign in and the dark get-started pill.
+    await expect(page.getByRole("link", { name: "Get started" }).first()).toBeVisible();
+    // The join path stays one anchor away, and the code validates in place.
     await expect(page.getByLabel("Enter class code")).toBeVisible();
 
     await page.getByLabel("Enter class code").fill("zzzzzz");

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CookingPot } from "@phosphor-icons/react/dist/ssr";
+import { PotMark } from "@/components/brand/pot-mark";
 import { cn } from "@/lib/cn";
 
 export function Wordmark({
@@ -16,17 +16,17 @@ export function Wordmark({
       href={href}
       className={cn("inline-flex items-center gap-2 text-ink", className)}
     >
-      <CookingPot
-        weight="duotone"
-        className={cn("text-primary", size === "lg" ? "size-8" : "size-6")}
+      <PotMark
+        className={cn(size === "lg" ? "size-10" : "size-8")}
+        title="MeltingPot"
       />
       <span
         className={cn(
-          "font-semibold tracking-tight",
-          size === "lg" ? "text-xl" : "text-[15px]",
+          "font-brand font-semibold tracking-tight lowercase",
+          size === "lg" ? "text-[26px]" : "text-[20px]",
         )}
       >
-        MeltingPot
+        meltingpot
       </span>
     </Link>
   );
