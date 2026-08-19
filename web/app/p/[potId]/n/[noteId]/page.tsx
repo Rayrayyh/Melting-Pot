@@ -9,6 +9,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { NoteBody, TakeawaysCard } from "@/components/pot/note-body";
 import { NoteView } from "@/components/pot/note-view";
+import { RecordView } from "@/components/pot/record-view";
 import { PotShell } from "@/components/shell/pot-shell";
 import { AttributionRow } from "@/components/ui/avatar";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
@@ -27,6 +28,7 @@ export default async function NotePage({ params }: PageProps<"/p/[potId]/n/[note
     <PotShell potId={potId}>
       {(pot) => (
         <div className="mx-auto w-full max-w-3xl px-6 py-8 space-y-6">
+          <RecordView potId={pot.id} noteId={note.id} />
           <Breadcrumb
             crumbs={[
               { label: pot.title, href: `/p/${pot.id}` },

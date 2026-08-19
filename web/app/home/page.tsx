@@ -1,12 +1,18 @@
-import Link from "next/link";
 import { Plus } from "@phosphor-icons/react/dist/ssr";
+import { ActivityList } from "@/components/home/activity-list";
+import {
+  DraftsModule,
+  ReviewQueueModule,
+  RevisionRequestedModule,
+} from "@/components/home/attention-modules";
+import { HomeJoinCard } from "@/components/home/home-join-card";
+import { PotStatCard } from "@/components/home/pot-stat-card";
 import { UserShell } from "@/components/shell/user-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { RolePill } from "@/components/ui/pills";
-import { getUserPots, requireUser } from "@/lib/data/user";
-import { HomeJoinCard } from "@/components/home/home-join-card";
+import { getDashboard } from "@/lib/data/dashboard";
+import { requireUser } from "@/lib/data/user";
 
 export const metadata = { title: "Home" };
 
@@ -18,18 +24,26 @@ function greeting(name: string) {
 
 export default async function HomePage() {
   const user = await requireUser();
-  const pots = await getUserPots();
+  const dashboard = await getDashboard(user.id);
+  const hasAttention =
+    dashboard.reviewQueue.length > 0 ||
+    dashboard.revisionRequested.length > 0 ||
+    dashboard.drafts.length > 0;
 
   return (
     <UserShell>
-      <div className="mx-auto w-full max-w-4xl px-6 py-10 space-y-8">
+      <div className="mx-auto w-full max-w-5xl px-6 py-10 space-y-8">
         <header className="flex items-end justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">
               {greeting(user.displayName)}
             </h1>
             <p className="text-sm text-ink-muted mt-1">
-              Pick up where your class left off.
+              {dashboard.reviewQueue.length > 0
+                ? `${dashboard.reviewQueue.length} ${
+                    dashboard.reviewQueue.length === 1 ? "correction is" : "corrections are"
+                  } waiting on you.`
+                : "Pick up where your class left off."}
             </p>
           </div>
           <Button href="/pots/new" variant="secondary">
@@ -38,7 +52,7 @@ export default async function HomePage() {
           </Button>
         </header>
 
-        {pots.length === 0 ? (
+        {dashboard.pots.length === 0 ? (
           <Card>
             <EmptyState
               title="Join your first Pot"
@@ -49,25 +63,36 @@ export default async function HomePage() {
             </div>
           </Card>
         ) : (
-          <section className="space-y-3">
-            <Eyebrow>Your Pots</Eyebrow>
-            <div className="grid sm:grid-cols-2 gap-4">
-              {pots.map((pot) => (
-                <Link key={pot.id} href={`/p/${pot.id}`} className="block group">
-                  <Card className="h-full group-hover:border-edge-strong transition-colors">
-                    <CardSection className="flex items-center justify-between gap-3">
-                      <p className="font-semibold text-ink">{pot.title}</p>
-                      <RolePill role={pot.role} />
-                    </CardSection>
-                  </Card>
-                </Link>
-              ))}
+          <div className="grid lg:grid-cols-[1fr_300px] gap-8 items-start">
+            <div className="space-y-6 min-w-0">
+              {hasAttention ? (
+                <section aria-label="Needs your attention" className="space-y-4">
+                  <ReviewQueueModule items={dashboard.reviewQueue} />
+                  <RevisionRequestedModule items={dashboard.revisionRequested} />
+                  <DraftsModule items={dashboard.drafts} />
+                </section>
+              ) : null}
+
+              <section className="space-y-3">
+                <Eyebrow>Your Pots</Eyebrow>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {dashboard.pots.map((pot) => (
+                    <PotStatCard key={pot.id} pot={pot} />
+                  ))}
+                </div>
+              </section>
             </div>
-            <div className="max-w-sm pt-4">
-              <Eyebrow className="pb-2">Have a class code?</Eyebrow>
-              <HomeJoinCard />
-            </div>
-          </section>
+
+            <aside className="space-y-4 lg:sticky lg:top-20">
+              <ActivityList items={dashboard.activity} />
+              <Card>
+                <CardSection className="space-y-2.5">
+                  <p className="text-sm font-semibold text-ink">Have a class code?</p>
+                  <HomeJoinCard />
+                </CardSection>
+              </Card>
+            </aside>
+          </div>
         )}
       </div>
     </UserShell>

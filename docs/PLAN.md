@@ -48,7 +48,7 @@ Verify: Playwright `feed.spec` against the dev seed.
 
 ## Step 5: Role-based dashboard (priority)
 
-Status: [pending]
+Status: [done] 2026-08-19. 15/15 e2e green; member and maintainer screenshots reviewed; Continue powered by last_seen_note_id.
 
 `/home` per decision 005: member study desk (drafts, revision-requested proposals), maintainer cross-Pot review module with deep links, Pot cards with stats + Continue, recent activity across Pots, inline join + create. Server-side permission scoping for every module.
 
