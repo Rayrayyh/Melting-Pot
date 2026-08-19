@@ -40,7 +40,7 @@ Verify: Playwright `join.spec` (valid code -> preview -> signup -> inside the Po
 
 ## Step 4: Pot feed and shared-note detail
 
-Status: [pending]
+Status: [done] 2026-08-19. Migration 0008 (shared contributions member-readable). 11/11 e2e green; feed and note detail screenshots reviewed.
 
 Pot-level shell wired to real data; `/p/[potId]` feed (intro banner, vitals, shared-note cards, section filters, empty states); `/p/[potId]/s/[sectionId]`; `/p/[potId]/n/[noteId]` (organized default in Source Serif, key takeaways, attribution, attachments, Original toggle, History link, Suggest correction).
 

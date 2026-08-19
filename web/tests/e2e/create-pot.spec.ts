@@ -30,4 +30,10 @@ test("creating a Pot generates a code and opens the empty Pot", async ({ page })
   await page.getByRole("link", { name: "Open your Pot" }).click();
   await expect(page).toHaveURL(/\/p\//);
   await expect(page.getByRole("heading", { name: "History 7" })).toBeVisible();
+
+  // A brand-new Pot greets its owner with the empty state.
+  await expect(page.getByText("Nothing in the pot yet")).toBeVisible();
+  await expect(
+    page.getByText("Be the first. Write it however it comes to you."),
+  ).toBeVisible();
 });
