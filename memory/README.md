@@ -27,6 +27,7 @@ This directory is the project's knowledge base. It makes the repo, not chat hist
 - 006 Process directives: fully autonomous long runs, frontend-design skill, iterate with bug and visual passes, log everything in the repo
 - 007 body_text joins blocks with newlines so correction selections never span blocks
 - 008 Production deployment: meltingpot-io.netlify.app, web/ as package root, Next runtime plugin required for zip deploys, clean database
+- 009 Rate limiting and endpoint closure in the database: fixed-window limits sized for classroom NAT, anon locked to two RPCs, authenticated keeps only used write verbs
 
 ### Lessons
 - 001 Reading the spec PDFs in this container requires poppler, not pypdf

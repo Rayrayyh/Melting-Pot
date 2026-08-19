@@ -164,3 +164,21 @@ One transient: dashboard.spec "review queue is not reachable" failed once on the
 - Role-aware dashboard: plain members (students) no longer see the header "Create a Pot" button (it stays in the nav and for maintainers and empty dashboards), and their right rail leads with the class-code join card; maintainers (teachers) lead with activity. The feed's duplicate "Add contribution" button hides on large screens where the nav already carries it, and keeps serving small screens where the nav is in the drawer.
 - Dev seed functions temporarily restored on the production project (owner directed a single database) so the e2e suite can run; they will be dropped and wiped again before this round closes.
 - Verified: 32 unit, 33 e2e (including new screenshot checks), lint, typecheck.
+
+## Round 2 bug pass: six-lens adversarial review (2026-08-19)
+
+Ran a fresh six-lens adversarial review (functional, ux-flows, visual, a11y, security, data-layer) over the whole tree after the hardening and de-vibe-coding changes. It surfaced 50 candidate findings; verification confirmed the substantive ones. Fixed every critical, major, and clearly-real functional or overflow finding:
+
+- Rate limits were too tight for a whole class behind one school NAT (a class shares one IP): registration raised to 200/hour per IP, code lookup to 400/10 minutes, join to 120/hour. Every rate-limited path shows plain wait copy.
+- Join preview no longer reports a rate-limited or failed code lookup as an invalid code; the landing and home distinguish notfound / busy / error.
+- Post-signup join failures (rate limit, or the Pot archived or its code changed since the preview) are surfaced to the user instead of silently dropping them on /home.
+- File uploads work end to end: ASCII-safe storage keys (unicode file names were rejected), the real name rides on the row and returns as the download filename, and HEIC/HEIF from phone cameras is accepted alongside the vision-model image set. Proven by an e2e test uploading an Arabic-named PNG through share and download.
+- Text overflow: a global overflow-wrap/word-break rule plus min-w-0 and break-words on every user-content title, SectionPill truncation, and section-step button truncation. An overflow assertion confirms no page scrolls horizontally with a 90-character unbroken title and URL.
+- A draft that reached review resumes at the review step with its organized result intact, instead of restarting at write and re-organizing.
+- The "Open corrections" vitals number is pot-wide for every role via a security-definer count (migration 0018); it previously showed a member only their own pending proposals on the feed and dashboard.
+- Attachment reads scoped to shared-or-own so a member cannot download another member's unshared draft files (migration 0017).
+- /dev/styleguide 404s in production via a dev-only route layout; a stale section URL 404s instead of a misleading empty-Pot state; clearing the composer no longer sticks on "Saving"; an archived-only dashboard still shows the archived group; title and summary gain length caps.
+
+Documented, not fixed this round (feature gaps or minor polish, no security or data-loss impact): no password recovery (a consequence of the custom-RPC registration that bypasses the rate-limited GoTrue mailer), no maintainer "manage shared notes" surface, no discard-draft action, no loading states, search hidden below the sm breakpoint, greeting computed in server time, login/signup cross-links dropping the next destination, and a set of a11y refinements (focus management on step changes, sr-only diff labels, dialog names, a few AA contrast ties). client_ip() keys per-IP limits off X-Forwarded-For, which is best-effort for anonymous callers; per-user limits are the real enforcement.
+
+Verified: 32 unit, 35 e2e (new upload, resume-at-review, and overflow checks), lint, typecheck, build.
