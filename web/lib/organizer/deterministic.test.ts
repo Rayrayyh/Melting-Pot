@@ -71,6 +71,16 @@ describe("organize", () => {
     expect(JSON.stringify(result.blocks)).toContain("exam covers");
   });
 
+  it("treats a lone dashed line as a one-item list, not a dash-prefixed paragraph", async () => {
+    const result = await organize(
+      "membrane transport moves molecules across the cell boundary.\n\n- osmosis moves water only",
+    );
+    const bullets = result.blocks.find((b) => b.type === "bullets");
+    expect(bullets && bullets.type === "bullets" ? bullets.items : []).toEqual([
+      "Osmosis moves water only.",
+    ]);
+  });
+
   it("keeps non-bullet lines from a mixed paragraph anywhere in the note", async () => {
     const result = await organize(
       "photosynthesis stores energy as glucose using light and water.\n\nstuff to review before friday\n- calvin cycle steps\n- membrane transport types",

@@ -5,7 +5,8 @@ import { cn } from "@/lib/cn";
 export function DiffText({ before, after }: { before: string; after: string }) {
   const segments = diffWords(before, after);
   return (
-    <p className="text-sm leading-relaxed text-ink">
+    // pre-line: body text separates blocks with newlines; keep them visible.
+    <p className="text-sm leading-relaxed text-ink whitespace-pre-line">
       {segments.map((segment, i) =>
         segment.type === "same" ? (
           <span key={i}>{segment.text}</span>

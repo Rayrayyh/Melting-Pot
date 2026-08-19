@@ -141,3 +141,9 @@ One transient: dashboard.spec "review queue is not reachable" failed once on the
 - The throwaway screenshot spec became a permanent e2e test: archive lifecycle (archive, collapsed dashboard group, archived banner, no contribute affordance, unarchive restores it, delete cleans up).
 - Two test-robustness fixes from full-suite flakes: the dashboard Continue test reload-polls instead of racing the client-side last-seen write, and the sections member check navigates by URL because link-text navigation is ambiguous when the drafts module also names the Pot (the same ambiguity produced a false composer-reset alarm during the visual pass; the app was fine, the test had clicked a seeded draft row).
 - Verified: 30/30 e2e, lint, typecheck, build green.
+
+## Step 12, round 3: Self-review of the fix diff (2026-08-19)
+
+- Adversarially re-read the round 1 and 2 diff. Two refinements came out of it: DiffText renders with pre-line whitespace so the version-history diff shows block boundaries now that body_text is newline-joined, and a lone dashed line after run segmentation becomes a one-item list instead of a dash-prefixed paragraph (segmentByBulletRuns keeps runs homogeneous, so a single bullet line is unambiguous list intent; new unit test).
+- Confirmed non-issues while reviewing: the replaceInBlocks swap helper only marks replacement after a containment check; the archived guard does not block corrections (archive freezes new notes and joins, review keeps working); me/contributions with zero memberships correctly shows empty tabs; the attachments route adds no authority beyond the viewer's own storage access.
+- Verified: 32/32 unit, lint, typecheck, 30/30 e2e full run, build green.

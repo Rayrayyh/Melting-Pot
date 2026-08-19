@@ -123,6 +123,14 @@ function explicitBullets(paragraph: string): string[] | null {
     .map((l) => l.trim())
     .filter(Boolean);
   const bulletLines = lines.filter((l) => BULLET_LINE.test(l));
+  // A line the student prefixed with a list marker is list intent even
+  // alone; segmentByBulletRuns keeps runs homogeneous, so a one-line run
+  // becomes a one-item list instead of a dash-prefixed paragraph.
+  if (bulletLines.length >= 1 && bulletLines.length === lines.length) {
+    return bulletLines.map((l) =>
+      ensurePeriod(capitalize(l.replace(BULLET_LINE, ""))),
+    );
+  }
   if (bulletLines.length >= 2) {
     return bulletLines.map((l) =>
       ensurePeriod(capitalize(l.replace(BULLET_LINE, ""))),
