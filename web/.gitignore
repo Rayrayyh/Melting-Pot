@@ -44,3 +44,6 @@ next-env.d.ts
 /test-results/
 /playwright-report/
 !.env.example
+
+# Netlify CLI local state
+.netlify/
