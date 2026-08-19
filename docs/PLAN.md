@@ -72,7 +72,7 @@ Verify: Playwright `correction.spec` with two browser contexts covering all thre
 
 ## Step 8: Version history
 
-Status: [pending]
+Status: [done] 2026-08-19. 22/22 e2e green; timeline + comparison with full attribution trail.
 
 `/p/[potId]/n/[noteId]/history`: timeline left, comparison right in its own scroll container, per-version attribution and sources, previous versions readable.
 
