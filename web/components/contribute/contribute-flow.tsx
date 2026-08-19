@@ -19,6 +19,7 @@ import { Field, Input, TextArea } from "@/components/ui/input";
 import { NoticeBanner } from "@/components/ui/notice-banner";
 import { SectionPill, StatusPill } from "@/components/ui/pills";
 import { FlowProgress, StageChecklist, type StageState } from "@/components/ui/progress-steps";
+import { Settle } from "@/components/ui/settle";
 import { StickyActionBar } from "@/components/ui/sticky-action-bar";
 import type { NoteBlock } from "@/lib/data/pot";
 import {
@@ -738,7 +739,7 @@ export function ContributeFlow({
   if (step === "shared" && organized) {
     return (
       <div className="mx-auto w-full max-w-xl px-6 py-12 space-y-6">
-        <div className="flex flex-col items-center text-center gap-3">
+        <Settle className="flex flex-col items-center text-center gap-3">
           <span className="inline-flex size-16 items-center justify-center rounded-full bg-success-soft">
             <CheckCircle weight="fill" className="size-8 text-success" />
           </span>
@@ -748,7 +749,7 @@ export function ContributeFlow({
               Your contribution is live and credited to you.
             </p>
           </div>
-        </div>
+        </Settle>
         <Card>
           <CardSection className="space-y-2.5">
             <div className="flex items-center justify-between gap-3">

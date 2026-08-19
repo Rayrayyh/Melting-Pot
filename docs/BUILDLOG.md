@@ -87,3 +87,11 @@ Running record of deductions, actions, and verification evidence, newest entries
 - Scroll stopper: pinned GSAP ScrollTrigger timeline (scrub 0.6, +=1700) melts the rough ATP note into an organized card: raw slides from center into its "What you type" slot, then title, summary, definition block, bullets, and clay takeaway stagger in while the four-stage rail lights up, ending on the "Only you can approve what gets shared" pill. The caveat line ("Still to confirm: krebs cycle location, flagged from your 'i think'") demonstrates uncertainty preservation right on the landing.
 - Iteration findings: the pinned sequence requires the two-column md layout, so the animation is gated to (min-width: 768px) and (prefers-reduced-motion: no-preference); small screens and reduced motion render the finished story statically (verified with a reducedMotion browser context). Approval pill given tail room so the finished state holds before the pin releases. Screenshots reviewed at four scroll depths.
 - Verified: 28/28 e2e (landing hero validation, pin/scrub/build assertions at depths, reduced-motion static path), build green.
+
+## Step 11: Polish pass (2026-08-19)
+
+- Copy audit grep came back completely clean on the first run: no em dashes, no emojis, no git terms in UI strings, no AI-speak, no school or organization language.
+- Contrast: faint meta text was ~3.2:1 on paper; --ink-faint darkened to #7d7767 (light, ~4.6:1) and brightened to #8f8877 (dark) so small metadata passes AA in both themes.
+- Responsive sweep at 1440/1024/860 across home, feed, note, and composer, plus dark-theme home and feed: nav collapses to the drawer below lg with the FAB present, vitals wrap cleanly, cards hold their hierarchy at 860. Sweep also confirmed the note page intentionally relies on the drawer for Add contribution below lg.
+- Motion: one Framer Motion moment added (the success settle on Shared with the class), joining the organizing checklist and the landing melt as the app's three orchestrated moments; useReducedMotion renders it statically, and global CSS still zeroes all animation under prefers-reduced-motion.
+- Verified: 22/22 unit, 28/28 e2e, build green after all changes.

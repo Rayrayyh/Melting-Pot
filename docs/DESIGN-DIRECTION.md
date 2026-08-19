@@ -29,3 +29,4 @@ Calm, specific, active, from the student's side of the screen. Verbs name outcom
 ## Design notes (append per iteration pass)
 
 - 2026-08-19 pass 1 (styleguide screenshots, light + dark): tokens hold up in both themes; dark keeps the warm undertone rather than going neutral gray, which preserves the paper identity. Neutral "Draft" pill sits quiet in dark, acceptable. Watch: sticky action bar contrast over long content, class-code tracking at small sizes.
+- 2026-08-19 pass 2 (responsive + dark sweep): 860px keeps card hierarchy; dark stays warm rather than neutral; faint text tokens adjusted for AA. The app now has exactly three orchestrated motion moments (organizing checklist, landing melt, success settle); everything else stays at 150ms color transitions. Restraint held.

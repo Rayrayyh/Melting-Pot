@@ -96,7 +96,7 @@ Verify: Playwright `landing.spec` (hero join still works, pin/scrub/release corr
 
 ## Step 11: Polish pass
 
-Status: [pending]
+Status: [done] 2026-08-19. Copy grep clean; AA contrast for faint text in both themes; responsive sweep reviewed; three orchestrated motion moments, all reduced-motion safe.
 
 Breakpoints 1200/1000/900 with tabbed comparisons on narrow screens; Framer Motion transitions + GSAP organizing timeline gated by prefers-reduced-motion; a11y (focus, labels, contrast in BOTH themes, keyboard through both loops); banned-copy grep (em dashes, emojis, git terms, school words, AI-speak).
 
