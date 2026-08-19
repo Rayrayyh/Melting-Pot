@@ -24,7 +24,7 @@ Verified: `pnpm lint`, `pnpm typecheck`, `pnpm build` all green; 3 Playwright te
 
 ## Step 2: Supabase project, schema, RLS, RPCs, dev seed
 
-Status: [pending]
+Status: [done] 2026-08-19. Project evcfmwxzxwmeiczfupsw; migrations 0001-0007 applied and mirrored in `supabase/migrations/`; registration is the `register_student` RPC (decision 004 revised, lesson 003); dev seed installed as `dev_seed()`; RLS evidence and advisor results recorded in `docs/BUILDLOG.md`.
 
 Create project (org "Rayyan's projects", $0 confirmed). Migrations: profiles, pots (unique uppercase 6-char `class_code`, duplicable titles, archived flag), memberships (member | maintainer | owner), sections, contributions (raw_text always kept; draft | organizing | ready_to_review | shared | failed; organized payload jsonb), shared_notes (current version pointer), note_versions (immutable snapshots with contributor, correction contributor, reviewing maintainer), revision_proposals (pending | accepted | revision_requested | declined; selected excerpt, proposed text, explanation, source), proposal_events, attachments. RLS on every table via security-definer helpers `is_pot_member` / `is_pot_maintainer`; contributions author-only until shared; proposals visible to proposer + maintainers. RPCs: `lookup_pot_by_code` (safe fields only), `join_pot_with_code` (idempotent), `create_pot` (code collision retry), `regenerate_class_code` (owner), `share_contribution`, `decide_proposal` (atomic accept). Storage bucket for attachments, member-scoped. Auth email confirmation off. Dev-only seed "Biology 101"; never applied to production.
 
