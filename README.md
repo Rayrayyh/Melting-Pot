@@ -20,9 +20,9 @@ A class space is called a Pot. A teacher creates one and gets a six character cl
 
 ## Where the AI lives
 
-Organization is the product, not a feature bolted onto it. The pipeline that turns raw text into a structured note runs behind a provider interface in `web/lib/organizer`: it derives a title, splits structure out of unbroken prose, detects definitions and lists, writes a summary, extracts takeaways, suggests which section the note belongs in, and preserves the author's uncertainty rather than resolving it.
+Organization is the product, not a feature bolted onto it. Gemini Flash organizes rough text and uses vision to caption or transcribe image attachments when useful. Every model call runs through authenticated server routes, treats note and attachment contents as untrusted source material, and returns schema-constrained data for normalization before the student sees it. The student's original remains untouched and nothing is shared without approval.
 
-Two decisions shape the design. First, the engine in this build is a deterministic, rule based automation system rather than a live model call, which makes every trust promise provable: it restructures what you wrote and cannot invent content, so the approval gates around it are real guarantees instead of hopes. Second, the interface means swapping in the Claude provider is a configuration change, not a refactor; the review gate, the attribution trail, and the human approval flow are identical whichever engine runs. The product states its own boundary in the maintainer workspace: AI cannot publish this change. A maintainer must decide.
+The Pot home is also a study hub: raw notes, a class-wide summary, flashcards, and a practice test generated from shared material. Flash handles organization, vision, summaries, and cards; a stronger configurable Gemini model is reserved for practice generation. The deterministic organizer remains as a local fallback when Gemini is not configured.
 
 ## What is in the product
 
@@ -62,18 +62,18 @@ Built for the [Pixel Forge AI Hackathon](https://pixel-forge-ai-hackathon-08.dev
 
 Next.js 16 (App Router, TypeScript, Tailwind) in `web/`, on Supabase for Postgres, auth, and file storage, hosted on Netlify. Security is enforced in the database, not the client: row level security on every table, privileged transitions through security definer functions that re-validate the caller at time of use, database enforced rate limiting on every sensitive operation (sized so an entire class behind one school network can sign up together), and an API surface closed down to exactly what the app uses. Anonymous visitors can reach two functions: look up a class code and register. Shared notes and their versions can only be written through the reviewed publish paths.
 
-The build is covered by 51 unit tests and 40 Playwright end to end tests over every core flow, plus two adversarial review passes whose confirmed findings, from access control holes to a diff that could hang a browser tab, were all fixed and are documented in the build log.
+The build is covered by 54 unit tests and 40 Playwright end to end tests over every core flow, plus two adversarial review passes whose confirmed findings, from access control holes to a diff that could hang a browser tab, were all fixed and are documented in the build log.
 
 ## Running it locally
 
 ```bash
 cd web
 pnpm install
-cp .env.example .env.local   # your Supabase URL and anon key
+cp .env.example .env.local   # add Supabase values and a server-only Gemini key
 pnpm dev
 ```
 
-Apply the migrations in `supabase/migrations/` to a Supabase project in order (0001 through 0019). For a development database with sample data, the dev seed lives in 0006, 0009, and 0010; call the `dev_reseed` function to reset it. 0013 is the production data cleanup and is only for a database going live.
+Apply the migrations in `supabase/migrations/` to a Supabase project in order (0001 through 0020). For a development database with sample data, the dev seed lives in 0006, 0009, and 0010; call the `dev_reseed` function to reset it. 0013 is the production data cleanup and is only for a database going live.
 
 Tests: `pnpm test:unit` (vitest) and `pnpm test:e2e` (Playwright, expects the dev seed).
 

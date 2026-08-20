@@ -1,0 +1,196 @@
+import type { NoteBlock } from "@/lib/data/pot";
+
+export type AttachmentAnalysis = {
+  id: string;
+  caption: string;
+  extractedText: string;
+  usefulForNote: boolean;
+};
+
+export type StudyKind = "summary" | "flashcards" | "practice";
+
+export const attachmentAnalysisSchema = {
+  type: "object",
+  properties: {
+    caption: { type: "string" },
+    extractedText: { type: "string" },
+    usefulForNote: { type: "boolean" },
+  },
+  required: ["caption", "extractedText", "usefulForNote"],
+  additionalProperties: false,
+} as const;
+
+const noteBlockSchema = {
+  type: "object",
+  properties: {
+    type: { type: "string", enum: ["paragraph", "heading", "bullets", "definition", "example"] },
+    text: { type: "string" },
+    items: { type: "array", items: { type: "string" } },
+    term: { type: "string" },
+  },
+  required: ["type"],
+  additionalProperties: false,
+} as const;
+
+export const organizedNoteSchema = {
+  type: "object",
+  properties: {
+    title: { type: "string" },
+    summary: { type: "string" },
+    blocks: { type: "array", items: noteBlockSchema },
+    takeaways: { type: "array", items: { type: "string" } },
+    suggestedSectionId: { type: ["string", "null"] },
+    sectionConfidence: { type: "number" },
+  },
+  required: ["title", "summary", "blocks", "takeaways", "suggestedSectionId", "sectionConfidence"],
+  additionalProperties: false,
+} as const;
+
+export const studySchemas = {
+  summary: {
+    type: "object",
+    properties: {
+      overview: { type: "string" },
+      keyTopics: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: { title: { type: "string" }, explanation: { type: "string" } },
+          required: ["title", "explanation"],
+          additionalProperties: false,
+        },
+      },
+      stillToConfirm: { type: "array", items: { type: "string" } },
+    },
+    required: ["overview", "keyTopics", "stillToConfirm"],
+    additionalProperties: false,
+  },
+  flashcards: {
+    type: "object",
+    properties: {
+      cards: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            front: { type: "string" }, back: { type: "string" }, sourceNoteTitle: { type: "string" },
+          },
+          required: ["front", "back", "sourceNoteTitle"],
+          additionalProperties: false,
+        },
+      },
+    },
+    required: ["cards"],
+    additionalProperties: false,
+  },
+  practice: {
+    type: "object",
+    properties: {
+      title: { type: "string" },
+      questions: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            prompt: { type: "string" },
+            choices: { type: "array", items: { type: "string" } },
+            answerIndex: { type: "integer" },
+            explanation: { type: "string" },
+            sourceNoteTitle: { type: "string" },
+          },
+          required: ["prompt", "choices", "answerIndex", "explanation", "sourceNoteTitle"],
+          additionalProperties: false,
+        },
+      },
+    },
+    required: ["title", "questions"],
+    additionalProperties: false,
+  },
+} as const;
+
+function text(value: unknown, max: number): string {
+  return typeof value === "string" ? value.trim().slice(0, max) : "";
+}
+
+function textList(value: unknown, maxItems: number, maxLength: number): string[] {
+  return Array.isArray(value)
+    ? value.map((item) => text(item, maxLength)).filter(Boolean).slice(0, maxItems)
+    : [];
+}
+
+export function normalizeAttachmentAnalysis(value: unknown): Omit<AttachmentAnalysis, "id"> {
+  const item = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  return {
+    caption: text(item.caption, 800),
+    extractedText: text(item.extractedText, 6000),
+    usefulForNote: item.usefulForNote === true,
+  };
+}
+
+export function normalizeOrganizedNote(value: unknown, validSectionIds: Set<string>) {
+  const item = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  const blocks: NoteBlock[] = [];
+  for (const candidate of Array.isArray(item.blocks) ? item.blocks.slice(0, 40) : []) {
+    if (!candidate || typeof candidate !== "object") continue;
+    const block = candidate as Record<string, unknown>;
+    const type = block.type;
+    if (type === "bullets") {
+      const items = textList(block.items, 20, 500);
+      if (items.length) blocks.push({ type, items });
+    } else if (type === "definition") {
+      const term = text(block.term, 120);
+      const body = text(block.text, 1200);
+      if (term && body) blocks.push({ type, term, text: body });
+    } else if (type === "paragraph" || type === "heading" || type === "example") {
+      const body = text(block.text, 1600);
+      if (body) blocks.push({ type, text: body });
+    }
+  }
+  const suggested = typeof item.suggestedSectionId === "string" && validSectionIds.has(item.suggestedSectionId)
+    ? item.suggestedSectionId
+    : null;
+  return {
+    title: text(item.title, 160) || "Untitled note",
+    summary: text(item.summary, 500),
+    blocks,
+    takeaways: textList(item.takeaways, 8, 400),
+    suggestedSectionId: suggested,
+    sectionConfidence: Math.min(1, Math.max(0, Number(item.sectionConfidence) || 0)),
+  };
+}
+
+export function normalizeStudyResult(kind: StudyKind, value: unknown): unknown {
+  const item = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  if (kind === "summary") {
+    const topics = Array.isArray(item.keyTopics) ? item.keyTopics : [];
+    return {
+      overview: text(item.overview, 2400),
+      keyTopics: topics.slice(0, 12).map((topic) => {
+        const row = topic && typeof topic === "object" ? topic as Record<string, unknown> : {};
+        return { title: text(row.title, 160), explanation: text(row.explanation, 1200) };
+      }).filter((topic) => topic.title && topic.explanation),
+      stillToConfirm: textList(item.stillToConfirm, 10, 500),
+    };
+  }
+  if (kind === "flashcards") {
+    const cards = Array.isArray(item.cards) ? item.cards : [];
+    return { cards: cards.slice(0, 24).map((card) => {
+      const row = card && typeof card === "object" ? card as Record<string, unknown> : {};
+      return { front: text(row.front, 500), back: text(row.back, 900), sourceNoteTitle: text(row.sourceNoteTitle, 160) };
+    }).filter((card) => card.front && card.back) };
+  }
+  const questions = Array.isArray(item.questions) ? item.questions : [];
+  return {
+    title: text(item.title, 160) || "Practice test",
+    questions: questions.slice(0, 15).map((question) => {
+      const row = question && typeof question === "object" ? question as Record<string, unknown> : {};
+      const choices = textList(row.choices, 4, 400);
+      const answerIndex = Math.trunc(Number(row.answerIndex));
+      return {
+        prompt: text(row.prompt, 900), choices,
+        answerIndex: answerIndex >= 0 && answerIndex < choices.length ? answerIndex : 0,
+        explanation: text(row.explanation, 900), sourceNoteTitle: text(row.sourceNoteTitle, 160),
+      };
+    }).filter((question) => question.prompt && question.choices.length === 4),
+  };
+}

@@ -46,6 +46,11 @@ export type Database = {
           pot_id: string;
           storage_path: string | null;
           url: string | null;
+          ai_caption: string | null;
+          ai_extracted_text: string | null;
+          ai_useful_for_note: boolean | null;
+          ai_model: string | null;
+          ai_analyzed_at: string | null;
         };
         Insert: {
           contribution_id?: string | null;
@@ -57,6 +62,11 @@ export type Database = {
           pot_id: string;
           storage_path?: string | null;
           url?: string | null;
+          ai_caption?: string | null;
+          ai_extracted_text?: string | null;
+          ai_useful_for_note?: boolean | null;
+          ai_model?: string | null;
+          ai_analyzed_at?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["attachments"]["Insert"]>;
         Relationships: [
@@ -482,6 +492,10 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      consume_ai_generation: {
+        Args: { p_kind: string };
+        Returns: undefined;
+      };
       create_pot: {
         Args: { p_description?: string; p_title: string };
         Returns: Json;
@@ -542,6 +556,16 @@ export type Database = {
           p_title: string;
         };
         Returns: string;
+      };
+      save_attachment_analysis: {
+        Args: {
+          p_attachment_id: string;
+          p_caption: string;
+          p_extracted_text: string;
+          p_useful_for_note: boolean;
+          p_model: string;
+        };
+        Returns: undefined;
       };
     };
     Enums: {

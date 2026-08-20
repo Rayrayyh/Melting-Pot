@@ -28,7 +28,7 @@ import {
   blocksToEditableText,
   editableTextToBlocks,
 } from "@/lib/organizer/edit";
-import { getOrganizer, OrganizeError, suggestSection } from "@/lib/organizer";
+import { suggestSection } from "@/lib/organizer";
 import type { OrganizedResult } from "@/lib/organizer";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { cn } from "@/lib/cn";
@@ -104,7 +104,14 @@ export function ContributeFlow({
   );
   const [sectionQuery, setSectionQuery] = useState("");
   const [attachments, setAttachments] = useState<
-    Array<{ id: string; name: string; kind: string; storage_path?: string | null }>
+    Array<{
+      id: string;
+      name: string;
+      kind: string;
+      storage_path?: string | null;
+      ai_caption?: string | null;
+      ai_extracted_text?: string | null;
+    }>
   >([]);
   const [linkDraft, setLinkDraft] = useState<string | null>(null);
   const [stageStates, setStageStates] = useState<StageState[]>([]);
@@ -184,7 +191,7 @@ export function ContributeFlow({
     if (!initial?.id) return;
     void supabase
       .from("attachments")
-      .select("id, name, kind, storage_path")
+      .select("id, name, kind, storage_path, ai_caption, ai_extracted_text")
       .eq("contribution_id", initial.id)
       .then(({ data }) => {
         if (data) setAttachments(data);
@@ -294,10 +301,44 @@ export function ContributeFlow({
     try {
       await advance(0);
       if (cancelOrganize.current) return;
-      const result: OrganizedResult = await getOrganizer().organize({
-        rawText,
-        sections,
+      const response = await fetch("/api/ai/organize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          potId,
+          rawText,
+          sections,
+          attachmentIds: attachments.map((attachment) => attachment.id),
+        }),
       });
+      const payload = await response.json().catch(() => null) as {
+        result?: OrganizedResult;
+        analyses?: Array<{ id: string; caption: string; extractedText: string }>;
+        error?: string;
+        detail?: string;
+        visionWarning?: string | null;
+      } | null;
+      if (!response.ok || !payload?.result) {
+        const message = payload?.error === "rate_limited"
+          ? "You've generated several notes recently. Wait a little and try again."
+          : payload?.detail || "The AI organizer couldn't finish this note.";
+        throw new Error(message);
+      }
+      const result = payload.result;
+      if (payload.visionWarning) {
+        setErrorNote(`The note was organized, but one image could not be captioned: ${payload.visionWarning}`);
+      }
+      if (payload.analyses?.length) {
+        const byId = new Map(payload.analyses.map((analysis) => [analysis.id, analysis]));
+        setAttachments((current) => current.map((attachment) => {
+          const analysis = byId.get(attachment.id);
+          return analysis ? {
+            ...attachment,
+            ai_caption: analysis.caption,
+            ai_extracted_text: analysis.extractedText,
+          } : attachment;
+        }));
+      }
       await advance(1);
       if (cancelOrganize.current) return;
       await advance(2);
@@ -332,11 +373,7 @@ export function ContributeFlow({
       setStep("review");
     } catch (error) {
       await supabase.from("contributions").update({ status: "failed" }).eq("id", id);
-      setErrorNote(
-        error instanceof OrganizeError && error.reason === "too_short"
-          ? "There isn't enough here to organize yet."
-          : null,
-      );
+      setErrorNote(error instanceof Error ? error.message : "The AI organizer couldn't finish this note.");
       setStep("failed");
     }
   }
@@ -888,31 +925,47 @@ function AttachmentChips({
   attachments,
   onRemove,
 }: {
-  attachments: Array<{ id: string; name: string; kind: string }>;
+  attachments: Array<{
+    id: string;
+    name: string;
+    kind: string;
+    ai_caption?: string | null;
+    ai_extracted_text?: string | null;
+  }>;
   onRemove: (id: string) => void;
 }) {
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="space-y-2">
       {attachments.map((attachment) => (
-        <span
-          key={attachment.id}
-          className="inline-flex items-center gap-1.5 h-7 pl-2.5 pr-1.5 rounded-full bg-sunken border border-edge text-[12px] text-ink"
-        >
-          {attachment.kind === "link" ? (
-            <LinkSimple className="size-3.5 text-ink-faint" aria-hidden />
-          ) : (
-            <Paperclip className="size-3.5 text-ink-faint" aria-hidden />
-          )}
-          <span className="max-w-48 truncate">{attachment.name}</span>
-          <button
-            type="button"
-            aria-label={`Remove ${attachment.name}`}
-            onClick={() => onRemove(attachment.id)}
-            className="inline-flex size-4 items-center justify-center rounded-full hover:bg-edge text-ink-faint"
-          >
-            <X className="size-3" />
-          </button>
-        </span>
+        <div key={attachment.id} className="rounded-xl border border-edge bg-sunken px-3 py-2">
+          <span className="inline-flex items-center gap-1.5 text-[12px] text-ink">
+            {attachment.kind === "link" ? (
+              <LinkSimple className="size-3.5 text-ink-faint" aria-hidden />
+            ) : (
+              <Paperclip className="size-3.5 text-ink-faint" aria-hidden />
+            )}
+            <span className="max-w-64 truncate">{attachment.name}</span>
+            <button
+              type="button"
+              aria-label={`Remove ${attachment.name}`}
+              onClick={() => onRemove(attachment.id)}
+              className="inline-flex size-4 items-center justify-center rounded-full hover:bg-edge text-ink-faint"
+            >
+              <X className="size-3" />
+            </button>
+          </span>
+          {attachment.ai_caption ? (
+            <p className="mt-1 text-[12px] leading-relaxed text-ink-muted">
+              <span className="font-medium text-ink">Image caption:</span> {attachment.ai_caption}
+            </p>
+          ) : null}
+          {attachment.ai_extracted_text ? (
+            <details className="mt-1 text-[12px] text-ink-muted">
+              <summary className="cursor-pointer font-medium text-ink">Text found in image</summary>
+              <p className="mt-1 whitespace-pre-wrap leading-relaxed">{attachment.ai_extracted_text}</p>
+            </details>
+          ) : null}
+        </div>
       ))}
     </div>
   );

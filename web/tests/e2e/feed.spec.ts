@@ -23,6 +23,11 @@ test.describe("Pot feed", () => {
     await expect(page.getByText("Shared notes", { exact: true })).toBeVisible();
     await expect(page.getByText("BIO101")).toBeVisible();
 
+    await expect(page.getByRole("link", { name: /Raw Notes/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Summary/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Flashcards/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Practice/ })).toBeVisible();
+
     // All six seeded notes, newest first.
     const cards = page.getByRole("link", { name: "Open", exact: true });
     expect(await cards.count()).toBeGreaterThanOrEqual(6);
