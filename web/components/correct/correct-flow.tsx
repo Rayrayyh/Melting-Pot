@@ -111,8 +111,6 @@ export function CorrectFlow({
   const [organized, setOrganized] = useState<{ source: string; note: ProposedNote } | null>(null);
   const organizedNote = organized?.source === proposed.trim() ? organized.note : null;
 
-  const unchanged = Boolean(selected) && proposed.trim() === selected?.trim();
-
   // What actually gets stored. A sentence replacement is spliced into one
   // block, so a pasted line break in it would split that block in two; a whole
   // note is stored as the organizer rebuilt it, which is what both the
@@ -123,6 +121,11 @@ export function CorrectFlow({
         ? blocksToBodyText(organizedNote.blocks)
         : proposed.trim()
       : asSingleLine(proposed);
+
+  // Measured against what will be stored, not against what was typed. Adding
+  // only a line break to a sentence reads as an edit and collapses straight
+  // back to the original, and a correction that changes nothing is not one.
+  const unchanged = Boolean(selected) && finalText === selected?.trim();
 
   async function continueToCompare() {
     if (!selected || !proposed.trim() || unchanged || busy) return;

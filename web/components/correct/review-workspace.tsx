@@ -254,7 +254,10 @@ export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
         </Card>
       </section>
 
-      {proposal.proposedOrganized ? (
+      {/* Only what can actually be published. A whole-note correction whose
+          selection has gone stale cannot be accepted, so showing its organized
+          form under this heading would promise something the buttons refuse. */}
+      {proposal.proposedOrganized && !conflict ? (
         <section className="space-y-2">
           <Eyebrow>What gets published</Eyebrow>
           <Card>
