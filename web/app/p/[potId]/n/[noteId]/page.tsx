@@ -102,6 +102,8 @@ export default async function NotePage({ params }: PageProps<"/p/[potId]/n/[note
                           kind={attachment.kind}
                           url={attachment.url}
                           storagePath={attachment.storagePath}
+                          aiCaption={attachment.aiCaption}
+                          aiExtractedText={attachment.aiExtractedText}
                         />
                       ))}
                     </CardSection>
@@ -126,11 +128,15 @@ function AttachmentRow({
   kind,
   url,
   storagePath,
+  aiCaption,
+  aiExtractedText,
 }: {
   name: string;
   kind: string;
   url: string | null;
   storagePath: string | null;
+  aiCaption: string | null;
+  aiExtractedText: string | null;
 }) {
   const href =
     url ??
@@ -144,22 +150,41 @@ function AttachmentRow({
       <DownloadSimple className="size-4 text-ink-faint" aria-hidden />
     );
   if (!href) {
-    return (
-      <p className="flex items-center gap-2 text-sm text-ink-muted">
-        {icon}
-        {name}
-      </p>
-    );
+    return <AttachmentDescription icon={icon} name={name} aiCaption={aiCaption} aiExtractedText={aiExtractedText} />;
   }
   return (
-    <Link
-      href={href}
-      target={kind === "link" ? "_blank" : undefined}
-      rel={kind === "link" ? "noopener noreferrer" : undefined}
-      className="flex items-center gap-2 text-sm text-ink hover:text-primary transition-colors"
-    >
-      {icon}
-      <span className="truncate">{name}</span>
-    </Link>
+    <div className="space-y-1">
+      <Link
+        href={href}
+        target={kind === "link" ? "_blank" : undefined}
+        rel={kind === "link" ? "noopener noreferrer" : undefined}
+        className="flex items-center gap-2 text-sm text-ink hover:text-primary transition-colors"
+      >
+        {icon}
+        <span className="truncate">{name}</span>
+      </Link>
+      {aiCaption ? <p className="pl-6 text-[12px] text-ink-muted">{aiCaption}</p> : null}
+      {aiExtractedText ? (
+        <details className="pl-6 text-[12px] text-ink-muted">
+          <summary className="cursor-pointer">Text found in image</summary>
+          <p className="mt-1 whitespace-pre-wrap">{aiExtractedText}</p>
+        </details>
+      ) : null}
+    </div>
+  );
+}
+
+function AttachmentDescription({ icon, name, aiCaption, aiExtractedText }: {
+  icon: React.ReactNode;
+  name: string;
+  aiCaption: string | null;
+  aiExtractedText: string | null;
+}) {
+  return (
+    <div className="space-y-1">
+      <p className="flex items-center gap-2 text-sm text-ink-muted">{icon}{name}</p>
+      {aiCaption ? <p className="pl-6 text-[12px] text-ink-muted">{aiCaption}</p> : null}
+      {aiExtractedText ? <p className="pl-6 whitespace-pre-wrap text-[12px] text-ink-muted">{aiExtractedText}</p> : null}
+    </div>
   );
 }

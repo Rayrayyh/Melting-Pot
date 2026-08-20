@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Tray } from "@phosphor-icons/react/dist/ssr";
+import { Brain, Cards, FileText, Plus, Sparkle, Tray } from "@phosphor-icons/react/dist/ssr";
 import { NoteCard } from "@/components/pot/note-card";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -35,21 +35,35 @@ export function PotFeed({
       </header>
 
       {!activeSection ? (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <MetricCard label="Contributors" value={pot.memberCount} />
-          <MetricCard label="Shared notes" value={pot.noteCount} />
-          <MetricCard
-            label="Open corrections"
-            value={pot.openProposalCount}
-            tone={pot.openProposalCount > 0 ? "attention" : "default"}
-            href={isMaintainer ? `/p/${pot.id}/review` : undefined}
-          />
-          <MetricCard
-            label="Class code"
-            value={<span className="font-mono tracking-[0.12em]">{pot.classCode}</span>}
-            accessory={<CopyButton value={pot.classCode} label="Copy" />}
-          />
-        </div>
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <MetricCard label="Contributors" value={pot.memberCount} />
+            <MetricCard label="Shared notes" value={pot.noteCount} />
+            <MetricCard
+              label="Open corrections"
+              value={pot.openProposalCount}
+              tone={pot.openProposalCount > 0 ? "attention" : "default"}
+              href={isMaintainer ? `/p/${pot.id}/review` : undefined}
+            />
+            <MetricCard
+              label="Class code"
+              value={<span className="font-mono tracking-[0.12em]">{pot.classCode}</span>}
+              accessory={<CopyButton value={pot.classCode} label="Copy" />}
+            />
+          </div>
+          <section aria-labelledby="study-pot-heading" className="space-y-3">
+            <div>
+              <h2 id="study-pot-heading" className="text-[13px] font-medium text-ink-muted">Study this Pot</h2>
+              <p className="mt-0.5 text-[12px] text-ink-faint">Browse the source notes or generate material from the full class vault.</p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <StudyTile href="#raw-notes" title="Raw Notes" description="Shared notes from everyone." icon={<FileText />} />
+              <StudyTile href={`/p/${pot.id}/study/summary`} title="Summary" description="Build a fresh study guide." icon={<Sparkle />} featured />
+              <StudyTile href={`/p/${pot.id}/study/flashcards`} title="Flashcards" description="Generate recall cards from the Pot." icon={<Cards />} />
+              <StudyTile href={`/p/${pot.id}/study/practice`} title="Practice" description="Quiz the full class vault." icon={<Brain />} />
+            </div>
+          </section>
+        </>
       ) : null}
 
       {pot.sections.length > 0 ? (
@@ -88,7 +102,7 @@ export function PotFeed({
           />
         </Card>
       ) : (
-        <div className="space-y-3">
+        <div id="raw-notes" className="space-y-3 scroll-mt-6">
           <div className="flex items-center justify-between">
             <p className="text-[13px] font-medium text-ink-muted">
               {activeSection ? "Notes in this section" : "Latest shared notes"}
@@ -109,5 +123,30 @@ export function PotFeed({
         </div>
       )}
     </div>
+  );
+}
+
+function StudyTile({ href, title, description, icon, featured = false }: {
+  href: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  featured?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      className={`group rounded-(--radius-card) border p-5 transition-colors ${
+        featured
+          ? "border-primary/30 bg-primary-soft hover:border-primary/60"
+          : "border-edge bg-surface hover:border-edge-strong"
+      }`}
+    >
+      <span className="mb-5 inline-flex size-9 items-center justify-center rounded-lg bg-sunken text-primary [&>svg]:size-4">
+        {icon}
+      </span>
+      <h3 className="font-semibold text-ink group-hover:text-primary">{title}</h3>
+      <p className="mt-1 text-[12px] text-ink-muted">{description}</p>
+    </Link>
   );
 }

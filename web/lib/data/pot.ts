@@ -152,7 +152,15 @@ export type NoteDetail = {
   sectionTitle: string | null;
   sharedAt: string;
   rawText: string;
-  attachments: Array<{ id: string; name: string; kind: string; url: string | null; storagePath: string | null }>;
+  attachments: Array<{
+    id: string;
+    name: string;
+    kind: string;
+    url: string | null;
+    storagePath: string | null;
+    aiCaption: string | null;
+    aiExtractedText: string | null;
+  }>;
 };
 
 export function parseBlocks(body: Json): NoteBlock[] {
@@ -189,7 +197,7 @@ export async function getNoteDetail(potId: string, noteId: string): Promise<Note
 
   const { data: attachments } = await supabase
     .from("attachments")
-    .select("id, name, kind, url, storage_path")
+    .select("id, name, kind, url, storage_path, ai_caption, ai_extracted_text")
     .eq("contribution_id", note.contribution_id);
 
   return {
@@ -214,6 +222,8 @@ export async function getNoteDetail(potId: string, noteId: string): Promise<Note
       kind: a.kind,
       url: a.url,
       storagePath: a.storage_path,
+      aiCaption: a.ai_caption,
+      aiExtractedText: a.ai_extracted_text,
     })),
   };
 }
