@@ -6,31 +6,26 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardSection } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/input";
+import { AuthError, getClientAuth } from "@/lib/auth/client";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { clearPendingJoin, takePendingJoin } from "@/lib/pending-join";
-import { GoogleMark } from "@/components/auth/google-mark";
 
-// Google sign in only appears once the provider is configured, so the button
-// is never on screen in a state where pressing it fails. See docs/GOOGLE-SIGN-IN.md.
-const GOOGLE_ENABLED = process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === "on";
+/** One sentence per failure the seam can report. */
+const MESSAGES: Record<string, string> = {
+  email_taken: "That email already has an account. Sign in instead.",
+  weak_password: "Use a password with at least 8 characters.",
+  invalid_email: "That email address doesn't look right.",
+  invalid_display_name: "Enter a display name of 80 characters or fewer.",
+  invalid_credentials: "That email and password don't match. Check them and try again.",
+  rate_limited: "Too many attempts from this network. Wait a few minutes and try again.",
+  invalid_code:
+    "That code did not match. Codes change every 30 seconds, so try the current one.",
+  not_configured: "Sign in is not available in this build.",
+};
 
-function friendlyError(message: string): string {
-  if (message.includes("email_taken")) {
-    return "That email already has an account. Sign in instead.";
-  }
-  if (message.includes("weak_password")) {
-    return "Use a password with at least 8 characters.";
-  }
-  if (message.includes("invalid_email")) {
-    return "That email address doesn't look right.";
-  }
-  if (message.includes("Invalid login credentials")) {
-    return "That email and password don't match. Check them and try again.";
-  }
-  if (message.includes("rate_limited")) {
-    return "Too many attempts from this network. Wait a few minutes and try again.";
-  }
-  return "Something went wrong. Try again.";
+function friendlyError(error: unknown): string {
+  const code = error instanceof AuthError ? error.code : "unknown";
+  return MESSAGES[code] ?? "Something went wrong. Try again.";
 }
 
 export function AuthForm({
@@ -38,19 +33,17 @@ export function AuthForm({
   code,
   next,
   potTitle,
-  initialError = null,
 }: {
   mode: "login" | "signup";
   code?: string;
   next?: string;
   potTitle?: string;
-  initialError?: string | null;
 }) {
   const router = useRouter();
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(initialError);
+  const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   // Set once a password is accepted but the account also asks for a code.
   const [secondStepFactorId, setSecondStepFactorId] = useState<string | null>(null);
@@ -91,70 +84,30 @@ export function AuthForm({
     if (busy) return;
     setBusy(true);
     setError(null);
-    const supabase = supabaseBrowser();
+    const auth = getClientAuth();
 
-    if (mode === "signup") {
-      const { error: registerError } = await supabase.rpc("register_student", {
-        p_email: email.trim(),
-        p_password: password,
-        p_display_name: displayName.trim(),
-      });
-      if (registerError) {
-        setError(friendlyError(registerError.message));
-        setBusy(false);
-        return;
+    try {
+      if (mode === "signup") {
+        await auth.register({
+          email: email.trim(),
+          password,
+          displayName: displayName.trim(),
+        });
       }
-    }
-
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    });
-    if (signInError) {
-      setError(friendlyError(signInError.message));
-      setBusy(false);
-      return;
-    }
-
-    // Accounts with two-step sign in are only half way in at this point.
-    const { data: levels } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (levels?.currentLevel === "aal1" && levels.nextLevel === "aal2") {
-      const { data: factors } = await supabase.auth.mfa.listFactors();
-      const factor = factors?.totp.find((f) => f.status === "verified");
-      if (factor) {
-        setSecondStepFactorId(factor.id);
+      const outcome = await auth.signIn({ email: email.trim(), password });
+      if (outcome.status === "second-factor-required") {
+        setSecondStepFactorId(outcome.factorId);
         setSecondStepCode("");
         setBusy(false);
         return;
       }
+    } catch (err) {
+      setError(friendlyError(err));
+      setBusy(false);
+      return;
     }
 
     await finalize();
-  }
-
-  async function continueWithGoogle() {
-    if (busy) return;
-    setBusy(true);
-    setError(null);
-    // Carry the class code through the round trip so the membership still
-    // lands, the same way the password path does.
-    const pendingCode = code ?? takePendingJoin();
-    const destination = pendingCode
-      ? `/join/${pendingCode}`
-      : next && next.startsWith("/")
-        ? next
-        : "/home";
-    const { error: oauthError } = await supabaseBrowser().auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(destination)}`,
-      },
-    });
-    if (oauthError) {
-      setError("We couldn't reach Google just now. Try again, or use your email and password.");
-      setBusy(false);
-    }
-    // On success the browser leaves for Google, so there is nothing to reset.
   }
 
   async function submitSecondStep(e: React.FormEvent) {
@@ -162,12 +115,13 @@ export function AuthForm({
     if (busy || !secondStepFactorId) return;
     setBusy(true);
     setError(null);
-    const { error: verifyError } = await supabaseBrowser().auth.mfa.challengeAndVerify({
-      factorId: secondStepFactorId,
-      code: secondStepCode.trim(),
-    });
-    if (verifyError) {
-      setError("That code did not match. Codes change every 30 seconds, so try the current one.");
+    try {
+      await getClientAuth().verifySecondFactor({
+        factorId: secondStepFactorId,
+        code: secondStepCode.trim(),
+      });
+    } catch (err) {
+      setError(friendlyError(err));
       setBusy(false);
       return;
     }
@@ -247,25 +201,6 @@ export function AuthForm({
           <h1 className="text-xl font-semibold tracking-tight">{heading}</h1>
           <p className="text-sm text-ink-muted">{sub}</p>
         </div>
-        {GOOGLE_ENABLED ? (
-          <div className="space-y-4">
-            <Button
-              variant="secondary"
-              size="lg"
-              className="w-full"
-              onClick={continueWithGoogle}
-              disabled={busy}
-            >
-              <GoogleMark className="size-[18px]" />
-              Continue with Google
-            </Button>
-            <div className="flex items-center gap-3">
-              <span className="h-px flex-1 bg-edge" />
-              <span className="text-[12px] text-ink-faint">or</span>
-              <span className="h-px flex-1 bg-edge" />
-            </div>
-          </div>
-        ) : null}
         <form onSubmit={submit} className="space-y-4">
           {mode === "signup" ? (
             <Field label="Display name">

@@ -1,5 +1,6 @@
 "use client";
 
+import { getClientAuth } from "@/lib/auth/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ArrowLeft, Eye, ShieldCheck } from "@phosphor-icons/react";
@@ -43,10 +44,8 @@ export function CorrectFlow({
     setBusy(true);
     setError(null);
     const supabase = supabaseBrowser();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
+    const userId = await getClientAuth().getUserId();
+    if (!userId) {
       setError("You're signed out. Sign in again to send this correction.");
       setBusy(false);
       return;
@@ -56,7 +55,7 @@ export function CorrectFlow({
       .insert({
         note_id: noteId,
         pot_id: potId,
-        proposer_id: user.id,
+        proposer_id: userId,
         selected_text: selected,
         proposed_text: proposed.trim(),
         reason,
@@ -77,7 +76,7 @@ export function CorrectFlow({
     }
     await supabase.from("proposal_events").insert({
       proposal_id: data.id,
-      actor_id: user.id,
+      actor_id: userId,
       kind: "submitted",
     });
     router.push(`/p/${potId}/proposals/${data.id}`);

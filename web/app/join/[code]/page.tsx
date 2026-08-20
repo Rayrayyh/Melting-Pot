@@ -1,3 +1,4 @@
+import { getAuthUser } from "@/lib/auth/server";
 import { redirect } from "next/navigation";
 import { CheckCircle, Users, Notebook, Clock } from "@phosphor-icons/react/dist/ssr";
 import { joinPotAction } from "@/app/join/[code]/actions";
@@ -36,9 +37,7 @@ export default async function JoinConfirmPage({ params }: PageProps<"/join/[code
   if (!data) redirect(`/?code=${encodeURIComponent(code)}&error=notfound`);
   const pot = data as unknown as Lookup;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
 
   const joinWithCode = joinPotAction.bind(null, code);
 

@@ -226,3 +226,21 @@ Known follow-ups, documented not built (feature gaps or minor polish, no securit
 - Landing motion: a Reveal wrapper lifts marketing sections into view once, and calls to action use a vertical roll on hover (the label lifts out while a copy rises in). The roll is pure CSS under group/roll so the global reduced-motion rule flattens it for free; Reveal uses Framer Motion, whose inline styles that rule cannot reach, so it checks useReducedMotion itself. Nothing animates above the fold.
 - Hero art nudged 12px left and 8px up, and the footer's hackathon credit is now centred on its logo with more weight on the caption, both at the owner's direction.
 - Verified: 39 unit and 41 e2e green, lint, typecheck, production build.
+
+## Auth seam, Google sign in removed (2026-08-20)
+
+- The owner dropped Google sign in and asked for a framework to move to Clerk later. Google OAuth came out: the callback route, the button, the mark, the env flag, the setup guide, and its e2e test. The Netlify variable that gated the button was deleted too.
+- In its place, `web/lib/auth` follows the organizer seam from decision 003: an interface in the product's own words, one live Supabase implementation, a Clerk slot, and selection by NEXT_PUBLIC_AUTH_PROVIDER. Server and client are separate interfaces so server-only code cannot reach the client bundle.
+- Fifteen files moved onto it. Exactly one direct `supabase.auth.*` call remains outside the seam, marked in place: `proxy.ts`, where route gating is inseparable from the Supabase cookie refresh, and which Clerk replaces wholesale with `clerkMiddleware()`.
+- Errors now cross the seam as `AuthError` with a stable code. The form previously matched on Supabase's English message text, which would have silently stopped working under any other provider.
+- The Clerk slot throws `not_configured` from all eleven methods rather than returning null, so a half-finished swap fails loudly. A unit test asserts it, which also means extending the interface fails the suite until the Clerk side is written.
+- Kept deliberately: migration 0019_oauth_display_name. Its OAuth trigger is gone but it is a general improvement to display names and exactly what Clerk will need.
+- Verified: 51 unit and 40 e2e green, lint, typecheck, production build.
+
+## Comparing the metaworks branch, and deploying it separately (2026-08-20)
+
+- The owner asked what differs between `metaworks` (GPT's Gemini work) and this branch, and for metaworks on its own URL. Both branch from the same commit (af51184) and each carry exactly one commit, so they are siblings, not ancestors.
+- metaworks adds a Gemini vision and text pipeline, a study hub on the Pot home (Raw Notes, Summary, Flashcards, Practice), two AI API routes, and migration 0019_gemini_attachment_analysis. That migration is well built: it reuses consume_rate_limit from 0014 and its save function re-validates ownership and refuses to touch a shared contribution.
+- Both branches independently numbered a migration 0019. Different content, same number, and both now applied under distinct names. The repo numbering has to be reconciled before the branches merge.
+- They also both edit feed.tsx, contribute-flow.tsx, lib/data/pot.ts, database.types.ts, .env.example, README.md, and feed.spec.ts, so a merge will conflict in several files, most substantially in feed.tsx where one adds contributor activity and the other a study hub.
+- Deployed to meltingpotworks.netlify.app from a detached worktree so this branch was never disturbed. The Gemini migration had to be applied first because the contribute flow selects the new ai_ columns; it is additive so the existing live site is unaffected. Without GEMINI_API_KEY the AI paths fall back to the deterministic organizer, which is how the branch was written.

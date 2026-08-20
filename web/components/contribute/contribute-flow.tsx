@@ -1,5 +1,6 @@
 "use client";
 
+import { getClientAuth } from "@/lib/auth/client";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -123,13 +124,11 @@ export function ContributeFlow({
   const ensureContribution = useCallback(async (): Promise<string | null> => {
     if (contributionId) return contributionId;
     creating.current ??= (async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return null;
+      const userId = await getClientAuth().getUserId();
+      if (!userId) return null;
       const { data } = await supabase
         .from("contributions")
-        .insert({ pot_id: potId, author_id: user.id, raw_text: rawText })
+        .insert({ pot_id: potId, author_id: userId, raw_text: rawText })
         .select("id")
         .single();
       if (data) setContributionId(data.id);
@@ -201,10 +200,8 @@ export function ContributeFlow({
     } catch {
       // Keep the raw text as the display name.
     }
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
+    const userId = await getClientAuth().getUserId();
+    if (!userId) return;
     const { data } = await supabase
       .from("attachments")
       .insert({
@@ -213,7 +210,7 @@ export function ContributeFlow({
         name: name.slice(0, 300),
         kind: "link",
         url: url.trim(),
-        created_by: user.id,
+        created_by: userId,
       })
       .select("id, name, kind")
       .single();
@@ -223,10 +220,8 @@ export function ContributeFlow({
   async function attachFile(file: File) {
     const id = await ensureContribution();
     if (!id) return;
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
+    const userId = await getClientAuth().getUserId();
+    if (!userId) return;
     setErrorNote(null);
     // Storage keys must stay ASCII-safe (unicode file names are rejected by
     // the storage API); the original name lives on the attachments row and
@@ -260,7 +255,7 @@ export function ContributeFlow({
         name: file.name.slice(0, 300),
         kind,
         storage_path: path,
-        created_by: user.id,
+        created_by: userId,
       })
       .select("id, name, kind, storage_path")
       .single();

@@ -1,10 +1,10 @@
 "use client";
 
+import { getClientAuth } from "@/lib/auth/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { CaretUpDown, GearSix, Info, SignOut, User } from "@phosphor-icons/react";
 import { Avatar } from "@/components/ui/avatar";
-import { supabaseBrowser } from "@/lib/supabase/client";
 
 /**
  * The account control, anchored to the bottom of the left nav. Identity sits
@@ -47,7 +47,7 @@ export function NavProfile({ displayName, email }: { displayName: string; email:
               label="Log out"
               onClick={async () => {
                 setOpen(false);
-                await supabaseBrowser().auth.signOut();
+                await getClientAuth().signOut();
                 router.push("/");
                 router.refresh();
               }}

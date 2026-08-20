@@ -1,3 +1,4 @@
+import { getAuthUser } from "@/lib/auth/server";
 import { redirect } from "next/navigation";
 import { AuthForm } from "@/components/auth/auth-form";
 import { Wordmark } from "@/components/shell/wordmark";
@@ -11,11 +12,10 @@ export default async function SignupPage({ searchParams }: PageProps<"/signup">)
   const rawCode = typeof params.code === "string" ? params.code : "";
   const code = rawCode ? normalizeClassCode(rawCode) : "";
 
-  const supabase = await supabaseServer();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
   if (user) redirect(code ? `/join/${code}` : "/home");
+
+  const supabase = await supabaseServer();
 
   let potTitle: string | undefined;
   if (code.length === 6) {

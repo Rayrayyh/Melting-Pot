@@ -1,3 +1,4 @@
+import { getAuthUser } from "@/lib/auth/server";
 import { redirect } from "next/navigation";
 import { AuthForm } from "@/components/auth/auth-form";
 import { Wordmark } from "@/components/shell/wordmark";
@@ -11,13 +12,11 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const rawCode = typeof params.code === "string" ? params.code : "";
   const code = rawCode ? normalizeClassCode(rawCode) : "";
   const next = typeof params.next === "string" ? params.next : undefined;
-  const oauthFailed = params.error === "oauth";
+
+  const user = await getAuthUser();
+  if (user) redirect(code ? `/join/${code}` : "/home");
 
   const supabase = await supabaseServer();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (user) redirect(code ? `/join/${code}` : "/home");
 
   let potTitle: string | undefined;
   if (code.length === 6) {
@@ -28,17 +27,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-16 gap-8">
       <Wordmark size="lg" />
-      <AuthForm
-        mode="login"
-        code={code || undefined}
-        next={next}
-        potTitle={potTitle}
-        initialError={
-          oauthFailed
-            ? "That Google sign in didn't complete. Try again, or use your email and password."
-            : null
-        }
-      />
+      <AuthForm mode="login" code={code || undefined} next={next} potTitle={potTitle} />
     </div>
   );
 }

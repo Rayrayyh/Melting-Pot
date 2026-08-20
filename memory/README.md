@@ -31,6 +31,7 @@ This directory is the project's knowledge base. It makes the repo, not chat hist
 - 010 Orange brand rework: cream paper, orange primary, pot-and-m mark, Fraunces display, pill buttons; supersedes the green palette
 - 011 Account surface and two-step sign in: profile at the foot of the nav, theme and security in /me/settings, enrolment paired with a real login challenge, landing open to signed-in people, mark with no tile
 - 012 Google sign in on Supabase Auth rather than Firebase (asked for, declined with reasons), gated behind an env flag; contributor activity on the Pot home; restrained landing motion
+- 013 Auth seam in lib/auth: Google OAuth removed, provider selection by env, Clerk slot present and unimplemented, one marked exception in proxy.ts
 
 ### Lessons
 - 001 Reading the spec PDFs in this container requires poppler, not pypdf

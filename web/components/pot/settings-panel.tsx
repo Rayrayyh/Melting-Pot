@@ -1,5 +1,6 @@
 "use client";
 
+import { getClientAuth } from "@/lib/auth/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ArrowSquareOut, GraduationCap, Plugs } from "@phosphor-icons/react";
@@ -113,10 +114,8 @@ export function SettingsPanel({
 
   async function leave() {
     setBusy(true);
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
+    const userId = await getClientAuth().getUserId();
+    if (!userId) {
       setDialog(null);
       setBusy(false);
       setError("You're signed out. Sign in again to leave this Pot.");
@@ -126,7 +125,7 @@ export function SettingsPanel({
       .from("memberships")
       .delete()
       .eq("pot_id", pot.id)
-      .eq("user_id", user.id);
+      .eq("user_id", userId);
     setDialog(null);
     setBusy(false);
     if (!leaveError) {

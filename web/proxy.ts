@@ -34,6 +34,10 @@ export async function proxy(request: NextRequest) {
     },
   );
 
+  // The one auth call outside lib/auth. Route gating is bound up with the
+  // Supabase cookie refresh above, so it cannot go behind the seam without
+  // dragging the cookie plumbing with it. Swapping to Clerk replaces this
+  // whole file with clerkMiddleware(); see lib/auth/clerk.ts.
   const {
     data: { user },
   } = await supabase.auth.getUser();

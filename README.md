@@ -32,7 +32,7 @@ Inside a Pot: a shared feed with section filters, full text search across titles
 
 Account settings hold the theme (follow your device, or pick a side) and, for the people who run a Pot, two-step sign in with an authenticator app such as Google Authenticator. That one is enforced rather than advertised: turning it on adds a code step to every later sign in, and the test suite proves it by playing the authenticator itself.
 
-Students can sign in with an email and password, or with their Google account. Google sign in is built on Supabase Auth, so a Google user is an ordinary user of the app and every access rule applies to them unchanged. It stays hidden until the Google provider is configured; `docs/GOOGLE-SIGN-IN.md` has the console steps.
+Sign in is an email and a password, behind a provider seam in `web/lib/auth`: everything the app needs from an identity provider is described in the product's own words, so moving to a hosted provider such as Clerk is an implementation behind that interface rather than a rewrite of every page. `docs/AUTH.md` explains the contract and what a swap actually costs.
 
 ## Screenshots
 
@@ -62,7 +62,7 @@ Built for the [Pixel Forge AI Hackathon](https://pixel-forge-ai-hackathon-08.dev
 
 Next.js 16 (App Router, TypeScript, Tailwind) in `web/`, on Supabase for Postgres, auth, and file storage, hosted on Netlify. Security is enforced in the database, not the client: row level security on every table, privileged transitions through security definer functions that re-validate the caller at time of use, database enforced rate limiting on every sensitive operation (sized so an entire class behind one school network can sign up together), and an API surface closed down to exactly what the app uses. Anonymous visitors can reach two functions: look up a class code and register. Shared notes and their versions can only be written through the reviewed publish paths.
 
-The build is covered by 39 unit tests and 41 Playwright end to end tests over every core flow, plus two adversarial review passes whose confirmed findings, from access control holes to a diff that could hang a browser tab, were all fixed and are documented in the build log.
+The build is covered by 51 unit tests and 40 Playwright end to end tests over every core flow, plus two adversarial review passes whose confirmed findings, from access control holes to a diff that could hang a browser tab, were all fixed and are documented in the build log.
 
 ## Running it locally
 
@@ -82,7 +82,7 @@ Tests: `pnpm test:unit` (vitest) and `pnpm test:e2e` (Playwright, expects the de
 - `docs/SPEC.md`: the authoritative product spec
 - `docs/PLAN.md`: the execution plan with per step status
 - `docs/BUILDLOG.md`: what was built, found, and fixed, step by step
-- `docs/GOOGLE-SIGN-IN.md`: how to finish setting up Google sign in
+- `docs/AUTH.md`: the authentication seam and how to swap the provider
 - `memory/`: decisions and lessons recorded as they happened
 - `supabase/migrations/`: the full schema, security, and function history
 - `web/`: the app

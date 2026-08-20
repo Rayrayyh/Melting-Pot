@@ -1,3 +1,4 @@
+import { getAuthUser } from "@/lib/auth/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import type { Json, PotRole } from "@/lib/database.types";
 
@@ -16,11 +17,9 @@ export type PotContext = {
 
 /** Everything the Pot shell and vitals need, or null when not a member. */
 export async function getPotContext(potId: string): Promise<PotContext | null> {
-  const supabase = await supabaseServer();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
   if (!user) return null;
+  const supabase = await supabaseServer();
 
   const [{ data: pot }, { data: membership }] = await Promise.all([
     supabase

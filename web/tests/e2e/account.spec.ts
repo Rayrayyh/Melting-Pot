@@ -117,13 +117,4 @@ test.describe("account and landing for signed-in people", () => {
     await expect(credit).toHaveAttribute("href", /devpost\.com/);
     await expect(page.getByText("Made for the Pixel Forge AI Hackathon")).toBeVisible();
   });
-
-  test("Google sign in stays hidden until the provider is configured", async ({ page }) => {
-    // The button is gated on NEXT_PUBLIC_GOOGLE_AUTH_ENABLED so it is never on
-    // screen in a state where pressing it fails. See docs/GOOGLE-SIGN-IN.md.
-    await page.goto("/login");
-    await expect(page.getByRole("heading", { name: "Sign in" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Continue with Google" })).toHaveCount(0);
-    await expect(page.getByLabel("Email")).toBeVisible();
-  });
 });
