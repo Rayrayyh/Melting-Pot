@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ChatCircleText, Paperclip } from "@phosphor-icons/react/dist/ssr";
-import { AvatarInitial } from "@/components/ui/avatar";
+import { Avatar } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { StatusPill } from "@/components/ui/pills";
 import type { FeedNote } from "@/lib/data/pot";
@@ -28,7 +28,7 @@ export function NoteCard({ potId, note }: { potId: string; note: FeedNote }) {
         ) : null}
         <div className="flex items-center justify-between gap-3 pt-1">
           <div className="flex items-center gap-2 min-w-0 text-[12px] text-ink-muted">
-            <AvatarInitial name={note.contributorName} size="sm" />
+            <Avatar name={note.contributorName} size="sm" />
             <span className="truncate">{note.contributorName}</span>
             <span aria-hidden className="text-ink-faint">&middot;</span>
             <span className="shrink-0">{relativeTime(note.sharedAt)}</span>

@@ -30,6 +30,8 @@ The dashboard is role aware. Students land on their own unfinished drafts and an
 
 Inside a Pot: a shared feed with section filters, full text search across titles, content, contributors, and attachments, file uploads (images including phone camera HEIC, PDFs, documents) and links that stay connected from draft through publication, version history with the complete attribution trail, and maintainer tools for sections, roles, class code regeneration, and archiving with a way back. Light and dark themes throughout, reduced motion respected, and a landing page whose scroll sequence melts a messy note into an organized one.
 
+Account settings hold the theme (follow your device, or pick a side) and, for the people who run a Pot, two-step sign in with an authenticator app such as Google Authenticator. That one is enforced rather than advertised: turning it on adds a code step to every later sign in, and the test suite proves it by playing the authenticator itself.
+
 ## Screenshots
 
 Role based dashboard with the maintainer review queue, Pot stats, and cross Pot activity:
@@ -44,17 +46,21 @@ Pot settings with maintainer section management, in the dark theme:
 
 ![Settings in dark theme](docs/screenshots/settings-dark.png)
 
+Account settings: theme, and two-step sign in for the person who runs the Pot:
+
+![Account settings](docs/screenshots/account-settings.png)
+
 ## Built for the hackathon
 
 Everything here was designed and built from scratch during the hackathon period. The repo is its own receipt: `docs/PLAN.md` holds the step by step execution plan with per step status, `docs/BUILDLOG.md` records what was built, found, and fixed in order, and `memory/` captures each architectural decision and hard won lesson at the moment it happened. The commit history walks through the whole build.
 
-The project is open source under the MIT license (see `LICENSE`), hosted live at the URL above, and the three minute demo video is on the Devpost submission.
+Built for the [Pixel Forge AI Hackathon](https://pixel-forge-ai-hackathon-08.devpost.com/). The project is open source under the MIT license (see `LICENSE`), hosted live at the URL above, and the three minute demo video is on the Devpost submission.
 
 ## Under the hood
 
 Next.js 16 (App Router, TypeScript, Tailwind) in `web/`, on Supabase for Postgres, auth, and file storage, hosted on Netlify. Security is enforced in the database, not the client: row level security on every table, privileged transitions through security definer functions that re-validate the caller at time of use, database enforced rate limiting on every sensitive operation (sized so an entire class behind one school network can sign up together), and an API surface closed down to exactly what the app uses. Anonymous visitors can reach two functions: look up a class code and register. Shared notes and their versions can only be written through the reviewed publish paths.
 
-The build is covered by 34 unit tests and 35 Playwright end to end tests over every core flow, plus two adversarial review passes whose confirmed findings, from access control holes to a diff that could hang a browser tab, were all fixed and are documented in the build log.
+The build is covered by 34 unit tests and 40 Playwright end to end tests over every core flow, plus two adversarial review passes whose confirmed findings, from access control holes to a diff that could hang a browser tab, were all fixed and are documented in the build log.
 
 ## Running it locally
 

@@ -1,51 +1,48 @@
+import { User } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/cn";
 
-const tints = [
-  "bg-primary-soft text-primary",
-  "bg-clay-soft text-clay",
-  "bg-warning-soft text-warning",
-  "bg-success-soft text-success",
-  "bg-sunken text-ink-muted",
-];
+const TINT_COUNT = 6;
 
-function initials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
-
+/**
+ * Everyone gets the same person icon and one of six tints, chosen from their
+ * name so the same person keeps the same color on every screen.
+ */
 function tintFor(name: string) {
   let hash = 0;
   for (const ch of name) hash = (hash * 31 + ch.charCodeAt(0)) | 0;
-  return tints[Math.abs(hash) % tints.length];
+  const slot = (Math.abs(hash) % TINT_COUNT) + 1;
+  return {
+    background: `var(--avatar-${slot}-soft)`,
+    color: `var(--avatar-${slot})`,
+  };
 }
 
-export function AvatarInitial({
+const SIZES = {
+  sm: { box: "size-6", icon: "size-3.5" },
+  md: { box: "size-8", icon: "size-[18px]" },
+  lg: { box: "size-12", icon: "size-6" },
+};
+
+export function Avatar({
   name,
   size = "md",
   className,
 }: {
   name: string;
-  size?: "sm" | "md" | "lg";
+  size?: keyof typeof SIZES;
   className?: string;
 }) {
-  const sizes = {
-    sm: "size-6 text-[10px]",
-    md: "size-8 text-[12px]",
-    lg: "size-12 text-[16px]",
-  };
   return (
     <span
       aria-hidden
+      style={tintFor(name)}
       className={cn(
-        "inline-flex items-center justify-center rounded-full font-semibold shrink-0",
-        sizes[size],
-        tintFor(name),
+        "inline-flex items-center justify-center rounded-full shrink-0",
+        SIZES[size].box,
         className,
       )}
     >
-      {initials(name)}
+      <User className={SIZES[size].icon} weight="fill" />
     </span>
   );
 }
@@ -64,7 +61,7 @@ export function AttributionRow({
 }) {
   return (
     <div className={cn("flex items-center gap-2.5 min-w-0", className)}>
-      <AvatarInitial name={name} size={size === "sm" ? "sm" : "md"} />
+      <Avatar name={name} size={size === "sm" ? "sm" : "md"} />
       <div className="min-w-0">
         <p className={cn("font-medium text-ink truncate", size === "sm" ? "text-[13px]" : "text-sm")}>
           {name}

@@ -54,14 +54,20 @@ const PRINCIPLES = [
   },
 ];
 
-/** The public landing: brand hero up top, the join and create paths one
- * scroll below, then the melt story. */
+/**
+ * The public landing: brand hero up top, the join and create paths one scroll
+ * below, then the melt story. Signed-in people are welcome here too, so the
+ * account calls to action turn into a way back to their dashboard rather than
+ * asking them to sign in again.
+ */
 export function BrandLanding({
   initialCode,
   initialError,
+  signedIn = false,
 }: {
   initialCode?: string;
   initialError?: string | null;
+  signedIn?: boolean;
 }) {
   return (
     <div className="flex flex-col">
@@ -78,15 +84,26 @@ export function BrandLanding({
             <a href="#explore" className="hidden md:block text-ink hover:text-primary transition-colors">
               Explore
             </a>
-            <Link href="/login" className="text-ink hover:text-primary transition-colors">
-              Sign in
-            </Link>
-            <a
-              href="#spaces"
-              className="inline-flex h-11 items-center rounded-full bg-ink px-6 text-[15px] font-medium text-paper transition-opacity hover:opacity-90"
-            >
-              Get started
-            </a>
+            {signedIn ? (
+              <Link
+                href="/home"
+                className="inline-flex h-11 items-center rounded-full bg-ink px-6 text-[15px] font-medium text-paper transition-opacity hover:opacity-90"
+              >
+                Go to dashboard
+              </Link>
+            ) : (
+              <>
+                <Link href="/login" className="text-ink hover:text-primary transition-colors">
+                  Sign in
+                </Link>
+                <a
+                  href="#spaces"
+                  className="inline-flex h-11 items-center rounded-full bg-ink px-6 text-[15px] font-medium text-paper transition-opacity hover:opacity-90"
+                >
+                  Get started
+                </a>
+              </>
+            )}
           </nav>
         </div>
       </header>
@@ -94,7 +111,9 @@ export function BrandLanding({
       <section id="top" className="relative overflow-hidden">
         <div className="mx-auto w-full max-w-[1400px] px-6 sm:px-12 grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] items-center gap-x-8 gap-y-12 min-h-[calc(100vh-6rem)] pt-10 lg:pt-0">
           <div className="space-y-8 lg:pb-24">
-            <h1 className="font-display text-[52px] sm:text-[64px] xl:text-[74px] font-semibold leading-[1.05] tracking-tight text-ink">
+            {/* Fluid so the three forced lines never become four: a fourth
+                line pushes the pot below the fold on shorter screens. */}
+            <h1 className="font-display text-[40px] sm:text-[clamp(2.5rem,4.6vw,4.625rem)] font-semibold leading-[1.05] tracking-tight text-ink">
               Many ideas.
               <br />
               One shared
@@ -102,12 +121,13 @@ export function BrandLanding({
               knowledge base.
             </h1>
             <p className="text-lg sm:text-xl text-ink-muted leading-relaxed max-w-md">
-              MeltingPot helps classes bring their knowledge together, so
-              everyone can learn, contribute, and grow together.
+              Write your notes however they come out. MeltingPot shapes them
+              into something the whole class can read, and nothing leaves your
+              hands until you say so.
             </p>
             <div className="flex flex-wrap items-center gap-8 pt-2">
-              <Button href="#spaces" size="lg">
-                Get started
+              <Button href={signedIn ? "/home" : "#spaces"} size="lg">
+                {signedIn ? "Go to dashboard" : "Get started"}
               </Button>
               <a
                 href="#explore"
@@ -119,7 +139,7 @@ export function BrandLanding({
             </div>
           </div>
           <div className="relative h-full min-h-[320px] lg:min-h-[calc(100vh-6rem)] flex items-end justify-center lg:justify-end">
-            <PotHeroArt className="w-full max-w-120 lg:max-w-150 translate-y-[4%]" />
+            <PotHeroArt className="w-full max-w-120 lg:max-w-150 max-h-[calc(100dvh-8.5rem)] mb-2.5" />
           </div>
         </div>
       </section>
@@ -137,9 +157,9 @@ export function BrandLanding({
               Everything your class knows, in one Pot.
             </h2>
             <p className="text-lg text-ink-muted leading-relaxed max-w-xl">
-              Join with a six-character code, write what you remember however
-              it comes out, and MeltingPot shapes it into notes worth keeping.
-              Nothing is shared until you say so.
+              One code opens the whole vault. Thirty people take thirty sets of
+              half-finished notes and end up with one set worth studying from,
+              built by all of them and checked by people, not guesswork.
             </p>
             <ul className="flex flex-wrap gap-x-8 gap-y-3 pt-1 text-[13px] text-ink-muted">
               <li className="flex items-center gap-2">
@@ -262,10 +282,34 @@ export function BrandLanding({
         </div>
       </section>
 
-      <footer className="px-6 sm:px-10 py-10 border-t border-edge">
-        <div className="mx-auto w-full max-w-5xl flex flex-wrap items-center justify-between gap-3 text-[13px] text-ink-muted">
-          <Wordmark />
-          <p>A shared class vault. Open source under the MIT license.</p>
+      <footer className="px-6 sm:px-10 py-12 border-t border-edge">
+        <div className="mx-auto w-full max-w-5xl flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-3">
+            <Wordmark />
+            <p className="max-w-xs text-[13px] text-ink-muted">
+              Everything your class knows, in one Pot. Open source under the
+              MIT license.
+            </p>
+          </div>
+          <a
+            href="https://pixel-forge-ai-hackathon-08.devpost.com/"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="inline-flex flex-col gap-2.5 sm:items-end"
+          >
+            {/* The hackathon's own mark, kept at its own colors as a credit. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/pixel-forge-ai-hackathon.png"
+              alt="Pixel Forge AI"
+              width={932}
+              height={103}
+              className="h-7 w-auto"
+            />
+            <span className="text-[13px] text-ink-muted">
+              Made for the Pixel Forge AI Hackathon
+            </span>
+          </a>
         </div>
       </footer>
     </div>

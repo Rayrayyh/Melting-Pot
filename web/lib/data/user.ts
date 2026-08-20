@@ -70,3 +70,22 @@ export async function getUserPots(): Promise<UserPot[]> {
     .filter((m) => m.pots && !m.pots.archived_at)
     .map((m) => ({ id: m.pots!.id, title: m.pots!.title, role: m.role }));
 }
+
+/**
+ * True when the caller runs a Pot. Archived Pots still count: the account
+ * holds that class's work either way.
+ */
+export async function ownsAnyPot(): Promise<boolean> {
+  const supabase = await supabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return false;
+  const { data } = await supabase
+    .from("memberships")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("role", "owner")
+    .limit(1);
+  return (data ?? []).length > 0;
+}

@@ -43,6 +43,23 @@
   --shadow-card: 0 1px 2px rgba(36, 34, 44, 0.05);
   --shadow-raised: 0 4px 16px rgba(36, 34, 44, 0.08);
   --scrollbar: #d9ccac;
+  /*
+    Avatar tints. Decorative identity only: one pair per person, picked by a
+    hash of their name. Kept apart from the functional colors so a green
+    avatar never reads as success and a red one never reads as an error.
+  */
+  --avatar-1: #c2610f;
+  --avatar-1-soft: #fae2c6;
+  --avatar-2: #b04a2a;
+  --avatar-2-soft: #f8ddd2;
+  --avatar-3: #8f6a12;
+  --avatar-3-soft: #f7eccb;
+  --avatar-4: #5f7038;
+  --avatar-4-soft: #e8eed6;
+  --avatar-5: #2f6f6a;
+  --avatar-5-soft: #d9ebe8;
+  --avatar-6: #9c4557;
+  --avatar-6-soft: #f7dee3;
   color-scheme: light;
 }
 
@@ -80,6 +97,18 @@
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-raised: 0 4px 16px rgba(0, 0, 0, 0.4);
   --scrollbar: #4d4433;
+  --avatar-1: #f0a055;
+  --avatar-1-soft: #3c2612;
+  --avatar-2: #e79274;
+  --avatar-2-soft: #3d211a;
+  --avatar-3: #d9b45f;
+  --avatar-3-soft: #372b13;
+  --avatar-4: #a8bd7c;
+  --avatar-4-soft: #2b331d;
+  --avatar-5: #78bdb5;
+  --avatar-5-soft: #1c3230;
+  --avatar-6: #dd8d9d;
+  --avatar-6-soft: #3a1f26;
   color-scheme: dark;
 }
 
@@ -118,6 +147,18 @@
     --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
     --shadow-raised: 0 4px 16px rgba(0, 0, 0, 0.4);
     --scrollbar: #4d4433;
+    --avatar-1: #f0a055;
+    --avatar-1-soft: #3c2612;
+    --avatar-2: #e79274;
+    --avatar-2-soft: #3d211a;
+    --avatar-3: #d9b45f;
+    --avatar-3-soft: #372b13;
+    --avatar-4: #a8bd7c;
+    --avatar-4-soft: #2b331d;
+    --avatar-5: #78bdb5;
+    --avatar-5-soft: #1c3230;
+    --avatar-6: #dd8d9d;
+    --avatar-6-soft: #3a1f26;
     color-scheme: dark;
   }
 }

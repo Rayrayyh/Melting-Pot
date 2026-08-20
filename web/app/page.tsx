@@ -19,15 +19,17 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (user) {
-    // A signed-in user who followed a dead or failed invite link still needs
-    // the failure; /home surfaces it next to its join field.
+
+  // A signed-in user who followed a dead or failed invite link still needs the
+  // failure; /home surfaces it next to its join field. Otherwise the landing
+  // stays open to them, with the dashboard one click away.
+  if (user && message) {
     redirect(
-      message
-        ? `/home?code=${encodeURIComponent(code)}&error=${encodeURIComponent(errorKey)}`
-        : "/home",
+      `/home?code=${encodeURIComponent(code)}&error=${encodeURIComponent(errorKey)}`,
     );
   }
 
-  return <BrandLanding initialCode={code} initialError={message} />;
+  return (
+    <BrandLanding initialCode={code} initialError={message} signedIn={Boolean(user)} />
+  );
 }

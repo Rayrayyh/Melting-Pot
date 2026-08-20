@@ -23,6 +23,7 @@ export async function PotShell({
   return (
     <AppShell
       displayName={user.displayName}
+      email={user.email}
       searchScope={{ potId: pot.id, potTitle: pot.title }}
       nav={
         <PotNav

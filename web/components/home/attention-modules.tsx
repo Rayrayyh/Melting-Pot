@@ -4,7 +4,7 @@ import {
   NotePencil,
   PencilSimpleLine,
 } from "@phosphor-icons/react/dist/ssr";
-import { AvatarInitial } from "@/components/ui/avatar";
+import { Avatar } from "@/components/ui/avatar";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { StatusPill } from "@/components/ui/pills";
 import type {
@@ -36,7 +36,7 @@ export function ReviewQueueModule({ items }: { items: ReviewQueueItem[] }) {
                 href={`/p/${item.potId}/review/${item.proposalId}`}
                 className="flex items-center gap-3 py-2.5 group"
               >
-                <AvatarInitial name={item.proposerName} size="sm" />
+                <Avatar name={item.proposerName} size="sm" />
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm text-ink truncate group-hover:text-primary transition-colors">
                     {item.noteTitle}

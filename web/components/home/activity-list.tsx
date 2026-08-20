@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AvatarInitial } from "@/components/ui/avatar";
+import { Avatar } from "@/components/ui/avatar";
 import { Card, CardSection } from "@/components/ui/card";
 import type { ActivityItem } from "@/lib/data/dashboard";
 import { relativeTime } from "@/lib/time";
@@ -18,7 +18,7 @@ export function ActivityList({ items }: { items: ActivityItem[] }) {
                 href={`/p/${item.potId}/n/${item.noteId}`}
                 className="flex items-start gap-2.5 py-2.5 group"
               >
-                <AvatarInitial name={item.contributorName} size="sm" className="mt-0.5" />
+                <Avatar name={item.contributorName} size="sm" className="mt-0.5" />
                 <span className="min-w-0 flex-1">
                   <span className="block text-[13px] font-medium text-ink leading-snug group-hover:text-primary transition-colors line-clamp-2 break-words">
                     {item.title}

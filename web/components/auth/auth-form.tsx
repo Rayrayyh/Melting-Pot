@@ -45,6 +45,9 @@ export function AuthForm({
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Set once a password is accepted but the account also asks for a code.
+  const [secondStepFactorId, setSecondStepFactorId] = useState<string | null>(null);
+  const [secondStepCode, setSecondStepCode] = useState("");
 
   async function finalize() {
     const supabase = supabaseBrowser();
@@ -105,6 +108,37 @@ export function AuthForm({
       setBusy(false);
       return;
     }
+
+    // Accounts with two-step sign in are only half way in at this point.
+    const { data: levels } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (levels?.currentLevel === "aal1" && levels.nextLevel === "aal2") {
+      const { data: factors } = await supabase.auth.mfa.listFactors();
+      const factor = factors?.totp.find((f) => f.status === "verified");
+      if (factor) {
+        setSecondStepFactorId(factor.id);
+        setSecondStepCode("");
+        setBusy(false);
+        return;
+      }
+    }
+
+    await finalize();
+  }
+
+  async function submitSecondStep(e: React.FormEvent) {
+    e.preventDefault();
+    if (busy || !secondStepFactorId) return;
+    setBusy(true);
+    setError(null);
+    const { error: verifyError } = await supabaseBrowser().auth.mfa.challengeAndVerify({
+      factorId: secondStepFactorId,
+      code: secondStepCode.trim(),
+    });
+    if (verifyError) {
+      setError("That code did not match. Codes change every 30 seconds, so try the current one.");
+      setBusy(false);
+      return;
+    }
     await finalize();
   }
 
@@ -126,6 +160,53 @@ export function AuthForm({
         : "Welcome back.";
 
   const codeParam = code ? `?code=${encodeURIComponent(code)}` : "";
+
+  if (secondStepFactorId) {
+    return (
+      <Card className="w-full max-w-md">
+        <CardSection className="p-6 space-y-5">
+          <div className="space-y-1 text-center">
+            <h1 className="text-xl font-semibold tracking-tight">One more step</h1>
+            <p className="text-sm text-ink-muted">
+              Open your authenticator app and enter the code it shows.
+            </p>
+          </div>
+          <form onSubmit={submitSecondStep} className="space-y-4">
+            <Field label="Six-digit code">
+              {(props) => (
+                <Input
+                  {...props}
+                  value={secondStepCode}
+                  onChange={(e) =>
+                    setSecondStepCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                  }
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  placeholder="000000"
+                  autoFocus
+                  required
+                  className="font-mono tracking-[0.3em]"
+                />
+              )}
+            </Field>
+            {error ? (
+              <p role="alert" className="text-[13px] text-danger">
+                {error}
+              </p>
+            ) : null}
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full"
+              disabled={busy || secondStepCode.length !== 6}
+            >
+              {busy ? "Checking" : "Continue"}
+            </Button>
+          </form>
+        </CardSection>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full max-w-md">

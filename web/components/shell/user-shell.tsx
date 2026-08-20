@@ -10,6 +10,7 @@ export async function UserShell({ children }: { children: ReactNode }) {
   return (
     <AppShell
       displayName={user.displayName}
+      email={user.email}
       nav={<UserNav pots={pots.map((p) => ({ id: p.id, title: p.title }))} />}
     >
       {children}

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Eye, Lightbulb, Tray } from "@phosphor-icons/react";
 import { AppShell } from "@/components/shell/app-shell";
 import { PotNav, UserNav } from "@/components/shell/left-nav";
-import { AttributionRow, AvatarInitial } from "@/components/ui/avatar";
+import { AttributionRow, Avatar } from "@/components/ui/avatar";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
@@ -33,6 +33,7 @@ export default function StyleguidePage() {
   return (
     <AppShell
       displayName="Ada Lovelace"
+      email="ada@example.com"
       searchScope={navMode === "pot" ? { potId: "demo", potTitle: "Biology 101" } : undefined}
       nav={
         navMode === "user" ? (
@@ -154,9 +155,9 @@ export default function StyleguidePage() {
               <AttributionRow name="Ava Morgan" meta="Shared 2 hours ago in Week 2: Cell cycle" />
               <AttributionRow name="Omar Haddad" meta="Correction accepted yesterday" size="sm" />
               <div className="flex items-center gap-2">
-                <AvatarInitial name="Ada Lovelace" size="lg" />
-                <AvatarInitial name="Grace Hopper" size="md" />
-                <AvatarInitial name="Mae Jemison" size="sm" />
+                <Avatar name="Ada Lovelace" size="lg" />
+                <Avatar name="Grace Hopper" size="md" />
+                <Avatar name="Mae Jemison" size="sm" />
               </div>
             </CardSection>
           </Card>

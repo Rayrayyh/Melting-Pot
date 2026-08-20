@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ListChecks } from "@phosphor-icons/react/dist/ssr";
 import { PotShell } from "@/components/shell/pot-shell";
-import { AvatarInitial } from "@/components/ui/avatar";
+import { Avatar } from "@/components/ui/avatar";
 import { Card, CardSection } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusPill } from "@/components/ui/pills";
@@ -106,7 +106,7 @@ function QueueRow({
     <Link href={`/p/${potId}/review/${proposal.id}`} className="block group">
       <Card className="group-hover:border-edge-strong transition-colors">
         <CardSection className="flex items-center gap-3 py-3.5">
-          <AvatarInitial name={proposal.proposer?.display_name ?? "Member"} size="sm" />
+          <Avatar name={proposal.proposer?.display_name ?? "Member"} size="sm" />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-ink truncate group-hover:text-primary transition-colors">
               {proposal.note?.current?.title ?? "Shared note"}
