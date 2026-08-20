@@ -20,6 +20,7 @@ export type ReviewQueueItem = {
   noteId: string;
   noteTitle: string;
   proposerName: string;
+  reason: string | null;
   createdAt: string;
 };
 
@@ -142,7 +143,7 @@ export async function getDashboard(userId: string): Promise<Dashboard> {
       ? supabase
           .from("revision_proposals")
           .select(
-            `id, pot_id, created_at, note_id,
+            `id, pot_id, created_at, note_id, reason,
              pot:pots!revision_proposals_pot_id_fkey(title),
              proposer:profiles!revision_proposals_proposer_id_fkey(display_name),
              note:shared_notes!revision_proposals_note_id_fkey(
@@ -151,6 +152,8 @@ export async function getDashboard(userId: string): Promise<Dashboard> {
           )
           .in("pot_id", maintainedPotIds)
           .eq("status", "pending")
+          // Oldest first: a queue sorted by recency leaves the longest-waiting
+          // member last, and the module only shows the first few rows.
           .order("created_at", { ascending: true })
       : Promise.resolve({ data: [] as never[] }),
     supabase
@@ -238,6 +241,7 @@ export async function getDashboard(userId: string): Promise<Dashboard> {
       noteId: row.note_id,
       noteTitle: row.note?.current?.title ?? "Shared note",
       proposerName: row.proposer?.display_name ?? "A member",
+      reason: row.reason,
       createdAt: row.created_at,
     })),
     revisionRequested: (revisionRows.data ?? []).map((row) => ({

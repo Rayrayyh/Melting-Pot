@@ -133,8 +133,23 @@ export async function POST(request: Request) {
       visionWarning,
     });
   } catch (error) {
-    const status = error instanceof GeminiError ? error.status ?? 502 : 502;
-    return NextResponse.json({ error: "organize_failed", detail: safeGeminiMessage(error) }, { status });
+    // A model outage must not stop a class from sharing anything. The
+    // rule-based organizer finishes the job on the token already spent, so
+    // only its own failure is a real failure.
+    const detail = safeGeminiMessage(error);
+    try {
+      const result = await deterministicOrganizer.organize({ rawText, sections: sectionOptions });
+      return NextResponse.json({
+        result,
+        analyses,
+        provider: "deterministic",
+        fallback: "ai_unavailable",
+        visionWarning,
+      });
+    } catch {
+      const status = error instanceof GeminiError ? error.status ?? 502 : 502;
+      return NextResponse.json({ error: "organize_failed", detail }, { status });
+    }
   }
 }
 

@@ -10,11 +10,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { Field, TextArea } from "@/components/ui/input";
 import { StatusPill } from "@/components/ui/pills";
-import { countOccurrences, replaceInBlocks, summarizeDiff } from "@/lib/diff";
+import { countOccurrences, diffWords, replaceInBlocks, summarizeDiff } from "@/lib/diff";
 import { blocksToBodyText } from "@/lib/organizer/edit";
 import type { ProposalDetail } from "@/lib/data/proposal";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { relativeTime } from "@/lib/time";
+
+const STALE_SENTENCE_NOTE =
+  "The sentence this points at is not in the note any more. Pick the sentence again and send it back.";
+
+const WORD = /[\p{L}\p{N}][\p{L}\p{N}'’-]*/gu;
+
+function wordsIn(text: string): string[] {
+  return text.toLowerCase().match(WORD) ?? [];
+}
 
 /** The maintainer's decision surface. Only a person can publish from here. */
 export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
@@ -22,6 +31,9 @@ export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
   const [mode, setMode] = useState<"decide" | "revise" | "decline">("decide");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+  // Someone else decided this while the page was open; the decision stands,
+  // so the buttons stay dead until the refresh swaps this screen out.
+  const [settled, setSettled] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const newBlocks = useMemo(
@@ -30,6 +42,33 @@ export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
   );
   const conflict = newBlocks === null;
 
+  // Accepting rebuilds the body and passes the summary and key points
+  // through untouched, so wording this correction removes can survive there
+  // and contradict the sentence it just fixed.
+  const strandedWords = useMemo(() => {
+    if (conflict) return [];
+    const kept = new Set([
+      ...wordsIn(proposal.currentSummary),
+      ...proposal.currentTakeaways.flatMap(wordsIn),
+    ]);
+    const surviving = new Set(wordsIn(proposal.proposedText));
+    const seen = new Set<string>();
+    const found: string[] = [];
+    for (const segment of diffWords(proposal.selectedText, proposal.proposedText)) {
+      if (segment.type !== "removed") continue;
+      for (const word of segment.text.match(WORD) ?? []) {
+        // Short words carry no meaning on their own; a digit makes even a
+        // short one worth naming, because dates and figures are what go stale.
+        if (word.length < 4 && !/\d/.test(word)) continue;
+        const key = word.toLowerCase();
+        if (seen.has(key) || surviving.has(key) || !kept.has(key)) continue;
+        seen.add(key);
+        found.push(word);
+      }
+    }
+    return found;
+  }, [proposal, conflict]);
+
   // Honest, rule-based review assistance: everything it says is checkable.
   const assistance = useMemo(() => {
     const notes: Array<{ tone: "info" | "warn"; text: string }> = [];
@@ -37,7 +76,7 @@ export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
     if (conflict) {
       notes.push({
         tone: "warn",
-        text: "The selected sentence no longer appears in the current version. The note may have changed since this was proposed; accepting is disabled.",
+        text: "The selected sentence is not in this note any more, so there is nothing here to accept. Ask for a new sentence and the correction carries over.",
       });
     }
     const occurrences = countOccurrences(proposal.currentBodyText, proposal.selectedText);
@@ -57,16 +96,30 @@ export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
         text: "The proposed wording may overlap content already elsewhere in the note.",
       });
     }
+    if (strandedWords.length > 0) {
+      // Three names are enough to send the maintainer looking; a longer list
+      // reads as noise. Nothing is rewritten for them: a summary is a
+      // paraphrase, and splicing body wording into it produces nonsense.
+      const named = strandedWords.slice(0, 3).map((word) => `"${word}"`);
+      const list =
+        named.length === 1
+          ? named[0]
+          : `${named.slice(0, -1).join(", ")} and ${named[named.length - 1]}`;
+      notes.push({
+        tone: "warn",
+        text: `The summary or key points still contain ${list}. Accepting updates the note body only, so those keep their current wording.`,
+      });
+    }
     if (proposal.source) {
       notes.push({ tone: "info", text: `A supporting source is attached: ${proposal.source}` });
     } else {
       notes.push({ tone: "info", text: "No supporting source was attached." });
     }
     return notes;
-  }, [proposal, conflict]);
+  }, [proposal, conflict, strandedWords]);
 
   async function decide(decision: "accepted" | "revision_requested" | "declined") {
-    if (busy) return;
+    if (busy || settled) return;
     if (decision !== "accepted" && !note.trim()) return;
     setBusy(true);
     setError(null);
@@ -94,6 +147,13 @@ export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
       ...payload,
     });
     if (rpcError) {
+      if (rpcError.message.includes("proposal_not_pending")) {
+        setError("This correction was already decided. Showing the decision.");
+        setBusy(false);
+        setSettled(true);
+        router.refresh();
+        return;
+      }
       if (rpcError.message.includes("proposal_conflict")) {
         setError(
           "The note changed while this page was open. Review the newest version before deciding.",
@@ -217,7 +277,7 @@ export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
         </Card>
       </section>
 
-      <ProposalTimeline events={proposal.events} />
+      <ProposalTimeline proposalId={proposal.id} events={proposal.events} />
 
       {mode !== "decide" ? (
         <Card className={mode === "decline" ? "border-danger/30" : "border-warning/30"}>
@@ -246,7 +306,7 @@ export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
               </Button>
               <Button
                 variant={mode === "decline" ? "danger" : "primary"}
-                disabled={busy || !note.trim()}
+                disabled={busy || settled || !note.trim()}
                 onClick={() =>
                   void decide(mode === "revise" ? "revision_requested" : "declined")
                 }
@@ -270,21 +330,45 @@ export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
 
       {mode === "decide" ? (
         <div className="sticky bottom-0 -mx-6 border-t border-edge bg-surface/95 backdrop-blur-sm px-6 py-3.5">
+          <p className="text-[12px] text-ink-faint pb-2">
+            You can ask a question without deciding yet.
+          </p>
           <div className="flex items-center justify-between gap-3">
             <p className="text-[13px] text-ink-muted hidden sm:block">
-              Accepting publishes this as the newest version and credits both
-              contributors.
+              {conflict
+                ? "This cannot be accepted as it stands, because the sentence it points at is gone."
+                : "Accepting publishes this as the newest version and credits both contributors."}
             </p>
             <div className="flex items-center gap-2.5">
-              <Button variant="danger" onClick={() => setMode("decline")} disabled={busy}>
+              <Button
+                variant="danger"
+                onClick={() => setMode("decline")}
+                disabled={busy || settled}
+              >
                 Decline
               </Button>
-              <Button variant="secondary" onClick={() => setMode("revise")} disabled={busy}>
+              <Button
+                variant="secondary"
+                onClick={() => setMode("revise")}
+                disabled={busy || settled}
+              >
                 Request revisions
               </Button>
-              <Button onClick={() => void decide("accepted")} disabled={busy || conflict}>
-                {busy ? "Working" : "Accept changes"}
-              </Button>
+              {conflict ? (
+                <Button
+                  onClick={() => {
+                    setNote(STALE_SENTENCE_NOTE);
+                    setMode("revise");
+                  }}
+                  disabled={busy || settled}
+                >
+                  Ask for a new sentence
+                </Button>
+              ) : (
+                <Button onClick={() => void decide("accepted")} disabled={busy || settled}>
+                  {busy ? "Working" : "Accept changes"}
+                </Button>
+              )}
             </div>
           </div>
         </div>

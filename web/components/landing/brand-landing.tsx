@@ -12,6 +12,7 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { PotHeroArt } from "@/components/brand/pot-mark";
 import { JoinCard } from "@/components/landing/join-card";
+import { NamesOnTheNote } from "@/components/landing/names-on-the-note";
 import { ScrollStopper } from "@/components/landing/scroll-stopper";
 import { Wordmark } from "@/components/shell/wordmark";
 import { Button } from "@/components/ui/button";
@@ -268,7 +269,11 @@ export function BrandLanding({
         </Reveal>
       </section>
 
-      <section className="px-6 sm:px-10 pb-28 sm:pb-36">
+      <NamesOnTheNote />
+
+      {/* Its own top padding: the section above it ends on a border, so the
+          orange card cannot borrow the gap it used to inherit. */}
+      <section className="px-6 sm:px-10 pt-24 sm:pt-32 pb-28 sm:pb-36">
         <Reveal className="mx-auto w-full max-w-4xl bg-primary rounded-(--radius-card) px-8 py-16 sm:px-16 sm:py-20 text-center space-y-6">
           <h2 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-on-primary">
             Start your class&apos;s Pot tonight.

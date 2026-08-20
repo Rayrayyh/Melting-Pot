@@ -2,7 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { CheckCircle, HourglassMedium, ProhibitInset, ShieldCheck } from "@phosphor-icons/react";
+import {
+  CheckCircle,
+  HourglassMedium,
+  ProhibitInset,
+  ShieldCheck,
+  Warning,
+} from "@phosphor-icons/react";
+import { SentencePicker } from "@/components/correct/correct-flow";
 import { BeforeAfter, DiffText } from "@/components/correct/diff-view";
 import { ProposalTimeline } from "@/components/correct/proposal-timeline";
 import { Button } from "@/components/ui/button";
@@ -23,24 +30,37 @@ export function ProposalStatusView({
 }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
+  const [picking, setPicking] = useState(false);
+  const [selected, setSelected] = useState(proposal.selectedText);
   const [proposed, setProposed] = useState(proposal.proposedText);
   const [explanation, setExplanation] = useState(proposal.explanation ?? "");
   const [source, setSource] = useState(proposal.source ?? "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Another correction landed first and took the sentence with it. Saying
+  // "waiting on maintainer" here would be a lie: there is nothing left to
+  // accept until the proposer points this at the note as it now reads.
+  const gone = !proposal.currentBodyText.includes(proposal.selectedText);
+
+  function startEditing() {
+    setSelected(proposal.selectedText);
+    setPicking(gone);
+    setEditing(true);
+  }
+
   async function resubmit() {
-    if (busy || !proposed.trim()) return;
+    if (busy || !proposed.trim() || !selected) return;
     setBusy(true);
     setError(null);
     const supabase = supabaseBrowser();
     const { error: rpcError } = await supabase.rpc("resubmit_proposal", {
       p_proposal_id: proposal.id,
-      p_selected_text: proposal.selectedText,
+      p_selected_text: selected,
       p_proposed_text: proposed.trim(),
       p_explanation: explanation.trim() || undefined,
       p_source: source.trim() || undefined,
-      p_diff_summary: summarizeDiff(proposal.selectedText, proposed.trim()),
+      p_diff_summary: summarizeDiff(selected, proposed.trim()),
     });
     if (rpcError) {
       setError(
@@ -52,6 +72,7 @@ export function ProposalStatusView({
       return;
     }
     setEditing(false);
+    setPicking(false);
     setBusy(false);
     router.refresh();
   }
@@ -67,7 +88,28 @@ export function ProposalStatusView({
         </p>
       </header>
 
-      {proposal.status === "pending" ? (
+      {proposal.status === "pending" && gone ? (
+        <NoticeBanner
+          tone="warning"
+          icon={<Warning />}
+          title={
+            isProposer
+              ? "This note changed since you wrote this"
+              : "This note changed since this was written"
+          }
+          action={
+            isProposer && !editing ? (
+              <Button size="sm" onClick={startEditing}>
+                Pick the sentence again
+              </Button>
+            ) : undefined
+          }
+        >
+          {isProposer
+            ? "The sentence you picked is not in the note any more. Pick the sentence again and your correction carries over."
+            : `The sentence ${proposal.proposerName} picked is not in the note any more. They can pick it again and the correction carries over.`}
+        </NoticeBanner>
+      ) : proposal.status === "pending" ? (
         <NoticeBanner tone="warning" icon={<HourglassMedium />} title="Waiting on maintainer">
           {isProposer
             ? "A maintainer will compare both versions and decide. You can still edit this proposal; edits keep the same proposal and its history."
@@ -139,7 +181,24 @@ export function ProposalStatusView({
           <CardSection className="space-y-4">
             <div className="space-y-1.5">
               <Eyebrow>Selected sentence</Eyebrow>
-              <p className="text-sm text-ink-muted">{proposal.selectedText}</p>
+              {picking ? (
+                <SentencePicker
+                  bodyText={proposal.currentBodyText}
+                  selected={selected}
+                  hint="Tap the sentence you want to correct. This is the note as it reads now."
+                  onSelect={(sentence) => {
+                    setSelected(sentence);
+                    setPicking(false);
+                  }}
+                />
+              ) : (
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-sm text-ink-muted">{selected}</p>
+                  <Button variant="quiet" size="sm" onClick={() => setPicking(true)}>
+                    Pick a different sentence
+                  </Button>
+                </div>
+              )}
             </div>
             <Field label="Your correction">
               {(props) => (
@@ -172,10 +231,20 @@ export function ProposalStatusView({
               </p>
             ) : null}
             <div className="flex justify-end gap-2.5">
-              <Button variant="secondary" onClick={() => setEditing(false)} disabled={busy}>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setEditing(false);
+                  setPicking(false);
+                }}
+                disabled={busy}
+              >
                 Cancel
               </Button>
-              <Button onClick={() => void resubmit()} disabled={busy || !proposed.trim()}>
+              <Button
+                onClick={() => void resubmit()}
+                disabled={busy || picking || !proposed.trim()}
+              >
                 {busy
                   ? "Sending"
                   : proposal.status === "revision_requested"
@@ -226,7 +295,7 @@ export function ProposalStatusView({
         </Card>
       ) : null}
 
-      <ProposalTimeline events={proposal.events} />
+      <ProposalTimeline proposalId={proposal.id} events={proposal.events} />
 
       <div className="flex items-center justify-between gap-3">
         <NoticeBanner tone="primary" icon={<ShieldCheck />} className="flex-1">
@@ -240,7 +309,7 @@ export function ProposalStatusView({
         <div className="flex justify-end">
           <Button
             variant={proposal.status === "revision_requested" ? "primary" : "secondary"}
-            onClick={() => setEditing(true)}
+            onClick={startEditing}
           >
             Edit this proposal
           </Button>

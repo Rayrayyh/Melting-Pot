@@ -15,6 +15,48 @@ import { cn } from "@/lib/cn";
 
 const REASONS = ["Incorrect fact", "Incomplete", "Unclear wording", "Outdated"] as const;
 
+/**
+ * Picking a sentence is the one gesture that starts a correction, and it has
+ * to work the same way when a stale proposal comes back to be re-pointed.
+ * The caller decides what a second tap on the same sentence means.
+ */
+export function SentencePicker({
+  bodyText,
+  selected,
+  hint,
+  onSelect,
+}: {
+  bodyText: string;
+  selected: string | null;
+  hint: string;
+  onSelect: (sentence: string) => void;
+}) {
+  const sentences = selectableSentences(bodyText);
+  return (
+    <>
+      <p className="text-[12px] text-ink-muted pb-2">{hint}</p>
+      <p className="font-serif text-[16px] leading-loose text-ink">
+        {sentences.map((sentence, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={() => onSelect(sentence)}
+            aria-pressed={sentence === selected}
+            className={cn(
+              "text-left rounded px-0.5 -mx-0.5 transition-colors",
+              sentence === selected
+                ? "bg-pending-soft outline outline-1 outline-pending/40"
+                : "hover:bg-sunken",
+            )}
+          >
+            {sentence}{" "}
+          </button>
+        ))}
+      </p>
+    </>
+  );
+}
+
 export function CorrectFlow({
   potId,
   noteId,
@@ -29,7 +71,6 @@ export function CorrectFlow({
   bodyText: string;
 }) {
   const router = useRouter();
-  const sentences = selectableSentences(bodyText);
   const [stage, setStage] = useState<"select" | "compare">("select");
   const [selected, setSelected] = useState<string | null>(null);
   const [reason, setReason] = useState<string | null>(null);
@@ -99,27 +140,14 @@ export function CorrectFlow({
             <Eyebrow>{noteTitle}</Eyebrow>
             <Card>
               <CardSection className="space-y-1">
-                <p className="text-[12px] text-ink-muted pb-2">
-                  Tap the sentence you want to correct.
-                </p>
-                <p className="font-serif text-[16px] leading-loose text-ink">
-                  {sentences.map((sentence, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => setSelected(sentence === selected ? null : sentence)}
-                      aria-pressed={sentence === selected}
-                      className={cn(
-                        "text-left rounded px-0.5 -mx-0.5 transition-colors",
-                        sentence === selected
-                          ? "bg-pending-soft outline outline-1 outline-pending/40"
-                          : "hover:bg-sunken",
-                      )}
-                    >
-                      {sentence}{" "}
-                    </button>
-                  ))}
-                </p>
+                <SentencePicker
+                  bodyText={bodyText}
+                  selected={selected}
+                  hint="Tap the sentence you want to correct."
+                  onSelect={(sentence) =>
+                    setSelected(sentence === selected ? null : sentence)
+                  }
+                />
               </CardSection>
             </Card>
             {selected ? (
