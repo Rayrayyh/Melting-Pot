@@ -14,6 +14,8 @@ import { JoinCard } from "@/components/landing/join-card";
 import { ScrollStopper } from "@/components/landing/scroll-stopper";
 import { Wordmark } from "@/components/shell/wordmark";
 import { Button } from "@/components/ui/button";
+import { Reveal } from "@/components/ui/reveal";
+import { RollText } from "@/components/ui/roll-text";
 
 const STEPS = [
   {
@@ -87,9 +89,9 @@ export function BrandLanding({
             {signedIn ? (
               <Link
                 href="/home"
-                className="inline-flex h-11 items-center rounded-full bg-ink px-6 text-[15px] font-medium text-paper transition-opacity hover:opacity-90"
+                className="group/roll inline-flex h-11 items-center rounded-full bg-ink px-6 text-[15px] font-medium text-paper transition-opacity hover:opacity-90"
               >
-                Go to dashboard
+                <RollText>Go to dashboard</RollText>
               </Link>
             ) : (
               <>
@@ -98,9 +100,9 @@ export function BrandLanding({
                 </Link>
                 <a
                   href="#spaces"
-                  className="inline-flex h-11 items-center rounded-full bg-ink px-6 text-[15px] font-medium text-paper transition-opacity hover:opacity-90"
+                  className="group/roll inline-flex h-11 items-center rounded-full bg-ink px-6 text-[15px] font-medium text-paper transition-opacity hover:opacity-90"
                 >
-                  Get started
+                  <RollText>Get started</RollText>
                 </a>
               </>
             )}
@@ -126,20 +128,23 @@ export function BrandLanding({
               hands until you say so.
             </p>
             <div className="flex flex-wrap items-center gap-8 pt-2">
-              <Button href={signedIn ? "/home" : "#spaces"} size="lg">
+              <Button href={signedIn ? "/home" : "#spaces"} size="lg" roll>
                 {signedIn ? "Go to dashboard" : "Get started"}
               </Button>
               <a
                 href="#explore"
-                className="inline-flex items-center gap-2 text-[16px] font-medium text-ink hover:text-primary transition-colors"
+                className="group/roll inline-flex items-center gap-2 text-[16px] font-medium text-ink hover:text-primary transition-colors"
               >
-                Learn more
-                <ArrowRight className="size-4" aria-hidden />
+                <RollText>Learn more</RollText>
+                <ArrowRight
+                  className="size-4 transition-transform duration-300 group-hover/roll:translate-x-1"
+                  aria-hidden
+                />
               </a>
             </div>
           </div>
           <div className="relative h-full min-h-[320px] lg:min-h-[calc(100vh-6rem)] flex items-end justify-center lg:justify-end">
-            <PotHeroArt className="w-full max-w-120 lg:max-w-150 max-h-[calc(100dvh-8.5rem)] mb-2.5" />
+            <PotHeroArt className="w-full max-w-120 lg:max-w-150 max-h-[calc(100dvh-8.5rem)] mb-2.5 -translate-x-3 -translate-y-2" />
           </div>
         </div>
       </section>
@@ -204,7 +209,7 @@ export function BrandLanding({
       </div>
 
       <section className="px-6 sm:px-10 py-24 sm:py-36 bg-surface border-y border-edge">
-        <div className="mx-auto w-full max-w-5xl space-y-16">
+        <Reveal className="mx-auto w-full max-w-5xl space-y-16">
           <div className="max-w-lg space-y-3">
             <p className="text-[12px] font-semibold tracking-[0.14em] uppercase text-clay">
               Three steps, no friction
@@ -215,9 +220,9 @@ export function BrandLanding({
           </div>
           <div className="grid sm:grid-cols-3 gap-10 lg:gap-14">
             {STEPS.map((step) => (
-              <div key={step.number} className="space-y-4">
+              <div key={step.number} className="group space-y-4">
                 <div className="flex items-center gap-3">
-                  <span className="inline-flex size-10 items-center justify-center rounded-full bg-primary-soft text-primary font-display text-lg font-semibold">
+                  <span className="inline-flex size-10 items-center justify-center rounded-full bg-primary-soft text-primary font-display text-lg font-semibold transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-105">
                     {step.number}
                   </span>
                   <step.icon className="size-5 text-ink-faint" aria-hidden />
@@ -227,11 +232,11 @@ export function BrandLanding({
               </div>
             ))}
           </div>
-        </div>
+        </Reveal>
       </section>
 
       <section className="px-6 sm:px-10 py-24 sm:py-36">
-        <div className="mx-auto w-full max-w-5xl space-y-16">
+        <Reveal className="mx-auto w-full max-w-5xl space-y-16">
           <div className="max-w-lg space-y-3">
             <p className="text-[12px] font-semibold tracking-[0.14em] uppercase text-clay">
               Built on trust
@@ -244,7 +249,7 @@ export function BrandLanding({
             {PRINCIPLES.map((principle) => (
               <div
                 key={principle.title}
-                className="bg-surface border border-edge rounded-(--radius-card) p-8 space-y-4 shadow-(--shadow-card)"
+                className="bg-surface border border-edge rounded-(--radius-card) p-8 space-y-4 shadow-(--shadow-card) transition-[transform,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-(--shadow-raised)"
               >
                 <principle.icon className="size-7 text-primary" weight="duotone" aria-hidden />
                 <h3 className="text-lg font-semibold text-ink">{principle.title}</h3>
@@ -252,11 +257,11 @@ export function BrandLanding({
               </div>
             ))}
           </div>
-        </div>
+        </Reveal>
       </section>
 
       <section className="px-6 sm:px-10 pb-28 sm:pb-36">
-        <div className="mx-auto w-full max-w-4xl bg-primary rounded-(--radius-card) px-8 py-16 sm:px-16 sm:py-20 text-center space-y-6">
+        <Reveal className="mx-auto w-full max-w-4xl bg-primary rounded-(--radius-card) px-8 py-16 sm:px-16 sm:py-20 text-center space-y-6">
           <h2 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-on-primary">
             Start your class&apos;s Pot tonight.
           </h2>
@@ -268,6 +273,7 @@ export function BrandLanding({
             <Button
               href="/pots/new"
               size="lg"
+              roll
               className="bg-surface text-primary hover:bg-surface/90"
             >
               Create a Pot
@@ -279,7 +285,7 @@ export function BrandLanding({
               or enter a class code
             </a>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       <footer className="px-6 sm:px-10 py-12 border-t border-edge">
@@ -295,7 +301,7 @@ export function BrandLanding({
             href="https://pixel-forge-ai-hackathon-08.devpost.com/"
             target="_blank"
             rel="noreferrer noopener"
-            className="inline-flex flex-col gap-2.5 sm:items-end"
+            className="group inline-flex flex-col items-center gap-2.5"
           >
             {/* The hackathon's own mark, kept at its own colors as a credit. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -304,9 +310,9 @@ export function BrandLanding({
               alt="Pixel Forge AI"
               width={932}
               height={103}
-              className="h-7 w-auto"
+              className="h-7 w-auto transition-transform duration-300 group-hover:-translate-y-0.5"
             />
-            <span className="text-[13px] text-ink-muted">
+            <span className="text-sm font-semibold tracking-tight text-ink">
               Made for the Pixel Forge AI Hackathon
             </span>
           </a>

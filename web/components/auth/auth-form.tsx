@@ -8,6 +8,11 @@ import { Card, CardSection } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/input";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { clearPendingJoin, takePendingJoin } from "@/lib/pending-join";
+import { GoogleMark } from "@/components/auth/google-mark";
+
+// Google sign in only appears once the provider is configured, so the button
+// is never on screen in a state where pressing it fails. See docs/GOOGLE-SIGN-IN.md.
+const GOOGLE_ENABLED = process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === "on";
 
 function friendlyError(message: string): string {
   if (message.includes("email_taken")) {
@@ -33,17 +38,19 @@ export function AuthForm({
   code,
   next,
   potTitle,
+  initialError = null,
 }: {
   mode: "login" | "signup";
   code?: string;
   next?: string;
   potTitle?: string;
+  initialError?: string | null;
 }) {
   const router = useRouter();
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(initialError);
   const [busy, setBusy] = useState(false);
   // Set once a password is accepted but the account also asks for a code.
   const [secondStepFactorId, setSecondStepFactorId] = useState<string | null>(null);
@@ -123,6 +130,31 @@ export function AuthForm({
     }
 
     await finalize();
+  }
+
+  async function continueWithGoogle() {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    // Carry the class code through the round trip so the membership still
+    // lands, the same way the password path does.
+    const pendingCode = code ?? takePendingJoin();
+    const destination = pendingCode
+      ? `/join/${pendingCode}`
+      : next && next.startsWith("/")
+        ? next
+        : "/home";
+    const { error: oauthError } = await supabaseBrowser().auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(destination)}`,
+      },
+    });
+    if (oauthError) {
+      setError("We couldn't reach Google just now. Try again, or use your email and password.");
+      setBusy(false);
+    }
+    // On success the browser leaves for Google, so there is nothing to reset.
   }
 
   async function submitSecondStep(e: React.FormEvent) {
@@ -215,6 +247,25 @@ export function AuthForm({
           <h1 className="text-xl font-semibold tracking-tight">{heading}</h1>
           <p className="text-sm text-ink-muted">{sub}</p>
         </div>
+        {GOOGLE_ENABLED ? (
+          <div className="space-y-4">
+            <Button
+              variant="secondary"
+              size="lg"
+              className="w-full"
+              onClick={continueWithGoogle}
+              disabled={busy}
+            >
+              <GoogleMark className="size-[18px]" />
+              Continue with Google
+            </Button>
+            <div className="flex items-center gap-3">
+              <span className="h-px flex-1 bg-edge" />
+              <span className="text-[12px] text-ink-faint">or</span>
+              <span className="h-px flex-1 bg-edge" />
+            </div>
+          </div>
+        ) : null}
         <form onSubmit={submit} className="space-y-4">
           {mode === "signup" ? (
             <Field label="Display name">

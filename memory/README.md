@@ -30,6 +30,7 @@ This directory is the project's knowledge base. It makes the repo, not chat hist
 - 009 Rate limiting and endpoint closure in the database: fixed-window limits sized for classroom NAT, anon locked to two RPCs, authenticated keeps only used write verbs
 - 010 Orange brand rework: cream paper, orange primary, pot-and-m mark, Fraunces display, pill buttons; supersedes the green palette
 - 011 Account surface and two-step sign in: profile at the foot of the nav, theme and security in /me/settings, enrolment paired with a real login challenge, landing open to signed-in people, mark with no tile
+- 012 Google sign in on Supabase Auth rather than Firebase (asked for, declined with reasons), gated behind an env flag; contributor activity on the Pot home; restrained landing motion
 
 ### Lessons
 - 001 Reading the spec PDFs in this container requires poppler, not pypdf

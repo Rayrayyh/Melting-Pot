@@ -11,6 +11,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const rawCode = typeof params.code === "string" ? params.code : "";
   const code = rawCode ? normalizeClassCode(rawCode) : "";
   const next = typeof params.next === "string" ? params.next : undefined;
+  const oauthFailed = params.error === "oauth";
 
   const supabase = await supabaseServer();
   const {
@@ -27,7 +28,17 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-16 gap-8">
       <Wordmark size="lg" />
-      <AuthForm mode="login" code={code || undefined} next={next} potTitle={potTitle} />
+      <AuthForm
+        mode="login"
+        code={code || undefined}
+        next={next}
+        potTitle={potTitle}
+        initialError={
+          oauthFailed
+            ? "That Google sign in didn't complete. Try again, or use your email and password."
+            : null
+        }
+      />
     </div>
   );
 }

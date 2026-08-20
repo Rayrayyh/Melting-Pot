@@ -1,13 +1,16 @@
 import Link from "next/link";
 import { Plus, Tray } from "@phosphor-icons/react/dist/ssr";
 import { NoteCard } from "@/components/pot/note-card";
+import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CopyButton } from "@/components/ui/copy-button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MetricCard } from "@/components/ui/metric-card";
 import { SectionPill } from "@/components/ui/pills";
+import { contributorActivity } from "@/lib/contributors";
 import type { FeedNote, PotContext } from "@/lib/data/pot";
+import { relativeTime } from "@/lib/time";
 
 export function PotFeed({
   pot,
@@ -22,6 +25,8 @@ export function PotFeed({
     ? pot.sections.find((s) => s.id === activeSectionId)
     : undefined;
   const isMaintainer = pot.role !== "member";
+  // Pot-wide, so it belongs with the vitals rather than a filtered view.
+  const contributors = activeSection ? [] : contributorActivity(notes);
 
   return (
     <div className="mx-auto w-full max-w-3xl px-6 py-10 space-y-8">
@@ -50,6 +55,30 @@ export function PotFeed({
             accessory={<CopyButton value={pot.classCode} label="Copy" />}
           />
         </div>
+      ) : null}
+
+      {contributors.length > 0 ? (
+        <section aria-labelledby="pot-contributors" className="space-y-3">
+          <h2 id="pot-contributors" className="text-[13px] font-medium text-ink-muted">
+            Recent contributors
+          </h2>
+          <ul className="flex flex-wrap gap-2">
+            {contributors.map((contributor) => (
+              <li
+                key={contributor.name}
+                className="inline-flex items-center gap-2 rounded-full border border-edge bg-surface py-1.5 pl-1.5 pr-3.5"
+              >
+                <Avatar name={contributor.name} size="sm" />
+                <span className="text-[13px] font-medium text-ink">{contributor.name}</span>
+                <span className="text-[12px] text-ink-faint">
+                  {contributor.noteCount} {contributor.noteCount === 1 ? "note" : "notes"}
+                  {" · "}
+                  {relativeTime(contributor.lastSharedAt)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
       ) : null}
 
       {pot.sections.length > 0 ? (
