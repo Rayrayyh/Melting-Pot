@@ -1,0 +1,260 @@
+@import "tailwindcss";
+
+/*
+  MeltingPot design tokens.
+  Light theme: cream paper, warm white surfaces, near-black ink, and the
+  brand orange as primary. Dark theme is a derived warm charcoal variant.
+  Theme resolution: no data-theme attribute follows the system preference;
+  data-theme="light" | "dark" is an explicit user choice (persisted in
+  localStorage, applied before paint by the inline script in layout.tsx).
+*/
+
+:root {
+  --paper: #faf4e6;
+  --surface: #fffdf6;
+  --surface-raised: #ffffff;
+  --sunken: #f2e9d4;
+  --ink: #24222c;
+  --ink-muted: #5c5952;
+  --ink-faint: #756f5e;
+  --edge: #ede3cc;
+  --edge-strong: #dbcfaf;
+  --primary: #e0761a;
+  --primary-hover: #cd6812;
+  --primary-active: #ba5b0d;
+  --primary-soft: #fbead3;
+  --on-primary: #fff8ee;
+  --clay: #c36514;
+  --clay-soft: #f8e5c8;
+  --on-clay: #fff8ec;
+  --success: #43804c;
+  --success-soft: #e6f1e0;
+  --warning: #9a6a16;
+  --warning-soft: #f8ecd0;
+  --danger: #bf4b2b;
+  --danger-soft: #f9e4d9;
+  --pending: #9a6a16;
+  --pending-soft: #f8ecd0;
+  --added: #43804c;
+  --added-soft: #e6f1e0;
+  --removed: #bf4b2b;
+  --removed-soft: #f9e4d9;
+  --focus-ring: #e0761a;
+  --shadow-card: 0 1px 2px rgba(36, 34, 44, 0.05);
+  --shadow-raised: 0 4px 16px rgba(36, 34, 44, 0.08);
+  --scrollbar: #d9ccac;
+  /*
+    Avatar tints. Decorative identity only: one pair per person, picked by a
+    hash of their name. Kept apart from the functional colors so a green
+    avatar never reads as success and a red one never reads as an error.
+  */
+  --avatar-1: #c2610f;
+  --avatar-1-soft: #fae2c6;
+  --avatar-2: #b04a2a;
+  --avatar-2-soft: #f8ddd2;
+  --avatar-3: #8f6a12;
+  --avatar-3-soft: #f7eccb;
+  --avatar-4: #5f7038;
+  --avatar-4-soft: #e8eed6;
+  --avatar-5: #2f6f6a;
+  --avatar-5-soft: #d9ebe8;
+  --avatar-6: #9c4557;
+  --avatar-6-soft: #f7dee3;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --paper: #1a1510;
+  --surface: #221b14;
+  --surface-raised: #2a211a;
+  --sunken: #150f0a;
+  --ink: #f4ebda;
+  --ink-muted: #b5a88f;
+  --ink-faint: #97896f;
+  --edge: #3b3122;
+  --edge-strong: #4d4130;
+  --primary: #f19a44;
+  --primary-hover: #f5ab60;
+  --primary-active: #e58a31;
+  --primary-soft: #3b2914;
+  --on-primary: #201204;
+  --clay: #e9a85d;
+  --clay-soft: #3d2b16;
+  --on-clay: #1f1408;
+  --success: #8cbe8c;
+  --success-soft: #24331d;
+  --warning: #dba859;
+  --warning-soft: #382b12;
+  --danger: #e68e70;
+  --danger-soft: #3d1f16;
+  --pending: #dba859;
+  --pending-soft: #382b12;
+  --added: #8cbe8c;
+  --added-soft: #24331d;
+  --removed: #e68e70;
+  --removed-soft: #3d1f16;
+  --focus-ring: #f19a44;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-raised: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --scrollbar: #4d4433;
+  --avatar-1: #f0a055;
+  --avatar-1-soft: #3c2612;
+  --avatar-2: #e79274;
+  --avatar-2-soft: #3d211a;
+  --avatar-3: #d9b45f;
+  --avatar-3-soft: #372b13;
+  --avatar-4: #a8bd7c;
+  --avatar-4-soft: #2b331d;
+  --avatar-5: #78bdb5;
+  --avatar-5-soft: #1c3230;
+  --avatar-6: #dd8d9d;
+  --avatar-6-soft: #3a1f26;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #1a1510;
+    --surface: #221b14;
+    --surface-raised: #2a211a;
+    --sunken: #150f0a;
+    --ink: #f4ebda;
+    --ink-muted: #b5a88f;
+    --ink-faint: #97896f;
+    --edge: #3b3122;
+    --edge-strong: #4d4130;
+    --primary: #f19a44;
+    --primary-hover: #f5ab60;
+    --primary-active: #e58a31;
+    --primary-soft: #3b2914;
+    --on-primary: #201204;
+    --clay: #e9a85d;
+    --clay-soft: #3d2b16;
+    --on-clay: #1f1408;
+    --success: #8cbe8c;
+    --success-soft: #24331d;
+    --warning: #dba859;
+    --warning-soft: #382b12;
+    --danger: #e68e70;
+    --danger-soft: #3d1f16;
+    --pending: #dba859;
+    --pending-soft: #382b12;
+    --added: #8cbe8c;
+    --added-soft: #24331d;
+    --removed: #e68e70;
+    --removed-soft: #3d1f16;
+    --focus-ring: #f19a44;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-raised: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --scrollbar: #4d4433;
+    --avatar-1: #f0a055;
+    --avatar-1-soft: #3c2612;
+    --avatar-2: #e79274;
+    --avatar-2-soft: #3d211a;
+    --avatar-3: #d9b45f;
+    --avatar-3-soft: #372b13;
+    --avatar-4: #a8bd7c;
+    --avatar-4-soft: #2b331d;
+    --avatar-5: #78bdb5;
+    --avatar-5-soft: #1c3230;
+    --avatar-6: #dd8d9d;
+    --avatar-6-soft: #3a1f26;
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-sunken: var(--sunken);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-edge: var(--edge);
+  --color-edge-strong: var(--edge-strong);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-on-primary: var(--on-primary);
+  --color-clay: var(--clay);
+  --color-clay-soft: var(--clay-soft);
+  --color-on-clay: var(--on-clay);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-pending: var(--pending);
+  --color-pending-soft: var(--pending-soft);
+  --color-added: var(--added);
+  --color-added-soft: var(--added-soft);
+  --color-removed: var(--removed);
+  --color-removed-soft: var(--removed-soft);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-source-serif), ui-serif, Georgia, serif;
+  --font-display: var(--font-fraunces), var(--font-source-serif), ui-serif, Georgia, serif;
+  --font-brand: var(--font-baloo), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --radius-card: 0.875rem;
+  --radius-control: 0.625rem;
+  --shadow-card: var(--shadow-card);
+  --shadow-raised: var(--shadow-raised);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: "cv11";
+  -webkit-font-smoothing: antialiased;
+}
+
+/*
+  User-written text can be one unbroken run (a pasted URL, a mashed key).
+  Break it inside its container everywhere instead of letting any single
+  surface overflow; truncation stays an opt-in refinement per component.
+*/
+h1,
+h2,
+h3,
+p,
+li,
+dt,
+dd,
+blockquote {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+::selection {
+  background: var(--primary-soft);
+  color: var(--ink);
+}
+
+:root[data-theme="dark"] ::selection {
+  background: var(--primary-active);
+  color: var(--on-primary);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar) transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
