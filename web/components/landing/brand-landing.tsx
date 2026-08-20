@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   ArrowDown,
   ArrowRight,
+  GithubLogo,
   HandPalm,
   LockSimpleOpen,
   PencilSimple,
@@ -37,6 +38,8 @@ const STEPS = [
     body: "Review the organized version next to your original, change anything, then share it with the class.",
   },
 ];
+
+const REPO_URL = "https://github.com/Rayrayyh/Meltingpot";
 
 const PRINCIPLES = [
   {
@@ -294,35 +297,76 @@ export function BrandLanding({
       </section>
 
       <footer className="px-6 sm:px-10 py-12 border-t border-edge">
-        <div className="mx-auto w-full max-w-5xl flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mx-auto w-full max-w-5xl flex flex-col gap-10 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-3">
             <Wordmark />
             <p className="max-w-xs text-[13px] text-ink-muted">
-              Everything your class knows, in one Pot. Open source under the
-              MIT license.
+              Everything your class knows, in one Pot. Built in the open, MIT
+              licensed.
             </p>
           </div>
-          <a
-            href="https://pixel-forge-ai-hackathon-08.devpost.com/"
-            target="_blank"
-            rel="noreferrer noopener"
-            className="group inline-flex flex-col items-center gap-2.5"
-          >
-            {/* The hackathon's own mark, kept at its own colors as a credit. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/pixel-forge-ai-hackathon.png"
-              alt="Pixel Forge AI"
-              width={932}
-              height={103}
-              className="h-7 w-auto transition-transform duration-300 group-hover:-translate-y-0.5"
+          {/* Two credits, one mark each, sharing a baseline. The repository sits
+              beside the hackathon it was built for because both are the same
+              claim: this is a real thing you can go and look at. */}
+          <div className="flex flex-wrap items-end justify-center gap-x-10 gap-y-8 sm:justify-end">
+            <Credit
+              href={REPO_URL}
+              label="Open source on GitHub"
+              mark={
+                <GithubLogo
+                  className="size-7 text-ink transition-transform duration-300 group-hover:-translate-y-0.5"
+                  weight="fill"
+                  aria-hidden
+                />
+              }
             />
-            <span className="text-sm font-semibold tracking-tight text-ink">
-              Made for the Pixel Forge AI Hackathon
-            </span>
-          </a>
+            <span aria-hidden className="hidden h-10 w-px bg-edge sm:block" />
+            <Credit
+              href="https://pixel-forge-ai-hackathon-08.devpost.com/"
+              label="Made for the Pixel Forge AI Hackathon"
+              mark={
+                /* The hackathon's own mark, kept at its own colors as a credit. */
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src="/pixel-forge-ai-hackathon.png"
+                  alt="Pixel Forge AI"
+                  width={932}
+                  height={103}
+                  className="h-7 w-auto transition-transform duration-300 group-hover:-translate-y-0.5"
+                />
+              }
+            />
+          </div>
         </div>
       </footer>
     </div>
+  );
+}
+
+/**
+ * A mark above a line of text, linking somewhere a visitor can verify a claim.
+ * Both footer credits share it so their baselines and their hover agree.
+ */
+function Credit({
+  href,
+  label,
+  mark,
+}: {
+  href: string;
+  label: string;
+  mark: React.ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer noopener"
+      className="group inline-flex flex-col items-center gap-2.5"
+    >
+      <span className="flex h-7 items-end">{mark}</span>
+      <span className="text-center text-sm font-semibold tracking-tight text-ink transition-colors group-hover:text-primary">
+        {label}
+      </span>
+    </a>
   );
 }
