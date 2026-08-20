@@ -84,24 +84,33 @@ test.describe("Flashcards", () => {
     await serveStudy(page, DECK, { storedOnPeek: true });
     await page.goto(`/p/${id}/study/flashcards`);
 
+    // The card is one object with two faces, so both are mounted and the one
+    // turned away is the one taken out of the accessibility tree. Asserting on
+    // that is asserting on what a reader can actually reach.
+    const front = page.locator('[data-face="front"]');
+    const back = page.locator('[data-face="back"]');
+
     // One card, front first, with the deck's position on show.
     await expect(page.getByText("1 / 3")).toBeVisible();
-    await expect(page.getByText("What is osmosis?")).toBeVisible();
-    await expect(page.getByText("Water moving toward higher solute.")).toHaveCount(0);
+    await expect(front).toContainText("What is osmosis?");
+    await expect(front).not.toHaveAttribute("aria-hidden", "true");
+    await expect(back).toContainText("Water moving toward higher solute.");
+    await expect(back).toHaveAttribute("aria-hidden", "true");
     await expect(page.getByText("From Osmosis and tonicity", { exact: false })).toBeVisible();
 
     // Clicking the card turns it over, and clicking again turns it back.
     await page.getByRole("button", { name: "Show the answer" }).click();
-    await expect(page.getByText("Water moving toward higher solute.")).toBeVisible();
+    await expect(back).not.toHaveAttribute("aria-hidden", "true");
+    await expect(front).toHaveAttribute("aria-hidden", "true");
     await page.getByRole("button", { name: "Show the question" }).click();
-    await expect(page.getByText("What is osmosis?")).toBeVisible();
+    await expect(front).not.toHaveAttribute("aria-hidden", "true");
 
     // Space turns it too, and the arrow keys walk the deck.
     await page.keyboard.press("Space");
-    await expect(page.getByText("Water moving toward higher solute.")).toBeVisible();
+    await expect(back).not.toHaveAttribute("aria-hidden", "true");
     await page.keyboard.press("ArrowRight");
     await expect(page.getByText("2 / 3")).toBeVisible();
-    await expect(page.getByText("What does hypertonic mean?")).toBeVisible();
+    await expect(front).toContainText("What does hypertonic mean?");
     await page.keyboard.press("ArrowLeft");
     await expect(page.getByText("1 / 3")).toBeVisible();
 
@@ -116,7 +125,7 @@ test.describe("Flashcards", () => {
     await expect(page.getByText("67% of this round, this time through.")).toBeVisible();
     await page.getByRole("button", { name: "Study the 1 still learning" }).click();
     await expect(page.getByText("1 / 1")).toBeVisible();
-    await expect(page.getByText("What does hypertonic mean?")).toBeVisible();
+    await expect(page.locator('[data-face="front"]')).toContainText("What does hypertonic mean?");
   });
 
   test("filters the deck by tag", async ({ page }) => {
@@ -127,7 +136,9 @@ test.describe("Flashcards", () => {
 
     await page.getByRole("button", { name: /^division/ }).click();
     await expect(page.getByText("1 / 1")).toBeVisible();
-    await expect(page.getByText("How many cells does mitosis make?")).toBeVisible();
+    await expect(page.locator('[data-face="front"]')).toContainText(
+      "How many cells does mitosis make?",
+    );
 
     await page.getByRole("button", { name: /^All 3/ }).click();
     await expect(page.getByText("1 / 3")).toBeVisible();

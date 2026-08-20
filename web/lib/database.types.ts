@@ -518,6 +518,7 @@ export type Database = {
           source_fingerprint: string;
           payload: Json;
           model: string | null;
+          options: Json | null;
           generated_by: string;
           created_at: string;
         };
@@ -528,6 +529,7 @@ export type Database = {
           source_fingerprint: string;
           payload: Json;
           model?: string | null;
+          options?: Json | null;
           generated_by: string;
           created_at?: string;
         };
@@ -683,6 +685,7 @@ export type Database = {
           p_fingerprint: string;
           p_payload: Json;
           p_model: string;
+          p_options?: Json | null;
         };
         Returns: string;
       };

@@ -9,7 +9,7 @@ import {
   Shuffle,
   Sparkle,
 } from "@phosphor-icons/react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { SectionPill } from "@/components/ui/pills";
@@ -41,6 +41,38 @@ function ProgressBar({ value, total }: { value: number; total: number }) {
         className="h-full rounded-full bg-primary transition-[width] duration-300"
         style={{ width: `${percent}%` }}
       />
+    </div>
+  );
+}
+
+/**
+ * One side of the card. Both sides are always mounted and stacked, which is
+ * what makes the turn a turn: the back is pre-rotated so it reads the right way
+ * up once the card has gone half way round, and each side hides its own reverse
+ * so only one is ever visible. The hidden side is taken out of the accessibility
+ * tree too, or a screen reader would read the answer alongside the question.
+ */
+function CardFace({
+  back = false,
+  hidden,
+  children,
+}: {
+  back?: boolean;
+  hidden: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      data-face={back ? "back" : "front"}
+      // Absent rather than "false" when this side is the one being read, so the
+      // attribute is a plain statement about which side is turned away.
+      aria-hidden={hidden || undefined}
+      className={cn(
+        "absolute inset-0 flex flex-col items-center justify-center gap-3 overflow-y-auto rounded-(--radius-card) border border-edge bg-surface px-8 py-10 text-center [backface-visibility:hidden]",
+        back && "[transform:rotateX(180deg)]",
+      )}
+    >
+      {children}
     </div>
   );
 }
@@ -100,15 +132,7 @@ export function FlashcardSession({
     dispatch({ type: "setOrder", order: cardsWithTag(cards, next) });
   }
 
-  const face = session.showingBack ? "back" : "front";
-  const turn = reduced
-    ? { initial: false as const }
-    : {
-        initial: { opacity: 0, rotateX: -8 },
-        animate: { opacity: 1, rotateX: 0 },
-        exit: { opacity: 0, rotateX: 8 },
-        transition: { duration: 0.18, ease: [0.22, 1, 0.36, 1] as const },
-      };
+  const cardIndex = session.order[session.position];
 
   if (session.finished) {
     return (
@@ -170,34 +194,39 @@ export function FlashcardSession({
             <ProgressBar value={progress.answered} total={progress.total} />
           </div>
 
-          <div className="[perspective:1200px]">
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.button
-                key={`${session.order[session.position]}-${face}`}
-                type="button"
-                onClick={() => dispatch({ type: "flip" })}
-                aria-label={
-                  session.showingBack ? "Show the question" : "Show the answer"
-                }
-                className="flex min-h-64 w-full flex-col items-center justify-center gap-3 rounded-(--radius-card) border border-edge bg-surface px-8 py-10 text-center transition-colors hover:border-edge-strong"
-                {...turn}
-              >
-                <Eyebrow>{session.showingBack ? "Answer" : "Question"}</Eyebrow>
-                <p
-                  className={cn(
-                    "font-serif leading-relaxed text-ink",
-                    session.showingBack ? "text-[17px]" : "text-xl",
-                  )}
-                >
-                  {session.showingBack ? current.back : current.front}
-                </p>
-                {!session.showingBack ? (
-                  <span className="text-[12px] text-ink-faint">
-                    Click the card, or press space, to turn it over
-                  </span>
-                ) : null}
-              </motion.button>
-            </AnimatePresence>
+          {/* The card is one object with two faces, turned on its horizontal
+              axis. The perspective lives on the frame so the far edge really
+              recedes: without it the rotation flattens into a wipe. */}
+          <div className="[perspective:1600px]">
+            <motion.button
+              // A new card starts face up. Keying on it remounts rather than
+              // animating the old card back over, which would read as a second
+              // flip nobody asked for.
+              key={cardIndex}
+              type="button"
+              onClick={() => dispatch({ type: "flip" })}
+              aria-label={session.showingBack ? "Show the question" : "Show the answer"}
+              className="relative block h-72 w-full [transform-style:preserve-3d] sm:h-80"
+              initial={reduced ? false : { opacity: 0, x: 36 }}
+              animate={{ opacity: 1, x: 0, rotateX: session.showingBack ? 180 : 0 }}
+              transition={
+                reduced
+                  ? { duration: 0 }
+                  : { duration: 0.44, ease: [0.32, 0.72, 0, 1] as const }
+              }
+            >
+              <CardFace hidden={session.showingBack}>
+                <Eyebrow>Question</Eyebrow>
+                <p className="font-serif text-xl leading-relaxed text-ink">{current.front}</p>
+                <span className="text-[12px] text-ink-faint">
+                  Click the card, or press space, to turn it over
+                </span>
+              </CardFace>
+              <CardFace back hidden={!session.showingBack}>
+                <Eyebrow>Answer</Eyebrow>
+                <p className="font-serif text-[17px] leading-relaxed text-ink">{current.back}</p>
+              </CardFace>
+            </motion.button>
           </div>
 
           {/* The card's own source, kept quiet: it is provenance, not the lesson. */}

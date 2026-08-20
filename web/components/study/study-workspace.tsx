@@ -1,20 +1,31 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, Brain, Cards, Sparkle, TrashSimple } from "@phosphor-icons/react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  ArrowLeft,
+  Brain,
+  Cards,
+  ClockCounterClockwise,
+  Sparkle,
+  TrashSimple,
+} from "@phosphor-icons/react";
 import { FlashcardSession } from "@/components/study/flashcard-session";
 import { PracticeSession } from "@/components/study/practice-session";
 import { PracticeSetup } from "@/components/study/practice-setup";
 import { Button } from "@/components/ui/button";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { cn } from "@/lib/cn";
 import { supabaseBrowser } from "@/lib/supabase/client";
-import type { StudyKind } from "@/lib/gemini/contracts";
+import type { StudyKind } from "@/lib/mix/contracts";
+import type { SavedStudySet } from "@/lib/data/study";
 import type { StudyCard } from "@/lib/study/flashcard-session";
 import type { PracticeQuestion } from "@/lib/study/practice-session";
 import {
   DEFAULT_PRACTICE_OPTIONS,
   describeOptions,
+  normalizePracticeOptions,
   practiceOptionsKey,
   type PracticeOptions,
 } from "@/lib/study/practice-options";
@@ -37,6 +48,9 @@ type Loaded = {
   studySetId: string | null;
 };
 
+/** How long a settings change waits before the store is asked about it. */
+const SETTLE_MS = 400;
+
 const copy = {
   summary: {
     title: "Summary",
@@ -54,7 +68,7 @@ const copy = {
   },
   practice: {
     title: "Practice",
-    description: "Generate a rigorous practice test grounded in the Pot.",
+    description: "Build a rigorous practice test grounded in the Pot.",
     icon: Brain,
     build: "Write the test",
     rebuild: "Write a new test",
@@ -62,18 +76,18 @@ const copy = {
 } as const;
 
 function message(error: string | undefined, detail: string | undefined): string {
-  if (error === "gemini_not_configured") {
-    return "Gemini isn't configured on this server yet. Add the API key, then restart the app.";
+  if (error === "mixing_unavailable") {
+    return "Mixing is not set up on this server yet, so nothing new can be built. Anything the Pot already has still opens.";
   }
-  if (error === "no_notes") return "Share at least one note before generating study material.";
+  if (error === "no_notes") return "Share at least one note before building study material.";
   if (error === "no_notes_in_sections") {
     return "Nothing has been shared in the parts you picked. Choose another part, or the whole Pot.";
   }
   if (error === "rate_limited") {
-    return "You've generated several study sets recently. Wait a little and try again.";
+    return "You have built several study sets recently. Wait a little and try again.";
   }
   if (error === "not_pot_member") return "You need to be in this Pot to study from it.";
-  return detail || "This study set couldn't be generated.";
+  return detail || "This study set could not be built.";
 }
 
 export function StudyWorkspace({
@@ -82,6 +96,7 @@ export function StudyWorkspace({
   kind,
   sections,
   canModerate,
+  savedSets,
 }: {
   potId: string;
   potTitle: string;
@@ -90,10 +105,19 @@ export function StudyWorkspace({
   sections: Array<{ id: string; title: string }>;
   /** Maintainers can take a bad set away so the class stops being served it. */
   canModerate: boolean;
+  /** Everything of this kind the Pot has already built, newest first. */
+  savedSets: SavedStudySet[];
 }) {
-  const [loaded, setLoaded] = useState<Loaded | null>(null);
-  // The configuration the store has already been asked about. While it differs
-  // from what is chosen, the answer on screen is stale and we say we are looking.
+  const router = useRouter();
+  // What the reader has opened, and what the store happens to hold for the
+  // settings on screen, are two different things. Keeping them apart is what
+  // lets the lookup run quietly: it can learn there is a saved test without
+  // replacing the one being read, or tearing down the form being filled in.
+  const [opened, setOpened] = useState<Loaded | null>(null);
+  const [peeked, setPeeked] = useState<Loaded | null>(null);
+  // Which settings the store has already been asked about. Derived from, not
+  // set alongside, the chosen settings: they differ exactly while a lookup is
+  // outstanding, which is the whole of what "checking" means.
   const [lookedUpKey, setLookedUpKey] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -103,6 +127,8 @@ export function StudyWorkspace({
   // A test is set up before it is written, so the settings are a screen of
   // their own that the reader can come back to.
   const [settingUp, setSettingUp] = useState(kind === "practice");
+  const [tab, setTab] = useState<"new" | "previous">("new");
+  const firstLook = useRef(true);
 
   const mode = copy[kind];
   const Icon = mode.icon;
@@ -136,22 +162,36 @@ export function StudyWorkspace({
   );
 
   // What the Pot already has appears without asking for anything, and without
-  // spending a generation. A test is looked up per configuration, so changing
-  // the settings looks for the test those settings describe.
+  // spending a generation. Changing a setting looks again, for the test those
+  // settings describe, but in the background: the form stays exactly where it
+  // is, keeps what has been typed, and keeps the caret inside it.
   useEffect(() => {
     let live = true;
-    void load({ peek: true, options }).then((outcome) => {
-      if (!live) return;
-      setLoaded(outcome.loaded ?? null);
-      setLookedUpKey(optionsKey);
-    });
+    const first = firstLook.current;
+    firstLook.current = false;
+    const timer = setTimeout(
+      () => {
+        void load({ peek: true, options }).then((outcome) => {
+          if (!live) return;
+          setPeeked(outcome.loaded ?? null);
+          // A summary and a deck have nothing to configure, so whatever the Pot
+          // holds is simply what the page shows.
+          if (kind !== "practice") setOpened(outcome.loaded ?? null);
+          setLookedUpKey(optionsKey);
+        });
+      },
+      // The first look is what the page is waiting on, so it goes at once.
+      // Later ones are keystrokes and taps, and wait for those to stop.
+      first ? 0 : SETTLE_MS,
+    );
     return () => {
       live = false;
+      clearTimeout(timer);
     };
     // optionsKey stands in for options: it is the whole of what the lookup
     // depends on, and it is a string, so the effect does not re-run on identity.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [load, optionsKey]);
+  }, [load, optionsKey, kind]);
 
   async function generate(regenerate: boolean) {
     if (busy) return;
@@ -163,15 +203,48 @@ export function StudyWorkspace({
       setError(message(outcome.failure, outcome.detail));
       return;
     }
-    setLoaded(outcome.loaded);
+    setOpened(outcome.loaded);
+    setPeeked(outcome.loaded);
     setSettingUp(false);
+    setTab("new");
+    // The list of what the Pot holds is rendered on the server, so it has to be
+    // told that it just grew.
+    router.refresh();
+  }
+
+  /** Opens a set the Pot already has, without building anything. */
+  async function openSaved(set: SavedStudySet) {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    const { data } = await supabaseBrowser()
+      .from("study_sets")
+      .select("id, payload, created_at, options")
+      .eq("id", set.id)
+      .maybeSingle();
+    setBusy(false);
+    if (!data) {
+      setError("That test could not be opened. It may have been removed.");
+      return;
+    }
+    setOpened({
+      result: data.payload as StudyResult,
+      cached: true,
+      generatedAt: data.created_at,
+      studySetId: data.id,
+    });
+    // The settings move to the ones this test was written for, so the line
+    // above it describes the test on screen rather than the last thing chosen.
+    if (data.options) setOptions(normalizePracticeOptions(data.options));
+    setSettingUp(false);
+    setTab("new");
   }
 
   async function removeSet() {
-    if (!loaded?.studySetId || deleting) return;
+    if (!opened?.studySetId || deleting) return;
     setDeleting(true);
     const { error: rpcError } = await supabaseBrowser().rpc("delete_study_set", {
-      p_study_set_id: loaded.studySetId,
+      p_study_set_id: opened.studySetId,
     });
     setDeleting(false);
     setAsking(false);
@@ -179,11 +252,16 @@ export function StudyWorkspace({
       setError("That set could not be removed. Try again.");
       return;
     }
-    setLoaded(null);
+    setOpened(null);
+    setPeeked(null);
+    if (kind === "practice") setSettingUp(true);
+    router.refresh();
   }
 
-  const regenerating = busy && loaded !== null;
-  const looking = lookedUpKey !== optionsKey;
+  const regenerating = busy && opened !== null;
+  const showTabs = kind === "practice" && savedSets.length > 0;
+  const checking = lookedUpKey !== optionsKey;
+  const settled = lookedUpKey !== null;
 
   return (
     <div className="mx-auto w-full max-w-3xl px-6 py-10 space-y-6">
@@ -202,34 +280,72 @@ export function StudyWorkspace({
         </span>
       </header>
 
-      {looking ? (
+      {showTabs ? (
+        <nav aria-label="Practice tests" className="flex gap-1.5 border-b border-edge">
+          {(
+            [
+              ["new", settingUp || !opened ? "Set up a test" : "This test"],
+              ["previous", `Previous tests (${savedSets.length})`],
+            ] as const
+          ).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              aria-current={tab === key ? "page" : undefined}
+              onClick={() => setTab(key)}
+              className={cn(
+                "-mb-px border-b-2 px-3 pb-2.5 pt-1 text-[13px] font-medium transition-colors",
+                tab === key
+                  ? "border-primary text-primary"
+                  : "border-transparent text-ink-muted hover:text-ink",
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+      ) : null}
+
+      {kind === "practice" && tab === "previous" ? (
+        <PreviousSets
+          sets={savedSets}
+          sectionTitles={sectionTitles}
+          busy={busy}
+          openedId={opened?.studySetId ?? null}
+          onOpen={(set) => void openSaved(set)}
+        />
+      ) : kind === "practice" && (settingUp || !opened) ? (
+        <PracticeSetup
+          options={options}
+          onChange={setOptions}
+          sections={sections}
+          hasSaved={Boolean(peeked)}
+          checking={checking}
+          busy={busy}
+          error={error}
+          onBuild={() => void generate(true)}
+          onOpenSaved={() => {
+            setOpened(peeked);
+            setSettingUp(false);
+          }}
+        />
+      ) : !settled ? (
         <Card>
           <CardSection className="py-12 text-center">
             <p className="text-sm text-ink-muted">Looking for what this Pot already has.</p>
           </CardSection>
         </Card>
-      ) : kind === "practice" && (settingUp || !loaded) ? (
-        <PracticeSetup
-          options={options}
-          onChange={setOptions}
-          sections={sections}
-          hasSaved={Boolean(loaded)}
-          busy={busy}
-          error={error}
-          onBuild={() => void generate(true)}
-          onOpenSaved={() => setSettingUp(false)}
-        />
-      ) : !loaded ? (
+      ) : !opened ? (
         <Card>
           <CardSection className="flex flex-col items-center gap-4 py-12 text-center">
             <p className="max-w-md text-sm leading-relaxed text-ink-muted">
-              Gemini will use the latest shared notes and reviewed image captions.
-              Generated material stays grounded in this Pot, and the class shares
-              what you build here until someone shares a new note.
+              This is mixed from the latest shared notes and the captions your class
+              reviewed. Nothing outside the Pot goes in, and the class shares what you
+              build here until someone shares a new note.
             </p>
             <Button onClick={() => void generate(false)} disabled={busy}>
               <Sparkle className="size-4" weight="fill" />
-              {busy ? "Generating" : mode.build}
+              {busy ? "Mixing" : mode.build}
             </Button>
             {error ? (
               <p role="alert" className="text-[13px] text-danger">
@@ -242,8 +358,8 @@ export function StudyWorkspace({
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-edge pb-3">
             <p className="text-[12px] text-ink-faint">
-              {loaded.cached && loaded.generatedAt
-                ? `Built ${relativeTime(loaded.generatedAt)} from the notes as they are now. Everyone in the Pot sees this one.`
+              {opened.cached && opened.generatedAt
+                ? `Built ${relativeTime(opened.generatedAt)} from the notes as they were then. Everyone in the Pot sees this one.`
                 : "Built just now from the notes as they are now."}
               {kind === "practice" ? ` ${describeOptions(options, sectionTitles)}.` : ""}
             </p>
@@ -255,9 +371,9 @@ export function StudyWorkspace({
                 disabled={busy}
               >
                 <Sparkle className="size-4" />
-                {kind === "practice" ? "Change the test" : regenerating ? "Working" : mode.rebuild}
+                {kind === "practice" ? "Change the test" : regenerating ? "Mixing" : mode.rebuild}
               </Button>
-              {canModerate && loaded.studySetId ? (
+              {canModerate && opened.studySetId ? (
                 <Button variant="quiet" size="sm" onClick={() => setAsking(true)}>
                   <TrashSimple className="size-4" />
                   Remove this set
@@ -272,21 +388,21 @@ export function StudyWorkspace({
             </p>
           ) : null}
 
-          {kind === "summary" ? <SummaryView result={loaded.result as SummaryResult} /> : null}
+          {kind === "summary" ? <SummaryView result={opened.result as SummaryResult} /> : null}
           {kind === "flashcards" ? (
             <FlashcardSession
               // A rebuilt deck is a new session, not the old one with new cards.
-              key={loaded.generatedAt ?? "deck"}
-              cards={(loaded.result as FlashcardResult).cards}
+              key={opened.studySetId ?? opened.generatedAt ?? "deck"}
+              cards={(opened.result as FlashcardResult).cards}
               onRegenerate={() => void generate(true)}
               regenerating={busy}
             />
           ) : null}
           {kind === "practice" ? (
             <PracticeSession
-              key={`${loaded.generatedAt ?? "test"}:${optionsKey}`}
-              title={(loaded.result as PracticeResult).title}
-              questions={(loaded.result as PracticeResult).questions}
+              key={opened.studySetId ?? `${opened.generatedAt}:${optionsKey}`}
+              title={(opened.result as PracticeResult).title}
+              questions={(opened.result as PracticeResult).questions}
               onRegenerate={() => setSettingUp(true)}
               regenerating={busy}
             />
@@ -308,6 +424,69 @@ export function StudyWorkspace({
           untouched, and anyone can build a new one.
         </p>
       </ConfirmDialog>
+    </div>
+  );
+}
+
+/**
+ * Every test this Pot has written, newest first. A test survives the notes
+ * moving on, so this is where a class comes back to one they have sat before
+ * rather than spending a generation writing it again.
+ */
+function PreviousSets({
+  sets,
+  sectionTitles,
+  busy,
+  openedId,
+  onOpen,
+}: {
+  sets: SavedStudySet[];
+  sectionTitles: Map<string, string>;
+  busy: boolean;
+  openedId: string | null;
+  onOpen: (set: SavedStudySet) => void;
+}) {
+  if (sets.length === 0) {
+    return (
+      <Card>
+        <CardSection className="py-12 text-center">
+          <p className="text-sm text-ink-muted">
+            No tests yet. The first one written is kept here for the whole class.
+          </p>
+        </CardSection>
+      </Card>
+    );
+  }
+  return (
+    <div className="space-y-2.5">
+      <p className="text-[12px] text-ink-faint">
+        Every test the class has written stays here. Opening one costs nothing.
+      </p>
+      {sets.map((set) => (
+        <Card key={set.id}>
+          <CardSection className="flex flex-wrap items-center justify-between gap-3 py-4">
+            <div className="min-w-0 space-y-1">
+              <p className="truncate text-sm font-medium text-ink">{set.title}</p>
+              <p className="text-[12px] text-ink-faint">
+                {set.options
+                  ? describeOptions(set.options, sectionTitles)
+                  : `${set.itemCount} questions`}
+                {" · "}
+                built {relativeTime(set.createdAt)}
+              </p>
+            </div>
+            <Button
+              variant={set.id === openedId ? "quiet" : "secondary"}
+              size="sm"
+              onClick={() => onOpen(set)}
+              disabled={busy}
+            >
+              <ClockCounterClockwise className="size-4" />
+              {set.id === openedId ? "Open again" : "Take this test"}
+            </Button>
+          </CardSection>
+        </Card>
+      ))}
     </div>
   );
 }

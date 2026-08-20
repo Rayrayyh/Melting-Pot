@@ -27,6 +27,7 @@ export function PracticeSetup({
   onChange,
   sections,
   hasSaved,
+  checking,
   busy,
   error,
   onBuild,
@@ -37,6 +38,8 @@ export function PracticeSetup({
   sections: Array<{ id: string; title: string }>;
   /** True when a test with exactly these settings is already in the Pot. */
   hasSaved: boolean;
+  /** True while the store is being asked about the settings on screen. */
+  checking: boolean;
   busy: boolean;
   error: string | null;
   onBuild: () => void;
@@ -87,7 +90,7 @@ export function PracticeSetup({
         </fieldset>
 
         <fieldset className="space-y-2">
-          <legend className="text-[13px] font-medium text-ink">How hard</legend>
+          <legend className="text-[13px] font-medium text-ink">Difficulty level</legend>
           <div className="flex flex-wrap gap-2">
             {DIFFICULTIES.map((entry) => (
               <button
@@ -175,19 +178,31 @@ export function PracticeSetup({
           </p>
         ) : null}
 
-        <div className="flex flex-wrap items-center justify-center gap-2.5">
-          {hasSaved ? (
-            <>
-              <Button onClick={onOpenSaved}>Open the saved test</Button>
-              <Button variant="secondary" onClick={onBuild} disabled={busy}>
-                {busy ? "Writing" : "Write a new one"}
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center justify-center gap-2.5">
+            {hasSaved ? (
+              <>
+                <Button onClick={onOpenSaved}>Open the saved test</Button>
+                <Button variant="secondary" onClick={onBuild} disabled={busy}>
+                  {busy ? "Writing" : "Write a new one"}
+                </Button>
+              </>
+            ) : (
+              <Button onClick={onBuild} disabled={busy}>
+                {busy ? "Writing the test" : "Write the test"}
               </Button>
-            </>
-          ) : (
-            <Button onClick={onBuild} disabled={busy}>
-              {busy ? "Writing the test" : "Write the test"}
-            </Button>
-          )}
+            )}
+          </div>
+          {/* Changing a setting looks for the test those settings describe. It
+              says so here, in one line, rather than replacing this whole form
+              with a loading screen and throwing away what has been typed. */}
+          <p className="min-h-4 text-center text-[12px] text-ink-faint" aria-live="polite">
+            {checking
+              ? "Checking what the Pot already has."
+              : hasSaved
+                ? "The class already has a test with these settings."
+                : ""}
+          </p>
         </div>
       </CardSection>
     </Card>

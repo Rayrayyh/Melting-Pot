@@ -20,9 +20,9 @@ A class space is called a Pot. A teacher creates one and gets a six character cl
 
 ## Where the AI lives
 
-Organization is the product, not a feature bolted onto it. Gemini Flash organizes rough text and uses vision to caption or transcribe image attachments when useful. Every model call runs through authenticated server routes, treats note and attachment contents as untrusted source material, and returns schema-constrained data for normalization before the student sees it. The student's original remains untouched and nothing is shared without approval.
+Organization is the product, not a feature bolted onto it. Rough text is mixed into a structured note, and image attachments are captioned or transcribed when that helps. Every model call runs through authenticated server routes, treats note and attachment contents as untrusted source material, and returns schema-constrained data for normalization before the student sees it. The student's original remains untouched and nothing is shared without approval.
 
-The Pot home is also a study hub: raw notes, a class-wide summary, flashcards, and a practice test generated from shared material. Flash handles organization, vision, summaries, and cards; a stronger configurable Gemini model is reserved for practice generation. The deterministic organizer remains as a local fallback when Gemini is not configured.
+The Pot home is also a study hub: raw notes, a class-wide summary, flashcards, and a practice test generated from shared material. A fast model handles organization, vision, summaries, and cards; a stronger one is reserved for writing practice tests. Both are named in configuration rather than in source. The deterministic organizer remains as a local fallback when neither is configured.
 
 Generated material is stored per Pot and keyed by a fingerprint of the notes it was built from, so a class shares one deck rather than each student spending a generation on the same thing. Share a note, accept a correction, or remove one, and the fingerprint changes and the next request rebuilds. Nothing generated is ever put in an HTTP cache: the database is the only cache, and it is one a maintainer can look at and delete.
 
@@ -91,7 +91,7 @@ The build is covered by 138 unit tests and 56 Playwright end to end tests over e
 ```bash
 cd web
 pnpm install
-cp .env.example .env.local   # add Supabase values and a server-only Gemini key
+cp .env.example .env.local   # add Supabase values and a server-only model key
 pnpm dev
 ```
 

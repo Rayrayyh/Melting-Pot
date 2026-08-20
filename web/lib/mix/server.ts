@@ -1,16 +1,27 @@
 import "server-only";
 
-export const GEMINI_FLASH_MODEL = process.env.GEMINI_FLASH_MODEL || "gemini-3.7-flash";
-export const GEMINI_REASONING_MODEL = process.env.GEMINI_REASONING_MODEL || "gemini-3.1-pro-preview";
+/**
+ * Which model answers which task. Both are deployment config rather than
+ * source: a model identifier belongs to the provider, changes on their
+ * schedule, and should never need a code change to follow. Unset reads the
+ * same as an unset key, so the app falls back rather than calling a guess.
+ */
+export const FAST_MODEL = process.env.FAST_MODEL ?? "";
+export const REASONING_MODEL = process.env.REASONING_MODEL ?? "";
 
-export class GeminiError extends Error {
+/** True when this server can mix at all: a key and something to send it to. */
+export function mixingConfigured(): boolean {
+  return Boolean(process.env.MODEL_API_KEY && FAST_MODEL && REASONING_MODEL);
+}
+
+export class MixError extends Error {
   constructor(message: string, readonly status?: number) {
     super(message);
-    this.name = "GeminiError";
+    this.name = "MixError";
   }
 }
 
-type GeminiPart =
+type MixPart =
   | { type: "text"; text: string }
   | { type: "image"; data: string; mime_type: string };
 
@@ -22,11 +33,11 @@ export async function generateStructured<T>({
 }: {
   model: string;
   instruction: string;
-  parts: GeminiPart[];
+  parts: MixPart[];
   schema: unknown;
 }): Promise<T> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new GeminiError("Gemini is not configured", 503);
+  const apiKey = process.env.MODEL_API_KEY;
+  if (!apiKey || !model) throw new MixError("Mixing is not configured", 503);
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 60_000);
@@ -50,9 +61,9 @@ export async function generateStructured<T>({
     const payload = await response.json().catch(() => null) as Record<string, unknown> | null;
     if (!response.ok) {
       const detail = payload && typeof payload.error === "object" && payload.error
-        ? String((payload.error as Record<string, unknown>).message || "Gemini request failed")
-        : "Gemini request failed";
-      throw new GeminiError(detail, response.status);
+        ? String((payload.error as Record<string, unknown>).message || "The mixer could not be reached")
+        : "The mixer could not be reached";
+      throw new MixError(detail, response.status);
     }
     const steps = Array.isArray(payload?.steps) ? payload.steps : [];
     for (let index = steps.length - 1; index >= 0; index -= 1) {
@@ -64,13 +75,13 @@ export async function generateStructured<T>({
         }
       }
     }
-    throw new GeminiError("Gemini returned no structured output", 502);
+    throw new MixError("The mixer returned nothing usable", 502);
   } catch (error) {
-    if (error instanceof GeminiError) throw error;
+    if (error instanceof MixError) throw error;
     if (error instanceof DOMException && error.name === "AbortError") {
-      throw new GeminiError("Gemini timed out", 504);
+      throw new MixError("Mixing timed out", 504);
     }
-    throw new GeminiError("Gemini response could not be read", 502);
+    throw new MixError("The mixer's reply could not be read", 502);
   } finally {
     clearTimeout(timeout);
   }

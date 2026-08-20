@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { normalizeAttachmentAnalysis, normalizeOrganizedNote, normalizeStudyResult } from "@/lib/gemini/contracts";
+import { normalizeAttachmentAnalysis, normalizeOrganizedNote, normalizeStudyResult } from "@/lib/mix/contracts";
 
-describe("Gemini response normalization", () => {
+describe("mixed response normalization", () => {
   it("drops invalid note blocks and unknown section ids", () => {
     const result = normalizeOrganizedNote({
       title: " Cells ", summary: "A summary",

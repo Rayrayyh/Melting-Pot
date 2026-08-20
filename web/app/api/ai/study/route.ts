@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import type { Json } from "@/lib/database.types";
-import { normalizeStudyResult, studySchemas, type StudyKind } from "@/lib/gemini/contracts";
+import { normalizeStudyResult, studySchemas, type StudyKind } from "@/lib/mix/contracts";
 import {
-  GEMINI_FLASH_MODEL,
-  GEMINI_REASONING_MODEL,
-  GeminiError,
+  FAST_MODEL,
+  REASONING_MODEL,
+  MixError,
   generateStructured,
-} from "@/lib/gemini/server";
+  mixingConfigured,
+} from "@/lib/mix/server";
 import { studyFingerprint } from "@/lib/study/fingerprint";
 import {
   difficultyBrief,
@@ -93,8 +94,8 @@ export async function POST(request: Request) {
 
   // Only now, with a real generation ahead, do the key and the quota matter.
   // A stored set is readable without either.
-  if (!process.env.GEMINI_API_KEY) {
-    return NextResponse.json({ error: "gemini_not_configured" }, { status: 503, headers: NO_STORE });
+  if (!mixingConfigured()) {
+    return NextResponse.json({ error: "mixing_unavailable" }, { status: 503, headers: NO_STORE });
   }
   const rate = await supabase.rpc("consume_ai_generation", { p_kind: kind });
   if (rate.error) {
@@ -134,7 +135,7 @@ export async function POST(request: Request) {
     : kind === "flashcards"
       ? "Create 12-20 useful recall flashcards. Avoid duplicates and trivia."
       : `Create a ${options.questionCount}-question multiple-choice practice test. Use exactly four plausible choices per question and explain the correct answer. ${difficultyBrief(options.difficulty)}`;
-  const model = kind === "practice" ? GEMINI_REASONING_MODEL : GEMINI_FLASH_MODEL;
+  const model = kind === "practice" ? REASONING_MODEL : FAST_MODEL;
   try {
     const generated = await generateStructured<unknown>({
       model,
@@ -161,15 +162,16 @@ export async function POST(request: Request) {
       p_fingerprint: fingerprint,
       p_payload: result as Json,
       p_model: model,
+      p_options: kind === "practice" ? (options as unknown as Json) : null,
     });
     return NextResponse.json(
       { result, model, cached: false, generatedAt: new Date().toISOString(), studySetId: saved.data ?? null },
       { headers: NO_STORE },
     );
   } catch (error) {
-    const status = error instanceof GeminiError ? error.status ?? 502 : 502;
-    const detail = error instanceof GeminiError && (status === 401 || status === 403)
-      ? "The Gemini key was rejected."
+    const status = error instanceof MixError ? error.status ?? 502 : 502;
+    const detail = error instanceof MixError && (status === 401 || status === 403)
+      ? "The mixing key was rejected."
       : error instanceof Error ? error.message.slice(0, 240) : "Study material could not be generated.";
     return NextResponse.json({ error: "generation_failed", detail }, { status, headers: NO_STORE });
   }

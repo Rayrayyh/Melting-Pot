@@ -70,6 +70,12 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
               </Card>
             </Link>
           ))}
+          <Link
+            href="/pots"
+            className="inline-block pt-1 text-[12px] text-ink-muted hover:text-ink transition-colors"
+          >
+            Manage every Pot
+          </Link>
         </div>
       </details>
     ) : null;
@@ -124,7 +130,18 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
               ) : null}
 
               <section className="space-y-3">
-                <Eyebrow>Your Pots</Eyebrow>
+                <div className="flex items-center justify-between gap-3">
+                  <Eyebrow>Your Pots</Eyebrow>
+                  {/* One path to every Pot, archived ones included, and to the
+                      archive and delete controls that otherwise sit inside each
+                      Pot's own settings. */}
+                  <Link
+                    href="/pots"
+                    className="text-[12px] text-ink-muted hover:text-ink transition-colors"
+                  >
+                    Manage Pots
+                  </Link>
+                </div>
                 <div className="grid sm:grid-cols-2 gap-4">
                   {dashboard.pots.map((pot) => (
                     <PotStatCard key={pot.id} pot={pot} />

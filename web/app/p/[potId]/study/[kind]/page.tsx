@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { PotShell } from "@/components/shell/pot-shell";
 import { StudyWorkspace } from "@/components/study/study-workspace";
-import type { StudyKind } from "@/lib/gemini/contracts";
+import { listStudySets } from "@/lib/data/study";
+import type { StudyKind } from "@/lib/mix/contracts";
 
 const KINDS = new Set<StudyKind>(["summary", "flashcards", "practice"]);
 
@@ -9,6 +10,9 @@ export default async function StudyPage({ params }: PageProps<"/p/[potId]/study/
   const { potId, kind: requestedKind } = await params;
   if (!KINDS.has(requestedKind as StudyKind)) notFound();
   const kind = requestedKind as StudyKind;
+  // Read on the server so the list of what the Pot holds is there on first
+  // paint, and so the payloads behind it never reach the browser.
+  const savedSets = await listStudySets(potId, kind);
   return (
     <PotShell potId={potId}>
       {(pot) => (
@@ -18,6 +22,7 @@ export default async function StudyPage({ params }: PageProps<"/p/[potId]/study/
           kind={kind}
           sections={pot.sections}
           canModerate={pot.role === "maintainer" || pot.role === "owner"}
+          savedSets={savedSets}
         />
       )}
     </PotShell>
