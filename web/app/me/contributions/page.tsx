@@ -114,7 +114,7 @@ export default async function MyContributionsPage({
                   href={`/p/${row.pot_id}/n/${row.shared_note_id}`}
                   className="block group"
                 >
-                  <Card className="group-hover:border-edge-strong transition-colors">
+                  <Card className="mp-lift group-hover:border-edge-strong">
                     <CardSection className="space-y-1.5 py-4">
                       <div className="flex items-center justify-between gap-3">
                         <p className="font-medium text-ink truncate group-hover:text-primary transition-colors">
@@ -154,7 +154,7 @@ export default async function MyContributionsPage({
                   href={`/p/${row.pot_id}/contribute/${row.id}`}
                   className="block group"
                 >
-                  <Card className="group-hover:border-edge-strong transition-colors">
+                  <Card className="mp-lift group-hover:border-edge-strong">
                     <CardSection className="flex items-center gap-3 py-4">
                       <div className="min-w-0 flex-1 space-y-1">
                         <p className="text-sm text-ink truncate">
@@ -191,7 +191,7 @@ export default async function MyContributionsPage({
                   href={`/p/${row.pot_id}/proposals/${row.id}`}
                   className="block group"
                 >
-                  <Card className="group-hover:border-edge-strong transition-colors">
+                  <Card className="mp-lift group-hover:border-edge-strong">
                     <CardSection className="flex items-center gap-3 py-4">
                       <div className="min-w-0 flex-1 space-y-1">
                         <p className="text-sm font-medium text-ink truncate group-hover:text-primary transition-colors">

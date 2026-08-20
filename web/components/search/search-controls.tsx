@@ -13,6 +13,7 @@ const TYPES: Array<{ key: SearchType; label: string }> = [
   { key: "note", label: "Notes" },
   { key: "summary", label: "Summaries" },
   { key: "flashcard", label: "Flashcards" },
+  { key: "section", label: "Sections" },
 ];
 
 const SORTS: Array<{ key: SearchSort; label: string; hint: string }> = [

@@ -10,6 +10,7 @@ import {
   Sparkle,
   XCircle,
 } from "@phosphor-icons/react";
+import { ScoreFlourish } from "@/components/study/score-flourish";
 import { Button } from "@/components/ui/button";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { cn } from "@/lib/cn";
@@ -56,6 +57,7 @@ export function PracticeSession({
 }: {
   title: string;
   questions: PracticeQuestion[];
+  /** Back to the setup, where the length, difficulty, and focus are chosen. */
   onRegenerate: () => void;
   regenerating: boolean;
 }) {
@@ -342,12 +344,18 @@ function PracticeResults({
     <div className="space-y-4">
       <Card>
         <CardSection className="space-y-6 py-10 text-center">
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Eyebrow>Marked</Eyebrow>
-            <p className="font-display text-3xl text-ink">
-              {score.correct} of {score.total}
+            <ScoreFlourish
+              percentage={score.percentage}
+              correct={score.correct}
+              total={score.total}
+            />
+            <p className="text-sm text-ink-muted">
+              {score.correct === score.total
+                ? "Every question. Nothing left to go back to."
+                : "Everything you missed is below, with the answer and where it came from."}
             </p>
-            <p className="text-sm text-ink-muted">{score.percentage}% correct.</p>
           </div>
           <dl className="mx-auto grid max-w-md grid-cols-3 gap-3">
             <div className="rounded-(--radius-control) bg-success-soft px-3 py-3">
@@ -380,7 +388,7 @@ function PracticeResults({
             </Button>
             <Button variant="quiet" onClick={onRegenerate} disabled={regenerating}>
               <Sparkle className="size-4" />
-              {regenerating ? "Writing a new test" : "Write a new test"}
+              Change the test
             </Button>
           </div>
         </CardSection>

@@ -1,7 +1,7 @@
 import { getAuthUser } from "@/lib/auth/server";
 import { supabaseServer } from "@/lib/supabase/server";
 
-export type SearchKind = "note" | "summary" | "flashcard";
+export type SearchKind = "note" | "summary" | "flashcard" | "section";
 export type SearchType = "all" | SearchKind;
 export type SearchSort = "recent" | "contributed";
 
@@ -47,7 +47,9 @@ const RESULT_LIMIT = 40;
 const CARDS_PER_SET = 6;
 
 export function parseSearchType(value: unknown): SearchType {
-  return value === "note" || value === "summary" || value === "flashcard" ? value : "all";
+  return value === "note" || value === "summary" || value === "flashcard" || value === "section"
+    ? value
+    : "all";
 }
 
 export function parseSearchSort(value: unknown): SearchSort {
@@ -55,7 +57,7 @@ export function parseSearchSort(value: unknown): SearchSort {
 }
 
 function emptyCounts(): SearchCounts {
-  return { all: 0, note: 0, summary: 0, flashcard: 0 };
+  return { all: 0, note: 0, summary: 0, flashcard: 0, section: 0 };
 }
 
 function excerptAround(text: string, term: string, radius = 60): string | null {
@@ -136,7 +138,7 @@ export async function searchAcrossPots({
   const potTitles = new Map(pots.map((pot) => [pot.id, pot.title]));
   const titleOf = (id: string) => potTitles.get(id) ?? "Pot";
 
-  const [notes, attachments, studySets, handCards] = await Promise.all([
+  const [notes, attachments, studySets, handCards, sectionRows] = await Promise.all([
     supabase
       .from("shared_notes")
       .select(
@@ -171,6 +173,14 @@ export async function searchAcrossPots({
       .in("pot_id", scopeIds)
       .order("created_at", { ascending: false })
       .limit(200),
+    // Sections are how a Pot is organized, so their names are worth finding:
+    // the result is a way into that part of the feed.
+    supabase
+      .from("sections")
+      .select("id, pot_id, title, created_at")
+      .in("pot_id", scopeIds)
+      .ilike("title", `%${term}%`)
+      .limit(20),
   ]);
 
   const results: SearchResult[] = [];
@@ -331,11 +341,28 @@ export async function searchAcrossPots({
     });
   }
 
+  for (const section of sectionRows.data ?? []) {
+    results.push({
+      key: `section-${section.id}`,
+      kind: "section",
+      potId: section.pot_id,
+      potTitle: titleOf(section.pot_id),
+      href: `/p/${section.pot_id}/s/${section.id}`,
+      title: section.title,
+      excerpt: null,
+      meta: ["A part of this Pot"],
+      tags: [],
+      timestamp: section.created_at,
+      contributionCount: 1,
+    });
+  }
+
   const counts: SearchCounts = {
     all: results.length,
     note: results.filter((result) => result.kind === "note").length,
     summary: results.filter((result) => result.kind === "summary").length,
     flashcard: results.filter((result) => result.kind === "flashcard").length,
+    section: results.filter((result) => result.kind === "section").length,
   };
 
   const filtered = type === "all" ? results : results.filter((result) => result.kind === type);

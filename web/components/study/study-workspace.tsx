@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ArrowLeft, Brain, Cards, Sparkle, TrashSimple } from "@phosphor-icons/react";
 import { FlashcardSession } from "@/components/study/flashcard-session";
 import { PracticeSession } from "@/components/study/practice-session";
+import { PracticeSetup } from "@/components/study/practice-setup";
 import { Button } from "@/components/ui/button";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -11,6 +12,12 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 import type { StudyKind } from "@/lib/gemini/contracts";
 import type { StudyCard } from "@/lib/study/flashcard-session";
 import type { PracticeQuestion } from "@/lib/study/practice-session";
+import {
+  DEFAULT_PRACTICE_OPTIONS,
+  describeOptions,
+  practiceOptionsKey,
+  type PracticeOptions,
+} from "@/lib/study/practice-options";
 import { relativeTime } from "@/lib/time";
 
 type SummaryResult = {
@@ -59,6 +66,9 @@ function message(error: string | undefined, detail: string | undefined): string 
     return "Gemini isn't configured on this server yet. Add the API key, then restart the app.";
   }
   if (error === "no_notes") return "Share at least one note before generating study material.";
+  if (error === "no_notes_in_sections") {
+    return "Nothing has been shared in the parts you picked. Choose another part, or the whole Pot.";
+  }
   if (error === "rate_limited") {
     return "You've generated several study sets recently. Wait a little and try again.";
   }
@@ -70,30 +80,42 @@ export function StudyWorkspace({
   potId,
   potTitle,
   kind,
+  sections,
   canModerate,
 }: {
   potId: string;
   potTitle: string;
   kind: StudyKind;
+  /** The Pot's sections, so a test can be asked for from named parts. */
+  sections: Array<{ id: string; title: string }>;
   /** Maintainers can take a bad set away so the class stops being served it. */
   canModerate: boolean;
 }) {
   const [loaded, setLoaded] = useState<Loaded | null>(null);
-  const [looking, setLooking] = useState(true);
+  // The configuration the store has already been asked about. While it differs
+  // from what is chosen, the answer on screen is stale and we say we are looking.
+  const [lookedUpKey, setLookedUpKey] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [asking, setAsking] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [options, setOptions] = useState<PracticeOptions>(DEFAULT_PRACTICE_OPTIONS);
+  // A test is set up before it is written, so the settings are a screen of
+  // their own that the reader can come back to.
+  const [settingUp, setSettingUp] = useState(kind === "practice");
 
   const mode = copy[kind];
   const Icon = mode.icon;
+  const optionsKey = practiceOptionsKey(options);
+  const sectionTitles = new Map(sections.map((section) => [section.id, section.title]));
 
   const load = useCallback(
-    async (options: { peek?: boolean; regenerate?: boolean }) => {
+    async (request: { peek?: boolean; regenerate?: boolean; options?: PracticeOptions }) => {
+      const { options: chosen, ...flags } = request;
       const response = await fetch("/api/ai/study", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ potId, kind, ...options }),
+        body: JSON.stringify({ potId, kind, ...flags, options: chosen }),
       });
       const payload = (await response.json().catch(() => null)) as
         | { result?: StudyResult; cached?: boolean; generatedAt?: string; studySetId?: string | null; error?: string; detail?: string }
@@ -114,30 +136,35 @@ export function StudyWorkspace({
   );
 
   // What the Pot already has appears without asking for anything, and without
-  // spending a generation.
+  // spending a generation. A test is looked up per configuration, so changing
+  // the settings looks for the test those settings describe.
   useEffect(() => {
     let live = true;
-    void load({ peek: true }).then((outcome) => {
+    void load({ peek: true, options }).then((outcome) => {
       if (!live) return;
-      if (outcome.loaded) setLoaded(outcome.loaded);
-      setLooking(false);
+      setLoaded(outcome.loaded ?? null);
+      setLookedUpKey(optionsKey);
     });
     return () => {
       live = false;
     };
-  }, [load]);
+    // optionsKey stands in for options: it is the whole of what the lookup
+    // depends on, and it is a string, so the effect does not re-run on identity.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [load, optionsKey]);
 
   async function generate(regenerate: boolean) {
     if (busy) return;
     setBusy(true);
     setError(null);
-    const outcome = await load({ regenerate });
+    const outcome = await load({ regenerate, options });
     setBusy(false);
     if (!outcome.loaded) {
       setError(message(outcome.failure, outcome.detail));
       return;
     }
     setLoaded(outcome.loaded);
+    setSettingUp(false);
   }
 
   async function removeSet() {
@@ -156,6 +183,7 @@ export function StudyWorkspace({
   }
 
   const regenerating = busy && loaded !== null;
+  const looking = lookedUpKey !== optionsKey;
 
   return (
     <div className="mx-auto w-full max-w-3xl px-6 py-10 space-y-6">
@@ -180,6 +208,17 @@ export function StudyWorkspace({
             <p className="text-sm text-ink-muted">Looking for what this Pot already has.</p>
           </CardSection>
         </Card>
+      ) : kind === "practice" && (settingUp || !loaded) ? (
+        <PracticeSetup
+          options={options}
+          onChange={setOptions}
+          sections={sections}
+          hasSaved={Boolean(loaded)}
+          busy={busy}
+          error={error}
+          onBuild={() => void generate(true)}
+          onOpenSaved={() => setSettingUp(false)}
+        />
       ) : !loaded ? (
         <Card>
           <CardSection className="flex flex-col items-center gap-4 py-12 text-center">
@@ -206,16 +245,17 @@ export function StudyWorkspace({
               {loaded.cached && loaded.generatedAt
                 ? `Built ${relativeTime(loaded.generatedAt)} from the notes as they are now. Everyone in the Pot sees this one.`
                 : "Built just now from the notes as they are now."}
+              {kind === "practice" ? ` ${describeOptions(options, sectionTitles)}.` : ""}
             </p>
             <div className="flex items-center gap-1.5">
               <Button
                 variant="quiet"
                 size="sm"
-                onClick={() => void generate(true)}
+                onClick={() => (kind === "practice" ? setSettingUp(true) : void generate(true))}
                 disabled={busy}
               >
                 <Sparkle className="size-4" />
-                {regenerating ? "Working" : mode.rebuild}
+                {kind === "practice" ? "Change the test" : regenerating ? "Working" : mode.rebuild}
               </Button>
               {canModerate && loaded.studySetId ? (
                 <Button variant="quiet" size="sm" onClick={() => setAsking(true)}>
@@ -244,10 +284,10 @@ export function StudyWorkspace({
           ) : null}
           {kind === "practice" ? (
             <PracticeSession
-              key={loaded.generatedAt ?? "test"}
+              key={`${loaded.generatedAt ?? "test"}:${optionsKey}`}
               title={(loaded.result as PracticeResult).title}
               questions={(loaded.result as PracticeResult).questions}
-              onRegenerate={() => void generate(true)}
+              onRegenerate={() => setSettingUp(true)}
               regenerating={busy}
             />
           ) : null}

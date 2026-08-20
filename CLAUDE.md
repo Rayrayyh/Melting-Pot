@@ -35,7 +35,8 @@ Database changes go through Supabase MCP migrations (`apply_migration`), one mig
 - Never publish anything automatically. The contributor approves contributions; a maintainer approves corrections.
 - Always store and show both raw and organized content. The original is never deleted or overwritten.
 - Pot titles may duplicate; Pot IDs and class codes are unique; never use titles as identifiers.
-- No Git terminology, no schools/organizations, no streaks/likes/gamification, no flashcards or quizzes beyond placeholders, no purple AI branding, no gradients, no chatbot UI.
+- No Git terminology, no schools/organizations, no likes or leaderboards, no purple AI branding, no gradients, no chatbot UI.
+- Two of these rules were lifted by the owner on 2026-08-19 and 2026-08-20. Flashcards and practice tests are real features now, built from shared notes. A contribution streak exists, but only as a private record of one person's own days: never compared to anyone, and a quiet stretch shows the run they already managed rather than a zero. Nothing else keeps score.
 - Copy style: sentence case, natural language ("Share with class", "Send to maintainer"). No emojis. No em dashes, in UI copy and in this repo's docs alike.
 
 ## Design tokens (digest)

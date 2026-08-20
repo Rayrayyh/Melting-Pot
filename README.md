@@ -24,9 +24,23 @@ Organization is the product, not a feature bolted onto it. Gemini Flash organize
 
 The Pot home is also a study hub: raw notes, a class-wide summary, flashcards, and a practice test generated from shared material. Flash handles organization, vision, summaries, and cards; a stronger configurable Gemini model is reserved for practice generation. The deterministic organizer remains as a local fallback when Gemini is not configured.
 
+Generated material is stored per Pot and keyed by a fingerprint of the notes it was built from, so a class shares one deck rather than each student spending a generation on the same thing. Share a note, accept a correction, or remove one, and the fingerprint changes and the next request rebuilds. Nothing generated is ever put in an HTTP cache: the database is the only cache, and it is one a maintainer can look at and delete.
+
+## Studying from what the class built
+
+Flashcards and the practice test are learning flows, not lists. Cards come one at a time, flip on a click or the space bar, move with the arrow keys, and get marked known or still learning; the round ends on a summary that offers the hard ones again. Cards carry tags, and the deck filters by them.
+
+A practice test is set up before it is written: five to twenty questions, three difficulties, the sections to draw from, and anything to concentrate on in your own words. It asks one question at a time with a navigator and answers you can change, reveals nothing until you hand it in, then marks with the correct answer, your answer, the explanation, and the note each question came from, and offers the ones you missed again. Nothing about how you are doing is written down anywhere.
+
+Reading a note is study too. Notes highlight the terms they define or emphasise, worked out from the note itself rather than asked of a model, and selecting any passage offers to turn it into a flashcard that belongs to whoever wrote it.
+
 ## What is in the product
 
 The dashboard is role aware. Students land on their own unfinished drafts and any corrections that came back asking for revision. Maintainers land on the queue of corrections waiting for their review across every Pot they maintain. Pot cards carry live member, note, and correction counts and a continue link back to the last note you read.
+
+Search reaches notes, sections, study summaries, and flashcards across every Pot you belong to, filtered by kind and by Pot and ordered by recency or by how many times a note has been corrected.
+
+Maintainers can take a note out of a Pot with a reason and put it back, delete a generated set, and delete cards. Removal is not deletion: the note leaves the feed, search, and study material, its page says who removed it and why, and every version and everyone credited stays on the record. Pot settings lists what is out with a way back. Deleting or archiving the Pot itself stays with the owner.
 
 Inside a Pot: a shared feed with section filters, full text search across titles, content, contributors, and attachments, file uploads (images including phone camera HEIC, PDFs, documents) and links that stay connected from draft through publication, version history with the complete attribution trail, and maintainer tools for sections, roles, class code regeneration, and archiving with a way back. Light and dark themes throughout, reduced motion respected, and a landing page whose scroll sequence melts a messy note into an organized one.
 
@@ -43,6 +57,14 @@ Role based dashboard with the maintainer review queue, Pot stats, and cross Pot 
 Review before sharing: the organized note beside the preserved original, with attachments and identity in view:
 
 ![Review before sharing](docs/screenshots/review-before-sharing.png)
+
+Flashcards, one card at a time, with the deck filtered by tag:
+
+![Flashcards](docs/screenshots/flashcards.png)
+
+A practice test marked, with the answer, the explanation, and the note each question came from:
+
+![Practice results](docs/screenshots/practice-results.png)
 
 Pot settings with maintainer section management, in the dark theme:
 
@@ -62,7 +84,7 @@ Built for the [Pixel Forge AI Hackathon](https://pixel-forge-ai-hackathon-08.dev
 
 Next.js 16 (App Router, TypeScript, Tailwind) in `web/`, on Supabase for Postgres, auth, and file storage, hosted on Netlify. Security is enforced in the database, not the client: row level security on every table, privileged transitions through security definer functions that re-validate the caller at time of use, database enforced rate limiting on every sensitive operation (sized so an entire class behind one school network can sign up together), and an API surface closed down to exactly what the app uses. Anonymous visitors can reach two functions: look up a class code and register. Shared notes and their versions can only be written through the reviewed publish paths.
 
-The build is covered by 54 unit tests and 40 Playwright end to end tests over every core flow, plus two adversarial review passes whose confirmed findings, from access control holes to a diff that could hang a browser tab, were all fixed and are documented in the build log.
+The build is covered by 138 unit tests and 50 Playwright end to end tests over every core flow, plus two adversarial review passes whose confirmed findings, from access control holes to a diff that could hang a browser tab, were all fixed and are documented in the build log. Both study sessions are written as reducers, so how a deck is walked and how a test is marked are unit tests rather than browser tests. A Checks workflow runs lint, types, unit tests, and a production build on every push and pull request.
 
 ## Running it locally
 
@@ -73,7 +95,7 @@ cp .env.example .env.local   # add Supabase values and a server-only Gemini key
 pnpm dev
 ```
 
-Apply the migrations in `supabase/migrations/` to a Supabase project in order (0001 through 0020). For a development database with sample data, the dev seed lives in 0006, 0009, and 0010; call the `dev_reseed` function to reset it. 0013 is the production data cleanup and is only for a database going live.
+Apply the migrations in `supabase/migrations/` to a Supabase project in order (0001 through 0022). For a development database with sample data, the dev seed lives in 0006, 0009, and 0010; call the `dev_reseed` function to reset it. 0013 is the production data cleanup and is only for a database going live.
 
 Tests: `pnpm test:unit` (vitest) and `pnpm test:e2e` (Playwright, expects the dev seed).
 

@@ -248,6 +248,41 @@ blockquote {
   border-radius: 4px;
 }
 
+/*
+ * The entrance every signed-in page makes. It is deliberately almost nothing:
+ * a short lift as the content lands, so moving between pages reads as movement
+ * rather than a flash. Pure CSS, so it costs no JavaScript and the global
+ * reduced-motion rule below switches it off.
+ */
+@keyframes mp-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.mp-enter {
+  animation: mp-enter 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* A card that answers the pointer. Paired with a border change at the call
+   site, so the lift is never the only thing that says it is interactive. */
+.mp-lift {
+  transition:
+    transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.18s ease;
+}
+
+.mp-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-raised);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -256,5 +291,9 @@ blockquote {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  .mp-lift:hover {
+    transform: none;
   }
 }

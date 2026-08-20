@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { getAuthUser } from "@/lib/auth/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import type { Json, PotRole } from "@/lib/database.types";
@@ -15,8 +16,15 @@ export type PotContext = {
   archived: boolean;
 };
 
-/** Everything the Pot shell and vitals need, or null when not a member. */
-export async function getPotContext(potId: string): Promise<PotContext | null> {
+/**
+ * Everything the Pot shell and vitals need, or null when not a member.
+ *
+ * Memoized per request: the shell needs it to draw the nav and the page needs
+ * it to decide what the reader may do, and that is one read, not two.
+ */
+export const getPotContext = cache(async function getPotContext(
+  potId: string,
+): Promise<PotContext | null> {
   const user = await getAuthUser();
   if (!user) return null;
   const supabase = await supabaseServer();
@@ -68,7 +76,7 @@ export async function getPotContext(potId: string): Promise<PotContext | null> {
     sections: sections.data ?? [],
     archived: pot.archived_at !== null,
   };
-}
+});
 
 export type FeedNote = {
   id: string;

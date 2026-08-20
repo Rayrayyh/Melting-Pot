@@ -55,7 +55,7 @@ export function RemovedNotesPanel({
           </p>
         </div>
         {notes.length > 0 ? (
-          <ul className="space-y-2">
+          <ul aria-label="Removed notes" className="space-y-2">
             {notes.map((note) => (
               <li
                 key={note.id}

@@ -65,7 +65,7 @@ export function PotFeed({
               <StudyTile href="#raw-notes" title="Raw Notes" description="Shared notes from everyone." icon={<FileText />} />
               <StudyTile href={`/p/${pot.id}/study/summary`} title="Summary" description="Build a fresh study guide." icon={<Sparkle />} featured />
               <StudyTile href={`/p/${pot.id}/study/flashcards`} title="Flashcards" description="Generate recall cards from the Pot." icon={<Cards />} />
-              <StudyTile href={`/p/${pot.id}/study/practice`} title="Practice" description="Quiz the full class vault." icon={<Brain />} />
+              <StudyTile href={`/p/${pot.id}/study/practice`} title="Practice" description="Set the length and difficulty, then sit it." icon={<Brain />} />
             </div>
           </section>
         </>
@@ -165,7 +165,7 @@ function StudyTile({ href, title, description, icon, featured = false }: {
   return (
     <Link
       href={href}
-      className={`group rounded-(--radius-card) border p-5 transition-colors ${
+      className={`mp-lift group block rounded-(--radius-card) border p-5 ${
         featured
           ? "border-primary/30 bg-primary-soft hover:border-primary/60"
           : "border-edge bg-surface hover:border-edge-strong"

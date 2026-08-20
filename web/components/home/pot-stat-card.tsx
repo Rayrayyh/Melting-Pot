@@ -10,7 +10,7 @@ export function PotStatCard({ pot }: { pot: DashboardPot }) {
     ? `/p/${pot.id}/n/${pot.continueNoteId}`
     : `/p/${pot.id}`;
   return (
-    <Card className="h-full flex flex-col hover:border-edge-strong transition-colors">
+    <Card className="mp-lift h-full flex flex-col hover:border-edge-strong">
       <div className="p-5 flex-1 space-y-3">
         <div className="flex items-start justify-between gap-3">
           <Link

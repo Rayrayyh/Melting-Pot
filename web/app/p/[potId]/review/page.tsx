@@ -104,7 +104,7 @@ function QueueRow({
 }) {
   return (
     <Link href={`/p/${potId}/review/${proposal.id}`} className="block group">
-      <Card className="group-hover:border-edge-strong transition-colors">
+      <Card className="mp-lift group-hover:border-edge-strong">
         <CardSection className="flex items-center gap-3 py-3.5">
           <Avatar name={proposal.proposer?.display_name ?? "Member"} size="sm" />
           <div className="min-w-0 flex-1">

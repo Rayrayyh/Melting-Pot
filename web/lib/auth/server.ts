@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { clerkServerAuth } from "@/lib/auth/clerk";
 import { supabaseServerAuth } from "@/lib/auth/supabase-server";
@@ -17,10 +18,17 @@ export function getServerAuth(): ServerAuthProvider {
   return supabaseServerAuth;
 }
 
-/** The signed-in person, or null. */
-export function getAuthUser(): Promise<AuthUser | null> {
-  return getServerAuth().getUser();
-}
+/**
+ * The signed-in person, or null.
+ *
+ * Memoized for the length of one request: a page, its shell, and every data
+ * function below it all ask who is signed in, and that should be one round
+ * trip rather than a dozen. React's cache is per request, so nothing is ever
+ * shared between two people.
+ */
+export const getAuthUser = cache(
+  (): Promise<AuthUser | null> => getServerAuth().getUser(),
+);
 
 /** The signed-in person, or a redirect to login. Use in protected pages. */
 export async function requireAuthUser(): Promise<AuthUser> {

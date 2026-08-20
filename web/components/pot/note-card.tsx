@@ -8,7 +8,7 @@ import { relativeTime } from "@/lib/time";
 
 export function NoteCard({ potId, note }: { potId: string; note: FeedNote }) {
   return (
-    <Card className="hover:border-edge-strong transition-colors">
+    <Card className="mp-lift hover:border-edge-strong">
       <div className="p-5 space-y-3">
         <div className="flex items-start justify-between gap-3">
           <Link

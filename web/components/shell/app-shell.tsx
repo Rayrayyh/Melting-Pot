@@ -69,7 +69,7 @@ export function AppShell({
             </div>
           </div>
         ) : null}
-        <main className="flex-1 min-w-0 flex flex-col">{children}</main>
+        <main className="mp-enter flex-1 min-w-0 flex flex-col">{children}</main>
       </div>
     </div>
   );

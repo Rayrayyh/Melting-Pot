@@ -2,6 +2,7 @@
 
 import { Cards, Check, X } from "@phosphor-icons/react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
@@ -62,6 +63,7 @@ export function SelectionToCard({
   noteId: string;
   children: ReactNode;
 }) {
+  const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const offerRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -221,6 +223,9 @@ export function SelectionToCard({
       return;
     }
     setSaved(true);
+    // The note lists its own cards, so the new one should be there when the
+    // form closes rather than after a reload.
+    router.refresh();
   }
 
   const offerLeft = selected

@@ -16,6 +16,7 @@ export default async function StudyPage({ params }: PageProps<"/p/[potId]/study/
           potId={pot.id}
           potTitle={pot.title}
           kind={kind}
+          sections={pot.sections}
           canModerate={pot.role === "maintainer" || pot.role === "owner"}
         />
       )}

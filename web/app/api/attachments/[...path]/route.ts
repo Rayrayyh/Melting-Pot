@@ -36,7 +36,10 @@ export async function GET(
     headers: {
       "Content-Type": data.type || "application/octet-stream",
       "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`,
-      "Cache-Control": "private, max-age=0, must-revalidate",
+      // Stored objects never change under their key, so the browser may keep
+      // one for a few minutes. Private, so no shared cache ever holds a class
+      // file, and short, so losing access to a Pot takes effect quickly.
+      "Cache-Control": "private, max-age=300",
     },
   });
 }

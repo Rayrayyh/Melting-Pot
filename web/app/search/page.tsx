@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Cards, MagnifyingGlass, Notebook, Sparkle } from "@phosphor-icons/react/dist/ssr";
+import { Cards, FolderSimple, MagnifyingGlass, Notebook, Sparkle } from "@phosphor-icons/react/dist/ssr";
 import { SearchControls } from "@/components/search/search-controls";
 import { UserShell } from "@/components/shell/user-shell";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ const KINDS: Record<SearchKind, { label: string; icon: typeof Notebook }> = {
   note: { label: "Note", icon: Notebook },
   summary: { label: "Study summary", icon: Sparkle },
   flashcard: { label: "Flashcard", icon: Cards },
+  section: { label: "Section", icon: FolderSimple },
 };
 
 function highlight(text: string, term: string) {
@@ -130,7 +131,7 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
               ].filter((fact): fact is string => Boolean(fact));
               return (
                 <Link key={result.key} href={result.href} className="group block">
-                  <Card className="transition-colors group-hover:border-edge-strong">
+                  <Card className="mp-lift group-hover:border-edge-strong">
                     <CardSection className="space-y-1.5 py-4">
                       <div className="flex items-center gap-1.5">
                         <Icon className="size-3.5 text-ink-faint" aria-hidden />

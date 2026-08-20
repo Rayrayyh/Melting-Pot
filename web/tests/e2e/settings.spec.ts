@@ -24,7 +24,8 @@ test.describe("search and settings", () => {
     ).toBeVisible();
 
     await page.goto("/search?q=Exam review");
-    await expect(page.getByText(/^Section · /).first()).toBeVisible();
+    await expect(page.getByText("Section", { exact: true }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: /Exam review/ }).first()).toBeVisible();
 
     await page.goto("/search?q=zzzznothing");
     await expect(page.getByText("No matches yet")).toBeVisible();
@@ -126,9 +127,9 @@ test.describe("search and settings", () => {
       .click();
     await page.getByRole("link", { name: "Settings", exact: true }).click();
 
-    // Add. The section list is the only list on the page; section titles
-    // also appear in the left nav, so assertions stay scoped to list items.
-    const rows = page.getByRole("listitem");
+    // Section titles also appear in the left nav, and settings carries other
+    // lists, so every assertion below is scoped to the sections list itself.
+    const rows = page.getByRole("list", { name: "Sections" }).getByRole("listitem");
     await page.getByLabel("New section name").fill("Lab safety");
     await page.getByRole("button", { name: "Add section" }).click();
     await expect(rows.filter({ hasText: "Lab safety" })).toHaveCount(1, {

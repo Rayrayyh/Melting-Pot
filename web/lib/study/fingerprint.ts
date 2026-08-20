@@ -11,10 +11,18 @@ import { createHash } from "node:crypto";
  */
 export function studyFingerprint(
   notes: Array<{ id: string; currentVersionId: string | null }>,
+  /**
+   * Anything that changes what was asked for rather than what it was built
+   * from, such as the length and difficulty of a practice test. Two different
+   * requests over the same notes are two stored sets, not one overwriting the
+   * other.
+   */
+  variant = "",
 ): string {
   const canonical = notes
     .map((note) => `${note.id}:${note.currentVersionId ?? "none"}`)
     .sort()
     .join("|");
-  return createHash("sha256").update(canonical).digest("hex").slice(0, 64);
+  const material = variant ? `${canonical}#${variant}` : canonical;
+  return createHash("sha256").update(material).digest("hex").slice(0, 64);
 }

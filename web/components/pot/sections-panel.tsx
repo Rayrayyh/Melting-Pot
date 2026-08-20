@@ -122,7 +122,7 @@ export function SectionsPanel({
             No sections yet. Add the first one below.
           </p>
         ) : (
-          <ul className="space-y-2">
+          <ul aria-label="Sections" className="space-y-2">
             {sections.map((section, index) => (
               <li
                 key={section.id}

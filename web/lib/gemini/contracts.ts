@@ -160,7 +160,12 @@ export function normalizeOrganizedNote(value: unknown, validSectionIds: Set<stri
   };
 }
 
-export function normalizeStudyResult(kind: StudyKind, value: unknown): unknown {
+export function normalizeStudyResult(
+  kind: StudyKind,
+  value: unknown,
+  /** How many questions were asked for; a practice test is trimmed to it. */
+  maxQuestions = 15,
+): unknown {
   const item = value && typeof value === "object" ? value as Record<string, unknown> : {};
   if (kind === "summary") {
     const topics = Array.isArray(item.keyTopics) ? item.keyTopics : [];
@@ -190,7 +195,7 @@ export function normalizeStudyResult(kind: StudyKind, value: unknown): unknown {
   const questions = Array.isArray(item.questions) ? item.questions : [];
   return {
     title: text(item.title, 160) || "Practice test",
-    questions: questions.slice(0, 15).map((question) => {
+    questions: questions.slice(0, Math.max(1, maxQuestions)).map((question) => {
       const row = question && typeof question === "object" ? question as Record<string, unknown> : {};
       const choices = textList(row.choices, 4, 400);
       const answerIndex = Math.trunc(Number(row.answerIndex));
