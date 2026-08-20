@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { Archive, Plus } from "@phosphor-icons/react/dist/ssr";
 import { ActivityList } from "@/components/home/activity-list";
 import {
@@ -6,6 +7,7 @@ import {
   ReviewQueueModule,
   RevisionRequestedModule,
 } from "@/components/home/attention-modules";
+import { ContributionStreak } from "@/components/home/contribution-streak";
 import { HomeJoinCard } from "@/components/home/home-join-card";
 import { PotStatCard } from "@/components/home/pot-stat-card";
 import { UserShell } from "@/components/shell/user-shell";
@@ -157,6 +159,14 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
                   <ActivityList items={dashboard.activity} />
                 </>
               )}
+              {/* Personal recognition sits last and streams on its own, so its
+                  query never delays what needs the reader's attention. */}
+              <Suspense fallback={null}>
+                <ContributionStreak
+                  userId={user.id}
+                  contributeHref={`/p/${dashboard.pots[0].id}/contribute`}
+                />
+              </Suspense>
             </aside>
           </div>
         )}

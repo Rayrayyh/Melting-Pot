@@ -111,7 +111,8 @@ export async function getDashboard(userId: string): Promise<Dashboard> {
         supabase
           .from("shared_notes")
           .select("id", { count: "exact", head: true })
-          .eq("pot_id", potId),
+          .eq("pot_id", potId)
+          .is("removed_at", null),
         // Pot-wide via security-definer so the card matches the feed vitals
         // regardless of role (RLS would show a member only their own).
         supabase.rpc("open_correction_count", { p_pot_id: potId }),
@@ -119,6 +120,7 @@ export async function getDashboard(userId: string): Promise<Dashboard> {
           .from("shared_notes")
           .select("shared_at")
           .eq("pot_id", potId)
+          .is("removed_at", null)
           .order("shared_at", { ascending: false })
           .limit(1)
           .maybeSingle(),
@@ -183,6 +185,7 @@ export async function getDashboard(userId: string): Promise<Dashboard> {
          contributor:profiles!shared_notes_contributor_id_fkey(display_name)`,
       )
       .in("pot_id", potIds)
+      .is("removed_at", null)
       .order("shared_at", { ascending: false })
       .limit(8),
     supabase

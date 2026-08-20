@@ -1,6 +1,8 @@
+import { RemovedNotesPanel } from "@/components/pot/removed-notes-panel";
 import { SectionsPanel } from "@/components/pot/sections-panel";
 import { SettingsPanel } from "@/components/pot/settings-panel";
 import { PotShell } from "@/components/shell/pot-shell";
+import { getRemovedNotes } from "@/lib/data/pot";
 import { requireUser } from "@/lib/data/user";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -8,7 +10,7 @@ export default async function SettingsPage({ params }: PageProps<"/p/[potId]/set
   const { potId } = await params;
   const user = await requireUser();
   const supabase = await supabaseServer();
-  const [{ data: pot }, { data: sectionRows }] = await Promise.all([
+  const [{ data: pot }, { data: sectionRows }, removedNotes] = await Promise.all([
     supabase.from("pots").select("owner_id").eq("id", potId).maybeSingle(),
     supabase
       .from("sections")
@@ -16,6 +18,7 @@ export default async function SettingsPage({ params }: PageProps<"/p/[potId]/set
       .eq("pot_id", potId)
       .order("position", { ascending: true })
       .order("title", { ascending: true }),
+    getRemovedNotes(potId),
   ]);
 
   return (
@@ -33,7 +36,10 @@ export default async function SettingsPage({ params }: PageProps<"/p/[potId]/set
             isOwner={pot?.owner_id === user.id}
             sectionsSlot={
               potContext.role !== "member" ? (
-                <SectionsPanel potId={potContext.id} sections={sectionRows ?? []} />
+                <>
+                  <SectionsPanel potId={potContext.id} sections={sectionRows ?? []} />
+                  <RemovedNotesPanel potId={potContext.id} notes={removedNotes} />
+                </>
               ) : undefined
             }
           />

@@ -31,6 +31,8 @@ export type ProposalEventKind =
   | "declined"
   | "comment";
 export type AttachmentKind = "image" | "pdf" | "file" | "link";
+/** Not a Postgres enum: study_sets.kind is a checked text column. */
+export type StudySetKind = "summary" | "flashcards" | "practice";
 
 export type Database = {
   public: {
@@ -440,6 +442,9 @@ export type Database = {
           pot_id: string;
           section_id: string | null;
           shared_at: string;
+          removed_at: string | null;
+          removed_by: string | null;
+          removed_reason: string | null;
         };
         Insert: {
           contribution_id: string;
@@ -449,6 +454,9 @@ export type Database = {
           pot_id: string;
           section_id?: string | null;
           shared_at?: string;
+          removed_at?: string | null;
+          removed_by?: string | null;
+          removed_reason?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["shared_notes"]["Insert"]>;
         Relationships: [
@@ -485,6 +493,100 @@ export type Database = {
             columns: ["section_id"];
             isOneToOne: false;
             referencedRelation: "sections";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shared_notes_removed_by_fkey";
+            columns: ["removed_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      study_sets: {
+        Row: {
+          id: string;
+          pot_id: string;
+          kind: StudySetKind;
+          source_fingerprint: string;
+          payload: Json;
+          model: string | null;
+          generated_by: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          pot_id: string;
+          kind: StudySetKind;
+          source_fingerprint: string;
+          payload: Json;
+          model?: string | null;
+          generated_by: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["study_sets"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "study_sets_generated_by_fkey";
+            columns: ["generated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "study_sets_pot_id_fkey";
+            columns: ["pot_id"];
+            isOneToOne: false;
+            referencedRelation: "pots";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      note_flashcards: {
+        Row: {
+          id: string;
+          pot_id: string;
+          note_id: string | null;
+          front: string;
+          back: string;
+          tags: string[];
+          source_excerpt: string | null;
+          created_by: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          pot_id: string;
+          note_id?: string | null;
+          front: string;
+          back: string;
+          tags?: string[];
+          source_excerpt?: string | null;
+          created_by: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["note_flashcards"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "note_flashcards_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "note_flashcards_note_id_fkey";
+            columns: ["note_id"];
+            isOneToOne: false;
+            referencedRelation: "shared_notes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "note_flashcards_pot_id_fkey";
+            columns: ["pot_id"];
+            isOneToOne: false;
+            referencedRelation: "pots";
             referencedColumns: ["id"];
           },
         ];
@@ -565,6 +667,32 @@ export type Database = {
           p_useful_for_note: boolean;
           p_model: string;
         };
+        Returns: undefined;
+      };
+      save_study_set: {
+        Args: {
+          p_pot_id: string;
+          p_kind: StudySetKind;
+          p_fingerprint: string;
+          p_payload: Json;
+          p_model: string;
+        };
+        Returns: string;
+      };
+      delete_study_set: { Args: { p_study_set_id: string }; Returns: undefined };
+      add_note_flashcard: {
+        Args: {
+          p_pot_id: string;
+          p_note_id: string | null;
+          p_front: string;
+          p_back: string;
+          p_tags: string[];
+          p_source_excerpt: string;
+        };
+        Returns: string;
+      };
+      set_shared_note_removed: {
+        Args: { p_note_id: string; p_removed: boolean; p_reason: string };
         Returns: undefined;
       };
     };

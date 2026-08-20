@@ -11,7 +11,14 @@ export default async function StudyPage({ params }: PageProps<"/p/[potId]/study/
   const kind = requestedKind as StudyKind;
   return (
     <PotShell potId={potId}>
-      {(pot) => <StudyWorkspace potId={pot.id} potTitle={pot.title} kind={kind} />}
+      {(pot) => (
+        <StudyWorkspace
+          potId={pot.id}
+          potTitle={pot.title}
+          kind={kind}
+          canModerate={pot.role === "maintainer" || pot.role === "owner"}
+        />
+      )}
     </PotShell>
   );
 }

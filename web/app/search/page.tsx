@@ -1,17 +1,30 @@
 import Link from "next/link";
-import { FolderSimple, MagnifyingGlass, Notebook, Paperclip } from "@phosphor-icons/react/dist/ssr";
+import { Cards, MagnifyingGlass, Notebook, Sparkle } from "@phosphor-icons/react/dist/ssr";
+import { SearchControls } from "@/components/search/search-controls";
 import { UserShell } from "@/components/shell/user-shell";
-import { Card, CardSection } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { SectionPill } from "@/components/ui/pills";
-import { searchPots, type SearchHit } from "@/lib/data/search";
+import {
+  MIN_QUERY_LENGTH,
+  parseSearchSort,
+  parseSearchType,
+  searchAcrossPots,
+  type SearchKind,
+} from "@/lib/data/search";
 import { requireUser } from "@/lib/data/user";
-import { supabaseServer } from "@/lib/supabase/server";
+import { relativeTime } from "@/lib/time";
 
 export const metadata = { title: "Search" };
 
+const KINDS: Record<SearchKind, { label: string; icon: typeof Notebook }> = {
+  note: { label: "Note", icon: Notebook },
+  summary: { label: "Study summary", icon: Sparkle },
+  flashcard: { label: "Flashcard", icon: Cards },
+};
+
 function highlight(text: string, term: string) {
-  const index = text.toLowerCase().indexOf(term.toLowerCase());
+  const index = term ? text.toLowerCase().indexOf(term.toLowerCase()) : -1;
   if (index < 0) return text;
   return (
     <>
@@ -24,119 +37,126 @@ function highlight(text: string, term: string) {
   );
 }
 
-function hitHref(hit: SearchHit): string {
-  if (hit.kind === "section" && hit.sectionId) return `/p/${hit.potId}/s/${hit.sectionId}`;
-  if (hit.noteId) return `/p/${hit.potId}/n/${hit.noteId}`;
-  return `/p/${hit.potId}`;
-}
-
-const KIND_ICON = {
-  note: Notebook,
-  section: FolderSimple,
-  attachment: Paperclip,
-} as const;
-
 export default async function SearchPage({ searchParams }: PageProps<"/search">) {
   await requireUser();
   const params = await searchParams;
   const query = typeof params.q === "string" ? params.q : "";
   const potId = typeof params.pot === "string" ? params.pot : undefined;
+  const type = parseSearchType(params.type);
+  const sort = parseSearchSort(params.sort);
 
-  let potTitle: string | null = null;
-  if (potId) {
-    const supabase = await supabaseServer();
-    const { data } = await supabase
-      .from("pots")
-      .select("title")
-      .eq("id", potId)
-      .maybeSingle();
-    potTitle = data?.title ?? null;
-  }
+  const { pots, activePot, results, counts } = await searchAcrossPots({
+    query,
+    type,
+    potId,
+    sort,
+  });
 
-  const hits = await searchPots(query, potId);
+  const term = query.trim();
+  const searched = pots.length > 0 && term.length >= MIN_QUERY_LENGTH;
+  const filtered = type !== "all" || Boolean(activePot);
 
   return (
     <UserShell>
       <div className="mx-auto w-full max-w-3xl px-6 py-10 space-y-6">
-        <header className="space-y-2">
+        <header className="space-y-4">
           <h1 className="text-2xl font-semibold tracking-tight">Search</h1>
-          <form action="/search" className="flex gap-2 max-w-lg">
-            <div className="relative flex-1">
-              <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-ink-faint" />
-              <input
-                name="q"
-                defaultValue={query}
-                placeholder={potTitle ? `Search ${potTitle}` : "Search your Pots and notes"}
-                aria-label="Search"
-                autoFocus
-                className="w-full h-10 pl-9 pr-3 bg-surface border border-edge-strong rounded-(--radius-control) text-sm text-ink placeholder:text-ink-faint focus:border-primary focus:outline-none transition-colors"
-              />
-              {potId ? <input type="hidden" name="pot" value={potId} /> : null}
-            </div>
-            <button
-              type="submit"
-              className="h-10 px-4 rounded-(--radius-control) bg-primary text-on-primary text-sm font-medium hover:bg-primary-hover transition-colors"
-            >
-              Search
-            </button>
-          </form>
-          {potTitle ? (
-            <div className="flex items-center gap-2 text-[13px] text-ink-muted">
-              Searching in
-              <SectionPill active>{potTitle}</SectionPill>
-              <Link
-                href={`/search?q=${encodeURIComponent(query)}`}
-                className="text-primary hover:underline"
-              >
-                Search all Pots
-              </Link>
-            </div>
-          ) : null}
+          <SearchControls
+            query={query}
+            type={type}
+            sort={sort}
+            potId={activePot?.id}
+            pots={pots}
+            counts={searched ? counts : null}
+          />
         </header>
 
-        {query.trim().length < 2 ? (
+        {pots.length === 0 ? (
+          <Card>
+            <EmptyState
+              icon={<MagnifyingGlass />}
+              title="Nothing to search yet"
+              body="Join a Pot with a class code and everything the class shares turns up here."
+              action={<Button href="/join">Join a Pot</Button>}
+            />
+          </Card>
+        ) : !searched ? (
           <Card>
             <EmptyState
               icon={<MagnifyingGlass />}
               title="Search your class knowledge"
-              body="Titles, summaries, note content, sections, contributors, and attachment names all count."
+              body="Shared notes, study summaries, and flashcards from every Pot you are in. Try a topic, a classmate's name, a section, or a word from a note."
             />
           </Card>
-        ) : hits.length === 0 ? (
+        ) : results.length === 0 ? (
           <Card>
             <EmptyState
               icon={<MagnifyingGlass />}
               title="No matches yet"
-              body="Try a different word from the note, or check the spelling."
+              body={
+                filtered
+                  ? "Nothing here under these filters. Try All, widen it to every Pot, or use a different word."
+                  : "Try a different word from the note, a shorter one, or check the spelling."
+              }
+              action={
+                filtered ? (
+                  <Button variant="secondary" href={`/search?q=${encodeURIComponent(term)}`}>
+                    Clear filters
+                  </Button>
+                ) : undefined
+              }
             />
           </Card>
         ) : (
           <div className="space-y-3">
             <p className="text-[13px] text-ink-muted">
-              {hits.length} {hits.length === 1 ? "result" : "results"} for &quot;{query}&quot;
+              {/* The list is capped, so say so rather than quietly dropping matches. */}
+              {results.length < counts[type]
+                ? `Showing ${results.length} of ${counts[type]} results`
+                : `${results.length} ${results.length === 1 ? "result" : "results"}`}
+              {` for "${term}"`}
+              {activePot ? ` in ${activePot.title}` : ""}
             </p>
-            {hits.map((hit, i) => {
-              const Icon = KIND_ICON[hit.kind];
+            {results.map((result) => {
+              const kind = KINDS[result.kind];
+              const Icon = kind.icon;
+              // Notes carry their version count so the "most contributed" order
+              // is readable rather than mysterious.
+              const facts = [
+                result.potTitle,
+                ...result.meta,
+                result.contributionCount > 1 ? `${result.contributionCount} versions` : null,
+                relativeTime(result.timestamp),
+              ].filter((fact): fact is string => Boolean(fact));
               return (
-                <Link key={`${hit.kind}-${i}`} href={hitHref(hit)} className="block group">
-                  <Card className="group-hover:border-edge-strong transition-colors">
-                    <CardSection className="flex items-start gap-3 py-4">
-                      <Icon className="size-4 text-ink-faint mt-1 shrink-0" aria-hidden />
-                      <div className="min-w-0 space-y-1">
-                        <p className="text-sm font-medium text-ink group-hover:text-primary transition-colors">
-                          {highlight(hit.title, query)}
-                        </p>
-                        {hit.excerpt ? (
-                          <p className="text-[13px] text-ink-muted leading-relaxed">
-                            {highlight(hit.excerpt, query)}
-                          </p>
-                        ) : null}
-                        <p className="text-[12px] text-ink-faint">
-                          {hit.kind === "section" ? "Section" : hit.kind === "attachment" ? "Attachment" : hit.contributorName}
-                          {hit.sectionTitle ? ` · ${hit.sectionTitle}` : ""}
-                          {` · ${hit.potTitle}`}
-                        </p>
+                <Link key={result.key} href={result.href} className="group block">
+                  <Card className="transition-colors group-hover:border-edge-strong">
+                    <CardSection className="space-y-1.5 py-4">
+                      <div className="flex items-center gap-1.5">
+                        <Icon className="size-3.5 text-ink-faint" aria-hidden />
+                        <Eyebrow>{kind.label}</Eyebrow>
                       </div>
+                      <p className="text-sm font-medium text-ink transition-colors group-hover:text-primary">
+                        {highlight(result.title, term)}
+                      </p>
+                      {result.excerpt ? (
+                        <p className="text-[13px] leading-relaxed text-ink-muted">
+                          {highlight(result.excerpt, term)}
+                        </p>
+                      ) : null}
+                      {result.tags.length > 0 ? (
+                        <ul className="flex flex-wrap gap-1.5 pt-0.5">
+                          {result.tags.map((tag) => (
+                            <li
+                              key={tag}
+                              className="rounded-full bg-sunken px-2 py-0.5 text-[11px] text-ink-muted"
+                            >
+                              {tag}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null}
+                      <p className="text-[12px] text-ink-faint">{facts.join(" · ")}</p>
                     </CardSection>
                   </Card>
                 </Link>

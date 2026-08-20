@@ -74,8 +74,9 @@ export const studySchemas = {
           type: "object",
           properties: {
             front: { type: "string" }, back: { type: "string" }, sourceNoteTitle: { type: "string" },
+            tags: { type: "array", items: { type: "string" } },
           },
-          required: ["front", "back", "sourceNoteTitle"],
+          required: ["front", "back", "sourceNoteTitle", "tags"],
           additionalProperties: false,
         },
       },
@@ -176,7 +177,14 @@ export function normalizeStudyResult(kind: StudyKind, value: unknown): unknown {
     const cards = Array.isArray(item.cards) ? item.cards : [];
     return { cards: cards.slice(0, 24).map((card) => {
       const row = card && typeof card === "object" ? card as Record<string, unknown> : {};
-      return { front: text(row.front, 500), back: text(row.back, 900), sourceNoteTitle: text(row.sourceNoteTitle, 160) };
+      return {
+        front: text(row.front, 500),
+        back: text(row.back, 900),
+        sourceNoteTitle: text(row.sourceNoteTitle, 160),
+        // Lower cased and deduplicated so a filter chip matches every card
+        // that means the same thing, however the model capitalised it.
+        tags: [...new Set(textList(row.tags, 6, 40).map((tag) => tag.toLowerCase()))],
+      };
     }).filter((card) => card.front && card.back) };
   }
   const questions = Array.isArray(item.questions) ? item.questions : [];

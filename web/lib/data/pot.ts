@@ -49,7 +49,8 @@ export async function getPotContext(potId: string): Promise<PotContext | null> {
     supabase
       .from("shared_notes")
       .select("id", { count: "exact", head: true })
-      .eq("pot_id", potId),
+      .eq("pot_id", potId)
+      .is("removed_at", null),
     // Pot-wide pending count via a security-definer function so members and
     // maintainers see the same number (RLS would show a member only theirs).
     supabase.rpc("open_correction_count", { p_pot_id: potId }),
@@ -92,6 +93,9 @@ export async function getFeed(potId: string, sectionId?: string): Promise<FeedNo
        section:sections!shared_notes_section_id_fkey (title)`,
     )
     .eq("pot_id", potId)
+    // A note a maintainer removed leaves the feed; the contribution and every
+    // version it had stay exactly where they were.
+    .is("removed_at", null)
     .order("shared_at", { ascending: false });
   if (sectionId) query = query.eq("section_id", sectionId);
   const { data } = await query;
@@ -151,6 +155,10 @@ export type NoteDetail = {
   sectionTitle: string | null;
   sharedAt: string;
   rawText: string;
+  /** Set when a maintainer has taken the note out of the Pot. */
+  removedAt: string | null;
+  removedReason: string | null;
+  removedByName: string | null;
   attachments: Array<{
     id: string;
     name: string;
@@ -181,6 +189,8 @@ export async function getNoteDetail(potId: string, noteId: string): Promise<Note
     .from("shared_notes")
     .select(
       `id, pot_id, shared_at, section_id, contribution_id,
+       removed_at, removed_reason,
+       removed_by_profile:profiles!shared_notes_removed_by_fkey (display_name),
        current:note_versions!shared_notes_current_version_fk (
          title, summary, body, body_text, takeaways, version_number,
          correction_contributor:profiles!note_versions_correction_contributor_id_fkey (display_name)
@@ -215,6 +225,9 @@ export async function getNoteDetail(potId: string, noteId: string): Promise<Note
     sectionTitle: note.section?.title ?? null,
     sharedAt: note.shared_at,
     rawText: note.contribution?.raw_text ?? "",
+    removedAt: note.removed_at,
+    removedReason: note.removed_reason,
+    removedByName: note.removed_by_profile?.display_name ?? null,
     attachments: (attachments ?? []).map((a) => ({
       id: a.id,
       name: a.name,
@@ -225,4 +238,83 @@ export async function getNoteDetail(potId: string, noteId: string): Promise<Note
       aiExtractedText: a.ai_extracted_text,
     })),
   };
+}
+
+export type NoteFlashcard = {
+  id: string;
+  front: string;
+  back: string;
+  tags: string[];
+  writerName: string;
+  writtenByViewer: boolean;
+  createdAt: string;
+};
+
+/**
+ * The cards people wrote by hand off this note. Written cards are separate
+ * from anything generated: a regeneration never touches them, and only their
+ * author or a maintainer can take one away.
+ */
+export async function getNoteFlashcards(
+  potId: string,
+  noteId: string,
+): Promise<NoteFlashcard[]> {
+  const user = await getAuthUser();
+  if (!user) return [];
+  const supabase = await supabaseServer();
+  const { data } = await supabase
+    .from("note_flashcards")
+    .select("id, front, back, tags, created_by, created_at, writer:profiles!note_flashcards_created_by_fkey (display_name)")
+    .eq("pot_id", potId)
+    .eq("note_id", noteId)
+    .order("created_at", { ascending: false })
+    .limit(50);
+  return (data ?? []).map((card) => ({
+    id: card.id,
+    front: card.front,
+    back: card.back,
+    tags: card.tags,
+    writerName: card.writer?.display_name ?? "A classmate",
+    writtenByViewer: card.created_by === user.id,
+    createdAt: card.created_at,
+  }));
+}
+
+export type RemovedNote = {
+  id: string;
+  title: string;
+  contributorName: string;
+  removedAt: string;
+  removedReason: string | null;
+  removedByName: string | null;
+};
+
+/**
+ * Notes a maintainer has taken out of this Pot. They are listed so putting one
+ * back is a normal thing to do rather than something you need the old link for.
+ */
+export async function getRemovedNotes(potId: string): Promise<RemovedNote[]> {
+  const supabase = await supabaseServer();
+  const { data } = await supabase
+    .from("shared_notes")
+    .select(
+      `id, removed_at, removed_reason,
+       contributor:profiles!shared_notes_contributor_id_fkey (display_name),
+       remover:profiles!shared_notes_removed_by_fkey (display_name),
+       current:note_versions!shared_notes_current_version_fk (title)`,
+    )
+    .eq("pot_id", potId)
+    .not("removed_at", "is", null)
+    .order("removed_at", { ascending: false })
+    .limit(50);
+  return (data ?? [])
+    .filter((note) => note.removed_at)
+    .map((note) => ({
+      id: note.id,
+      title: note.current?.title ?? "Untitled note",
+      contributorName: note.contributor?.display_name ?? "Unknown",
+      removedAt: note.removed_at!,
+      removedReason: note.removed_reason,
+      removedByName: note.remover?.display_name ?? null,
+    }));
 }
