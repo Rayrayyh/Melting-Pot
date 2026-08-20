@@ -2,7 +2,7 @@
 
 import { getClientAuth } from "@/lib/auth/client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { ArrowLeft, Eye, ShieldCheck } from "@phosphor-icons/react";
 import { BeforeAfter, DiffText } from "@/components/correct/diff-view";
 import { Button } from "@/components/ui/button";
@@ -31,28 +31,43 @@ export function SentencePicker({
   hint: string;
   onSelect: (sentence: string) => void;
 }) {
-  const sentences = selectableSentences(bodyText);
+  // body_text joins blocks with newlines so a selection never spans two of
+  // them (memory/decisions/007). Rendering every sentence into one paragraph
+  // threw that structure away, so a heading with no terminal punctuation ran
+  // straight into the sentence after it. Each line keeps its own row.
+  const lines = bodyText
+    .split(/\n+/)
+    .map((line) => selectableSentences(line))
+    .filter((sentences) => sentences.length > 0);
   return (
     <>
       <p className="text-[12px] text-ink-muted pb-2">{hint}</p>
-      <p className="font-serif text-[16px] leading-loose text-ink">
-        {sentences.map((sentence, i) => (
-          <button
-            key={i}
-            type="button"
-            onClick={() => onSelect(sentence)}
-            aria-pressed={sentence === selected}
-            className={cn(
-              "text-left rounded px-0.5 -mx-0.5 transition-colors",
-              sentence === selected
-                ? "bg-pending-soft outline outline-1 outline-pending/40"
-                : "hover:bg-sunken",
-            )}
-          >
-            {sentence}{" "}
-          </button>
+      <div className="font-serif text-[16px] leading-loose text-ink space-y-1.5">
+        {lines.map((sentences, lineIndex) => (
+          <p key={lineIndex}>
+            {sentences.map((sentence, i) => (
+              <Fragment key={i}>
+                {/* The gap between two sentences sharing a line belongs to
+                    neither of them, so it sits outside both hit targets. */}
+                {i > 0 ? " " : null}
+              <button
+                type="button"
+                onClick={() => onSelect(sentence)}
+                aria-pressed={sentence === selected}
+                className={cn(
+                  "text-left rounded px-0.5 -mx-0.5 transition-colors",
+                  sentence === selected
+                    ? "bg-pending-soft outline outline-1 outline-pending/40"
+                    : "hover:bg-sunken",
+                )}
+              >
+                {sentence}
+              </button>
+              </Fragment>
+            ))}
+          </p>
         ))}
-      </p>
+      </div>
     </>
   );
 }
@@ -72,6 +87,11 @@ export function CorrectFlow({
 }) {
   const router = useRouter();
   const [stage, setStage] = useState<"select" | "compare">("select");
+  // "sentence" corrects one sentence; "note" hands the whole thing over to be
+  // edited freely. A whole-note correction sets selected to the entire body,
+  // which keeps the staleness check in decide_proposal meaningful and tells
+  // the maintainer's screen to organize the result rather than splice it.
+  const [mode, setMode] = useState<"sentence" | "note">("sentence");
   const [selected, setSelected] = useState<string | null>(null);
   const [reason, setReason] = useState<string | null>(null);
   const [proposed, setProposed] = useState("");
@@ -80,8 +100,10 @@ export function CorrectFlow({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const unchanged = Boolean(selected) && proposed.trim() === selected?.trim();
+
   async function send() {
-    if (!selected || !proposed.trim() || busy) return;
+    if (!selected || !proposed.trim() || unchanged || busy) return;
     setBusy(true);
     setError(null);
     const supabase = supabaseBrowser();
@@ -137,20 +159,86 @@ export function CorrectFlow({
           </header>
 
           <section className="space-y-2">
-            <Eyebrow>{noteTitle}</Eyebrow>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <Eyebrow>{noteTitle}</Eyebrow>
+              <div className="flex gap-1.5">
+                {(
+                  [
+                    ["sentence", "Correct one sentence"],
+                    ["note", "Edit the whole note"],
+                  ] as const
+                ).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    aria-pressed={mode === key}
+                    onClick={() => {
+                      setMode(key);
+                      // Each mode owns what is being corrected, so switching
+                      // starts that mode's editor from the note as it stands
+                      // rather than carrying the other mode's half-written text.
+                      if (key === "note") {
+                        setSelected(bodyText);
+                        setProposed(bodyText);
+                      } else {
+                        setSelected(null);
+                        setProposed("");
+                      }
+                    }}
+                    className={cn(
+                      "h-8 px-3.5 rounded-full border text-[13px] font-medium transition-colors",
+                      mode === key
+                        ? "bg-primary-soft border-primary/30 text-primary"
+                        : "bg-surface border-edge-strong text-ink-muted hover:text-ink",
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {mode === "note" ? (
+              <>
+                <Field
+                  label="The note, as you would write it"
+                  hint="Change anything, or all of it. Line breaks separate the parts."
+                >
+                  {(props) => (
+                    <TextArea
+                      {...props}
+                      rows={14}
+                      value={proposed}
+                      onChange={(e) => setProposed(e.target.value)}
+                      className="font-serif text-[15px]"
+                    />
+                  )}
+                </Field>
+                <p className="text-[12px] text-ink-faint">
+                  A maintainer reads your words as you wrote them. If they accept,
+                  the note is organized again from this text, so the headings and
+                  the key points are rebuilt to match it.
+                </p>
+              </>
+            ) : (
             <Card>
               <CardSection className="space-y-1">
                 <SentencePicker
                   bodyText={bodyText}
                   selected={selected}
                   hint="Tap the sentence you want to correct."
-                  onSelect={(sentence) =>
-                    setSelected(sentence === selected ? null : sentence)
-                  }
+                  onSelect={(sentence) => {
+                    // Re-tapping the selected sentence clears it. Tapping a
+                    // new one seeds the editor, because nobody should retype
+                    // a sentence to change a character in it.
+                    const next = sentence === selected ? null : sentence;
+                    setSelected(next);
+                    setProposed(next ?? "");
+                  }}
                 />
               </CardSection>
             </Card>
-            {selected ? (
+            )}
+            {mode === "sentence" && selected ? (
               <div className="border border-pending/30 bg-pending-soft/40 rounded-(--radius-card) px-4 py-3 space-y-1">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-pending">
                   Selected
@@ -186,17 +274,32 @@ export function CorrectFlow({
           </section>
 
           <section className="space-y-4">
-            <Field label="Your correction" hint="Write it plainly. Formatting does not matter.">
-              {(props) => (
-                <TextArea
-                  {...props}
-                  rows={3}
-                  value={proposed}
-                  onChange={(e) => setProposed(e.target.value)}
-                  placeholder="What should this sentence say instead?"
-                />
-              )}
-            </Field>
+            {mode === "sentence" ? (
+              <Field
+                label="Your correction"
+                hint="The sentence is already here. Change what is wrong and leave the rest."
+              >
+                {(props) => (
+                  <TextArea
+                    {...props}
+                    rows={3}
+                    value={proposed}
+                    onChange={(e) => setProposed(e.target.value)}
+                    placeholder="Pick a sentence above to edit it."
+                  />
+                )}
+              </Field>
+            ) : null}
+            {/* A correction that changes nothing is not a correction, and the
+                seeded editor makes it easy to send one by accident. */}
+            {unchanged ? (
+              <p className="text-[12px] text-ink-faint">
+                Nothing has changed yet.{" "}
+                {mode === "sentence"
+                  ? "Edit the sentence above to send a correction."
+                  : "Edit the note above to send a correction."}
+              </p>
+            ) : null}
             <Field label="Why this is more accurate (optional)">
               {(props) => (
                 <TextArea
@@ -230,7 +333,7 @@ export function CorrectFlow({
               Cancel
             </Button>
             <Button
-              disabled={!selected || !proposed.trim()}
+              disabled={!selected || !proposed.trim() || unchanged}
               onClick={() => setStage("compare")}
             >
               Continue

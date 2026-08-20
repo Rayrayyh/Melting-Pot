@@ -12,6 +12,7 @@ import { Field, TextArea } from "@/components/ui/input";
 import { StatusPill } from "@/components/ui/pills";
 import { countOccurrences, diffWords, replaceInBlocks, summarizeDiff } from "@/lib/diff";
 import { blocksToBodyText } from "@/lib/organizer/edit";
+import type { NoteBlock } from "@/lib/data/pot";
 import type { ProposalDetail } from "@/lib/data/proposal";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { relativeTime } from "@/lib/time";
@@ -26,6 +27,39 @@ function wordsIn(text: string): string[] {
 }
 
 /** The maintainer's decision surface. Only a person can publish from here. */
+type OrganizedPayload = {
+  title: string;
+  summary: string;
+  blocks: NoteBlock[];
+  takeaways: string[];
+};
+
+/**
+ * Organizes a whole-note correction before it is published. The route falls
+ * back to the deterministic organizer when the model is unavailable, so this
+ * returns null only when the request itself failed, and the caller publishes
+ * nothing rather than a half-built note.
+ */
+async function organizeProposedNote(
+  potId: string,
+  rawText: string,
+): Promise<OrganizedPayload | null> {
+  try {
+    const response = await fetch("/api/ai/organize", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ potId, rawText }),
+    });
+    const payload = (await response.json().catch(() => null)) as
+      | { result?: OrganizedPayload }
+      | null;
+    if (!response.ok || !payload?.result?.blocks?.length) return null;
+    return payload.result;
+  } catch {
+    return null;
+  }
+}
+
 export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
   const router = useRouter();
   const [mode, setMode] = useState<"decide" | "revise" | "decline">("decide");
@@ -36,11 +70,20 @@ export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
   const [settled, setSettled] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // A whole-note correction hands over the entire body rather than one
+  // sentence, so there is nothing to splice into: it is organized again from
+  // the proposer's text when it is accepted. replaceInBlocks would return null
+  // for it, which is the same signal as a stale selection, so the two are
+  // separated here before that null means "conflict".
+  const wholeNote = proposal.selectedText.trim() === proposal.currentBodyText.trim();
   const newBlocks = useMemo(
-    () => replaceInBlocks(proposal.currentBlocks, proposal.selectedText, proposal.proposedText),
-    [proposal],
+    () =>
+      wholeNote
+        ? null
+        : replaceInBlocks(proposal.currentBlocks, proposal.selectedText, proposal.proposedText),
+    [proposal, wholeNote],
   );
-  const conflict = newBlocks === null;
+  const conflict = !wholeNote && newBlocks === null;
 
   // Accepting rebuilds the body and passes the summary and key points
   // through untouched, so wording this correction removes can survive there
@@ -125,8 +168,32 @@ export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
     setError(null);
     const supabase = supabaseBrowser();
 
+    let organized: OrganizedPayload | null = null;
+    if (decision === "accepted" && wholeNote) {
+      organized = await organizeProposedNote(proposal.potId, proposal.proposedText);
+      if (!organized) {
+        setError(
+          "The note could not be organized just now, so nothing was published. Try again in a moment.",
+        );
+        setBusy(false);
+        return;
+      }
+    }
+
     const payload =
-      decision === "accepted" && newBlocks
+      decision === "accepted" && organized
+        ? {
+            p_new_title: organized.title,
+            p_new_summary: organized.summary,
+            p_new_body: organized.blocks,
+            p_new_body_text: blocksToBodyText(organized.blocks),
+            p_new_takeaways: organized.takeaways,
+            p_change_summary:
+              proposal.diffSummary ??
+              summarizeDiff(proposal.selectedText, proposal.proposedText),
+            p_expected_version_id: proposal.currentVersionId ?? undefined,
+          }
+        : decision === "accepted" && newBlocks
         ? {
             p_new_title: proposal.currentTitle,
             p_new_summary: proposal.currentSummary,
@@ -332,6 +399,9 @@ export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
         <div className="sticky bottom-0 -mx-6 border-t border-edge bg-surface/95 backdrop-blur-sm px-6 py-3.5">
           <p className="text-[12px] text-ink-faint pb-2">
             You can ask a question without deciding yet.
+            {wholeNote
+              ? " This one rewrites the whole note, so accepting organizes it again from their words and rebuilds the headings and key points."
+              : ""}
           </p>
           <div className="flex items-center justify-between gap-3">
             <p className="text-[13px] text-ink-muted hidden sm:block">
