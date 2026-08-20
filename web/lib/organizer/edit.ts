@@ -82,3 +82,16 @@ export function blocksToBodyText(blocks: NoteBlock[]): string {
     })
     .join("\n");
 }
+
+/**
+ * A sentence correction is spliced into the one block that holds the sentence,
+ * and blocks are joined with newlines, so a line break pasted into the
+ * replacement would invent a block boundary that no block actually has: the
+ * note would render one paragraph as two and every later sentence offset would
+ * be wrong. Collapsing the whitespace keeps the replacement on the single line
+ * it replaces. Whole-note corrections do not come through here, because there
+ * the line breaks are the structure.
+ */
+export function asSingleLine(text: string): string {
+  return text.replace(/\s+/g, " ").trim();
+}

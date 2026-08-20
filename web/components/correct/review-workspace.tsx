@@ -5,6 +5,7 @@ import { Fragment, useMemo, useState } from "react";
 import { Robot, ShieldCheck, Warning } from "@phosphor-icons/react";
 import { BeforeAfter, DiffText } from "@/components/correct/diff-view";
 import { ProposalTimeline } from "@/components/correct/proposal-timeline";
+import { NoteBody, TakeawaysCard } from "@/components/pot/note-body";
 import { AttributionRow } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
@@ -12,8 +13,9 @@ import { Field, TextArea } from "@/components/ui/input";
 import { StatusPill } from "@/components/ui/pills";
 import { countOccurrences, diffWords, replaceInBlocks, summarizeDiff } from "@/lib/diff";
 import { blocksToBodyText } from "@/lib/organizer/edit";
-import type { NoteBlock } from "@/lib/data/pot";
 import type { ProposalDetail } from "@/lib/data/proposal";
+import { organizeNote } from "@/lib/organizer/request";
+import type { ProposedNote } from "@/lib/organizer/types";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { relativeTime } from "@/lib/time";
 
@@ -27,39 +29,6 @@ function wordsIn(text: string): string[] {
 }
 
 /** The maintainer's decision surface. Only a person can publish from here. */
-type OrganizedPayload = {
-  title: string;
-  summary: string;
-  blocks: NoteBlock[];
-  takeaways: string[];
-};
-
-/**
- * Organizes a whole-note correction before it is published. The route falls
- * back to the deterministic organizer when the model is unavailable, so this
- * returns null only when the request itself failed, and the caller publishes
- * nothing rather than a half-built note.
- */
-async function organizeProposedNote(
-  potId: string,
-  rawText: string,
-): Promise<OrganizedPayload | null> {
-  try {
-    const response = await fetch("/api/ai/organize", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ potId, rawText }),
-    });
-    const payload = (await response.json().catch(() => null)) as
-      | { result?: OrganizedPayload }
-      | null;
-    if (!response.ok || !payload?.result?.blocks?.length) return null;
-    return payload.result;
-  } catch {
-    return null;
-  }
-}
-
 export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
   const router = useRouter();
   const [mode, setMode] = useState<"decide" | "revise" | "decline">("decide");
@@ -168,9 +137,16 @@ export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
     setError(null);
     const supabase = supabaseBrowser();
 
-    let organized: OrganizedPayload | null = null;
+    let organized: ProposedNote | null = null;
     if (decision === "accepted" && wholeNote) {
-      organized = await organizeProposedNote(proposal.potId, proposal.proposedText);
+      // What the maintainer just read is what gets published. Only a proposal
+      // written before the organized note was carried needs generating here.
+      if (proposal.proposedOrganized) {
+        organized = proposal.proposedOrganized;
+      } else {
+        const result = await organizeNote(proposal.potId, proposal.proposedText);
+        organized = "note" in result ? result.note : null;
+      }
       if (!organized) {
         setError(
           "The note could not be organized just now, so nothing was published. Try again in a moment.",
@@ -278,6 +254,29 @@ export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
         </Card>
       </section>
 
+      {proposal.proposedOrganized ? (
+        <section className="space-y-2">
+          <Eyebrow>What gets published</Eyebrow>
+          <Card>
+            <CardSection className="space-y-3">
+              <div>
+                <h3 className="font-display text-xl tracking-tight">
+                  {proposal.proposedOrganized.title}
+                </h3>
+                <p className="text-[13px] text-ink-muted pt-1">
+                  {proposal.proposedOrganized.summary}
+                </p>
+              </div>
+              <NoteBody blocks={proposal.proposedOrganized.blocks} className="text-[15px]" />
+              <TakeawaysCard takeaways={proposal.proposedOrganized.takeaways} />
+            </CardSection>
+          </Card>
+        </section>
+      ) : null}
+
+      {/* A whole-note correction selects the entire body, so highlighting the
+          selection inside the body would highlight all of it. */}
+      {wholeNote ? null : (
       <section className="space-y-2">
         <Eyebrow>In context</Eyebrow>
         <Card>
@@ -301,6 +300,7 @@ export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
           </CardSection>
         </Card>
       </section>
+      )}
 
       {proposal.reason || proposal.explanation ? (
         <Card>
@@ -399,7 +399,9 @@ export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
         <div className="sticky bottom-0 -mx-6 border-t border-edge bg-surface/95 backdrop-blur-sm px-6 py-3.5">
           <p className="text-[12px] text-ink-faint pb-2">
             You can ask a question without deciding yet.
-            {wholeNote
+            {wholeNote && proposal.proposedOrganized
+              ? " This one rewrites the whole note. Accepting publishes it exactly as shown, headings and key points included."
+              : wholeNote
               ? " This one rewrites the whole note, so accepting organizes it again from their words and rebuilds the headings and key points."
               : ""}
           </p>

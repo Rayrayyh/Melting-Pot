@@ -353,6 +353,7 @@ export type Database = {
           id: string;
           note_id: string;
           pot_id: string;
+          proposed_organized: Json | null;
           proposed_text: string;
           proposer_id: string;
           reason: string | null;
@@ -371,6 +372,7 @@ export type Database = {
           id?: string;
           note_id: string;
           pot_id: string;
+          proposed_organized?: Json | null;
           proposed_text: string;
           proposer_id: string;
           reason?: string | null;
@@ -641,6 +643,7 @@ export type Database = {
           p_diff_summary?: string;
           p_explanation?: string;
           p_proposal_id: string;
+          p_proposed_organized?: Json | null;
           p_proposed_text: string;
           p_selected_text: string;
           p_source?: string;

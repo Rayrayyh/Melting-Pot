@@ -16,6 +16,19 @@ export type OrganizedResult = {
   sectionConfidence: number;
 };
 
+/**
+ * The organized note carried on a whole-note correction: what the proposer saw
+ * before sending it, what the maintainer reads, and what accepting publishes.
+ * Narrower than OrganizedResult because a correction never moves a note between
+ * sections, so the placement suggestion has nothing to say here.
+ */
+export type ProposedNote = {
+  title: string;
+  summary: string;
+  blocks: NoteBlock[];
+  takeaways: string[];
+};
+
 export interface OrganizerProvider {
   readonly name: string;
   organize(input: OrganizerInput): Promise<OrganizedResult>;

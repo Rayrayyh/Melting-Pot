@@ -5,11 +5,16 @@ import { useRouter } from "next/navigation";
 import { Fragment, useState } from "react";
 import { ArrowLeft, Eye, ShieldCheck } from "@phosphor-icons/react";
 import { BeforeAfter, DiffText } from "@/components/correct/diff-view";
+import { NoteBody, TakeawaysCard } from "@/components/pot/note-body";
 import { Button } from "@/components/ui/button";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { Field, Input, TextArea } from "@/components/ui/input";
 import { NoticeBanner } from "@/components/ui/notice-banner";
 import { selectableSentences, summarizeDiff } from "@/lib/diff";
+import { asSingleLine, blocksToBodyText } from "@/lib/organizer/edit";
+import { organizeErrorMessage, organizeNote } from "@/lib/organizer/request";
+import type { ProposedNote } from "@/lib/organizer/types";
+import type { Json } from "@/lib/database.types";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { cn } from "@/lib/cn";
 
@@ -99,11 +104,52 @@ export function CorrectFlow({
   const [source, setSource] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // The organized note is tied to the text it was built from, so editing after
+  // organizing makes it stale rather than wrong. Deriving that beats clearing
+  // it on every keystroke, and it means going back and forward again without
+  // touching a word costs nothing.
+  const [organized, setOrganized] = useState<{ source: string; note: ProposedNote } | null>(null);
+  const organizedNote = organized?.source === proposed.trim() ? organized.note : null;
 
   const unchanged = Boolean(selected) && proposed.trim() === selected?.trim();
 
-  async function send() {
+  // What actually gets stored. A sentence replacement is spliced into one
+  // block, so a pasted line break in it would split that block in two; a whole
+  // note is stored as the organizer rebuilt it, which is what both the
+  // maintainer and the class will read.
+  const finalText =
+    mode === "note"
+      ? organizedNote
+        ? blocksToBodyText(organizedNote.blocks)
+        : proposed.trim()
+      : asSingleLine(proposed);
+
+  async function continueToCompare() {
     if (!selected || !proposed.trim() || unchanged || busy) return;
+    if (mode === "sentence") {
+      setError(null);
+      setStage("compare");
+      return;
+    }
+    if (organizedNote) {
+      setStage("compare");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    const result = await organizeNote(potId, proposed.trim());
+    setBusy(false);
+    if ("error" in result) {
+      setError(organizeErrorMessage(result.error));
+      return;
+    }
+    setOrganized({ source: proposed.trim(), note: result.note });
+    setStage("compare");
+  }
+
+  async function send() {
+    if (!selected || !finalText || unchanged || busy) return;
+    if (mode === "note" && !organizedNote) return;
     setBusy(true);
     setError(null);
     const supabase = supabaseBrowser();
@@ -120,11 +166,12 @@ export function CorrectFlow({
         pot_id: potId,
         proposer_id: userId,
         selected_text: selected,
-        proposed_text: proposed.trim(),
+        proposed_text: finalText,
+        proposed_organized: organizedNote ? (organizedNote as unknown as Json) : null,
         reason,
         explanation: explanation.trim() || null,
         source: source.trim() || null,
-        diff_summary: summarizeDiff(selected, proposed.trim()),
+        diff_summary: summarizeDiff(selected, finalText),
       })
       .select("id")
       .single();
@@ -214,9 +261,9 @@ export function CorrectFlow({
                   )}
                 </Field>
                 <p className="text-[12px] text-ink-faint">
-                  A maintainer reads your words as you wrote them. If they accept,
-                  the note is organized again from this text, so the headings and
-                  the key points are rebuilt to match it.
+                  Write it however it comes out. The headings and the key points are
+                  rebuilt from your words when you continue, and you see the result
+                  before anything is sent.
                 </p>
               </>
             ) : (
@@ -322,6 +369,12 @@ export function CorrectFlow({
             </Field>
           </section>
 
+          {error ? (
+            <p role="alert" className="text-[13px] text-danger">
+              {error}
+            </p>
+          ) : null}
+
           <NoticeBanner tone="primary" icon={<ShieldCheck />} title="A maintainer approves changes">
             Your proposal won&apos;t replace the note automatically.
           </NoticeBanner>
@@ -333,10 +386,10 @@ export function CorrectFlow({
               Cancel
             </Button>
             <Button
-              disabled={!selected || !proposed.trim() || unchanged}
-              onClick={() => setStage("compare")}
+              disabled={!selected || !proposed.trim() || unchanged || busy}
+              onClick={() => void continueToCompare()}
             >
-              Continue
+              {busy ? "Organizing" : "Continue"}
             </Button>
           </div>
         </div>
@@ -350,20 +403,41 @@ export function CorrectFlow({
         <header className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">Show the change</h1>
           <p className="text-sm text-ink-muted">
-            Your maintainer will compare these side by side.
+            {organizedNote
+              ? "This is how the note will read. Your maintainer sees the same thing."
+              : "Your maintainer will compare these side by side."}
           </p>
         </header>
 
-        <BeforeAfter before={selected ?? ""} after={proposed.trim()} />
+        {organizedNote ? (
+          <section className="space-y-2">
+            <Eyebrow>How it will read</Eyebrow>
+            <Card>
+              <CardSection className="space-y-3">
+                <div>
+                  <h2 className="font-display text-xl tracking-tight">{organizedNote.title}</h2>
+                  <p className="text-[13px] text-ink-muted pt-1">{organizedNote.summary}</p>
+                </div>
+                <NoteBody blocks={organizedNote.blocks} className="text-[15px]" />
+                <TakeawaysCard takeaways={organizedNote.takeaways} />
+              </CardSection>
+            </Card>
+            <p className="text-[12px] text-ink-faint">
+              Your words, with the structure rebuilt. Go back to change any of it.
+            </p>
+          </section>
+        ) : null}
+
+        <BeforeAfter before={selected ?? ""} after={finalText} />
 
         <Card>
           <CardSection className="space-y-3">
             <div>
               <Eyebrow className="pb-1">Marked up</Eyebrow>
-              <DiffText before={selected ?? ""} after={proposed.trim()} />
+              <DiffText before={selected ?? ""} after={finalText} />
             </div>
             <p className="text-[13px] text-ink-muted border-t border-edge pt-3">
-              {summarizeDiff(selected ?? "", proposed.trim())}
+              {summarizeDiff(selected ?? "", finalText)}
             </p>
           </CardSection>
         </Card>
