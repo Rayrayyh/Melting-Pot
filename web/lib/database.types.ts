@@ -209,6 +209,8 @@ export type Database = {
           takeaways: string[];
           title: string;
           version_number: number;
+          reason: string | null;
+          explanation: string | null;
         };
         Insert: {
           body: Json;
@@ -226,6 +228,8 @@ export type Database = {
           takeaways?: string[];
           title: string;
           version_number: number;
+          reason?: string | null;
+          explanation?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["note_versions"]["Insert"]>;
         Relationships: [

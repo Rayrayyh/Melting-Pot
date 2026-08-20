@@ -14,6 +14,7 @@ export function ConfirmDialog({
   title,
   children,
   confirmLabel,
+  cancelLabel = "Cancel",
   tone = "default",
   busy = false,
   onConfirm,
@@ -23,6 +24,8 @@ export function ConfirmDialog({
   title: string;
   children?: ReactNode;
   confirmLabel: string;
+  /** Naming the way out matters when leaving costs the user something. */
+  cancelLabel?: string;
   tone?: "default" | "danger";
   busy?: boolean;
   onConfirm: () => void;
@@ -59,7 +62,7 @@ export function ConfirmDialog({
         </div>
         <div className="flex justify-end gap-2.5">
           <Button variant="secondary" onClick={onCancel} disabled={busy}>
-            Cancel
+            {cancelLabel}
           </Button>
           <Button
             variant={tone === "danger" ? "danger" : "primary"}

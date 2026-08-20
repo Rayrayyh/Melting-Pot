@@ -19,9 +19,15 @@
   --ink-faint: #756f5e;
   --edge: #ede3cc;
   --edge-strong: #dbcfaf;
-  --primary: #e0761a;
-  --primary-hover: #cd6812;
-  --primary-active: #ba5b0d;
+  /* Light mode's brand orange had to darken. At #e0761a it was 2.83:1 as text
+     on paper and 2.94:1 behind on-primary, so every primary button label and
+     every orange link failed the contrast floor. This is the same hue and the
+     same saturation, taken down in lightness until all three roles clear 4.5:1:
+     text on paper 4.55, text on surface 4.91, on-primary on it 4.74. Dark mode
+     was already fine and is untouched. */
+  --primary: #ab5a14;
+  --primary-hover: #964f11;
+  --primary-active: #84460f;
   --primary-soft: #fbead3;
   --on-primary: #fff8ee;
   --clay: #c36514;
