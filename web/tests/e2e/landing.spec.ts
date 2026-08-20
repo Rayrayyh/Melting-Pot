@@ -49,6 +49,36 @@ test.describe("brand landing", () => {
     await expect(page.getByText("Start your class's Pot tonight.")).toBeVisible();
   });
 
+  // The header once collided with itself on a phone: the wordmark and the nav
+  // met at zero gap, both labels wrapped inside fixed-height controls, and the
+  // page scrolled sideways. A student arriving from a text message sees this
+  // header first, so it is held to a test.
+  for (const width of [320, 360, 375, 414]) {
+    test(`the header holds together at ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 780 });
+      await page.goto("/");
+
+      // Nothing scrolls sideways.
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      );
+      expect(overflow).toBe(0);
+
+      // Both account controls stay on one line, inside their own boxes.
+      const signIn = page.getByRole("link", { name: "Sign in" });
+      const pill = page.locator("header nav a").last();
+      await expect(signIn).toBeVisible();
+      await expect(pill).toBeVisible();
+      expect((await signIn.boundingBox())!.height).toBeLessThan(30);
+      expect((await pill.boundingBox())!.height).toBeLessThanOrEqual(44);
+
+      // The mark and the nav never touch.
+      const markBox = (await page.locator("header a").first().boundingBox())!;
+      const navBox = (await page.locator("header nav").boundingBox())!;
+      expect(navBox.x - (markBox.x + markBox.width)).toBeGreaterThanOrEqual(8);
+    });
+  }
+
   test("reduced motion gets the finished story with no pin", async ({ browser }) => {
     const context = await browser.newContext({ reducedMotion: "reduce" });
     const page = await context.newPage();

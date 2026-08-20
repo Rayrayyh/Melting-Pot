@@ -74,9 +74,11 @@ export function BrandLanding({
   return (
     <div className="flex flex-col">
       <header className="w-full">
-        <div className="mx-auto w-full max-w-[1400px] px-6 sm:px-12 h-24 flex items-center justify-between">
-          <Wordmark size="lg" />
-          <nav className="flex items-center gap-6 lg:gap-10 text-[15px]">
+        <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-12 h-20 sm:h-24 flex items-center justify-between gap-3">
+          <Wordmark size="lg" className="min-w-0 shrink" />
+          {/* Every label here is nowrap: the pill has a fixed height, so a
+              wrapped label spills out of it rather than growing the button. */}
+          <nav className="flex shrink-0 items-center gap-4 sm:gap-6 lg:gap-10 text-[14px] sm:text-[15px]">
             <a href="#top" className="hidden md:block text-ink hover:text-primary transition-colors">
               Home
             </a>
@@ -89,18 +91,21 @@ export function BrandLanding({
             {signedIn ? (
               <Link
                 href="/home"
-                className="group/roll inline-flex h-11 items-center rounded-full bg-ink px-6 text-[15px] font-medium text-paper transition-opacity hover:opacity-90"
+                className="group/roll inline-flex h-11 shrink-0 items-center whitespace-nowrap rounded-full bg-ink px-4 sm:px-6 text-[14px] sm:text-[15px] font-medium text-paper transition-opacity hover:opacity-90"
               >
                 <RollText>Go to dashboard</RollText>
               </Link>
             ) : (
               <>
-                <Link href="/login" className="text-ink hover:text-primary transition-colors">
+                <Link
+                  href="/login"
+                  className="whitespace-nowrap text-ink hover:text-primary transition-colors"
+                >
                   Sign in
                 </Link>
                 <a
                   href="#spaces"
-                  className="group/roll inline-flex h-11 items-center rounded-full bg-ink px-6 text-[15px] font-medium text-paper transition-opacity hover:opacity-90"
+                  className="group/roll inline-flex h-11 shrink-0 items-center whitespace-nowrap rounded-full bg-ink px-4 sm:px-6 text-[14px] sm:text-[15px] font-medium text-paper transition-opacity hover:opacity-90"
                 >
                   <RollText>Get started</RollText>
                 </a>
@@ -111,7 +116,7 @@ export function BrandLanding({
       </header>
 
       <section id="top" className="relative overflow-hidden">
-        <div className="mx-auto w-full max-w-[1400px] px-6 sm:px-12 grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] items-center gap-x-8 gap-y-12 min-h-[calc(100vh-6rem)] pt-10 lg:pt-0">
+        <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-12 grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] items-center gap-x-8 gap-y-12 min-h-[calc(100svh-5rem)] sm:min-h-[calc(100svh-6rem)] pt-10 lg:pt-0">
           <div className="space-y-8 lg:pb-24">
             {/* Fluid so the three forced lines never become four: a fourth
                 line pushes the pot below the fold on shorter screens. */}
@@ -143,8 +148,8 @@ export function BrandLanding({
               </a>
             </div>
           </div>
-          <div className="relative h-full min-h-[320px] lg:min-h-[calc(100vh-6rem)] flex items-end justify-center lg:justify-end">
-            <PotHeroArt className="w-full max-w-120 lg:max-w-150 max-h-[calc(100dvh-8.5rem)] mb-2.5 -translate-x-3 -translate-y-2" />
+          <div className="relative h-full min-h-[320px] lg:min-h-[calc(100svh-6rem)] flex items-end justify-center lg:justify-end">
+            <PotHeroArt className="w-full max-w-120 lg:max-w-150 max-h-[calc(100dvh-8.5rem)] mb-2.5 -translate-x-3 -translate-y-4 lg:-translate-x-[27px]" />
           </div>
         </div>
       </section>
