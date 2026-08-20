@@ -1,8 +1,22 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+/** Waits for the scroll position to stop moving, however it is being driven. */
+async function settleScroll(page: Page) {
+  let last = Number.NaN;
+  for (let i = 0; i < 40; i++) {
+    const y = await page.evaluate(() => window.scrollY);
+    if (Math.abs(y - last) < 0.5) return;
+    last = y;
+    await page.waitForTimeout(50);
+  }
+}
 
 test.describe("brand landing", () => {
   test("the brand hero leads and code entry still validates in place", async ({ page }) => {
     await page.goto("/");
+    // Lenis marks the root when it is running; without this a dynamic import
+    // that silently failed would still pass every other assertion here.
+    await expect(page.locator("html")).toHaveClass(/(^|\s)lenis(\s|$)/);
     await expect(
       page.getByRole("heading", { name: "Many ideas. One shared knowledge base." }),
     ).toBeVisible();
@@ -79,10 +93,52 @@ test.describe("brand landing", () => {
     });
   }
 
+  test("anchors scroll to their sections, including back up past the pin", async ({ page }) => {
+    await page.goto("/");
+
+    // A bare <a> in the header.
+    await page.getByRole("link", { name: "Spaces" }).click();
+    await settleScroll(page);
+    await expect(
+      page.getByRole("heading", { name: "Everything your class knows, in one Pot." }),
+    ).toBeInViewport();
+
+    // The hero call to action is a next/link, not an <a>. Same behaviour.
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await settleScroll(page);
+    await page.getByRole("link", { name: "Get started" }).last().click();
+    await settleScroll(page);
+    await expect(page.getByLabel("Enter class code")).toBeInViewport();
+
+    // Upward, past the pinned melt, from the closing card.
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await settleScroll(page);
+    await page.getByRole("link", { name: "or enter a class code" }).click();
+    await settleScroll(page);
+    await expect(page.getByLabel("Enter class code")).toBeInViewport();
+  });
+
+  // Lenis overwrites the browser's own scroll for about 0.9s after a wheel
+  // notch unless it is reconciled. That window swallowing a keypress is a
+  // keyboard accessibility failure, and it is the thing most likely to
+  // silently come back.
+  test("a keypress mid-scroll is not swallowed", async ({ page }) => {
+    await page.goto("/");
+    await page.mouse.wheel(0, 200);
+    await page.waitForTimeout(80);
+    await page.keyboard.press("PageDown");
+    await settleScroll(page);
+    expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(400);
+  });
+
   test("reduced motion gets the finished story with no pin", async ({ browser }) => {
     const context = await browser.newContext({ reducedMotion: "reduce" });
     const page = await context.newPage();
     await page.goto("/");
+
+    // Smooth scroll is never constructed under the preference, not merely
+    // constructed and disabled.
+    await expect(page.locator("html")).not.toHaveClass(/(^|\s)lenis(\s|$)/);
 
     // Everything is readable immediately, no scroll choreography required.
     await expect(page.getByRole("heading", { name: "How cells make ATP" })).toBeVisible();
