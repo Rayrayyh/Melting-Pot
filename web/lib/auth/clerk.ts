@@ -1,5 +1,6 @@
 import {
   AuthError,
+  type AssuranceLevel,
   type AuthUser,
   type ClientAuthProvider,
   type SecondFactorSetup,
@@ -41,6 +42,9 @@ export const clerkServerAuth: ServerAuthProvider = {
     return notConfigured();
   },
   async getVerifiedSecondFactorId(): Promise<string | null> {
+    return notConfigured();
+  },
+  async getAssuranceLevel(): Promise<AssuranceLevel> {
     return notConfigured();
   },
 };

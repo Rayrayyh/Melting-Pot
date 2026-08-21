@@ -52,6 +52,23 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // A password alone reaches aal1. An account carrying a verified factor is
+  // only half signed in until a code clears it, and until this check existed
+  // that half-session had the same authority as a whole one: the pause lived
+  // in React state, so reloading walked straight past it. The assurance level
+  // is read from the session that getUser() just refreshed, so this costs no
+  // extra round trip.
+  if (user && isProtected(pathname) && pathname !== "/login/verify") {
+    const { data: assurance } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (assurance?.currentLevel === "aal1" && assurance.nextLevel === "aal2") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login/verify";
+      url.search = "";
+      url.searchParams.set("next", pathname);
+      return NextResponse.redirect(url);
+    }
+  }
+
   return response;
 }
 

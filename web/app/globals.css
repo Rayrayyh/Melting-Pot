@@ -429,3 +429,43 @@ blockquote {
     display: block;
   }
 }
+
+/* The 404's drifting accents. Ten blobs behind the content, each an ellipse
+   pulled out of round by a lopsided border-radius, on long slow loops at
+   different periods so they never fall into step. Decorative only: the page
+   reads exactly the same without them, which is why reduced motion removes
+   them outright rather than freezing ten shapes mid-drift. */
+@keyframes mp-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(6px, -14px, 0) rotate(8deg); }
+}
+
+@keyframes mp-drift-2 {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(-8px, -11px, 0) rotate(-7deg); }
+}
+
+@keyframes mp-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.18); opacity: 0.6; }
+}
+
+.mp-blob {
+  animation: mp-drift 7s ease-in-out infinite;
+}
+
+.mp-blob-alt {
+  animation: mp-drift-2 8s ease-in-out infinite;
+}
+
+.mp-dot {
+  animation: mp-pulse 5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-blob,
+  .mp-blob-alt,
+  .mp-dot {
+    display: none;
+  }
+}

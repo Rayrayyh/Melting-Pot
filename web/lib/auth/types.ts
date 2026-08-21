@@ -28,6 +28,16 @@ export type SecondFactorSetup = {
   secret: string;
 };
 
+/**
+ * How far a session got. "aal1" is a correct password; "aal2" has also cleared
+ * a second factor. `next` is what the account expects, so aal1/aal2 means a
+ * factor is enrolled and this session has not satisfied it yet.
+ */
+export type AssuranceLevel = {
+  current: "aal1" | "aal2" | null;
+  next: "aal1" | "aal2" | null;
+};
+
 /** Signing in either completes, or stops to ask for a code. */
 export type SignInOutcome =
   | { status: "signed-in" }
@@ -62,6 +72,12 @@ export interface ServerAuthProvider {
   getUser(): Promise<AuthUser | null>;
   /** The id of a confirmed second factor, when the account has one. */
   getVerifiedSecondFactorId(): Promise<string | null>;
+  /**
+   * What this session has cleared, and what the account asks of it. Read on
+   * the server because a second factor the browser alone enforces is a screen
+   * rather than a boundary.
+   */
+  getAssuranceLevel(): Promise<AssuranceLevel>;
 }
 
 /** Session lifecycle, driven from the browser. */

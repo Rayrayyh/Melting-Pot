@@ -1,4 +1,4 @@
-import { getAuthUser } from "@/lib/auth/server";
+import { getAuthUser, secondFactorOutstanding } from "@/lib/auth/server";
 import { redirect } from "next/navigation";
 import { AuthForm } from "@/components/auth/auth-form";
 import { Wordmark } from "@/components/shell/wordmark";
@@ -14,6 +14,10 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const next = typeof params.next === "string" ? params.next : undefined;
 
   const user = await getAuthUser();
+  // A session that still owes a code is not signed in yet, whatever the cookie
+  // says. Sending it to /home here is exactly how the second factor became
+  // skippable: reload the page and the pause was gone.
+  if (user && (await secondFactorOutstanding())) redirect("/login/verify");
   if (user) redirect(code ? `/join/${code}` : "/home");
 
   const supabase = await supabaseServer();

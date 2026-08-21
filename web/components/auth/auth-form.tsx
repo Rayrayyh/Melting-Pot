@@ -8,6 +8,7 @@ import { Card, CardSection } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/input";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import { AuthError, getClientAuth } from "@/lib/auth/client";
+import { safeNextPath } from "@/lib/auth/next-path";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { clearPendingJoin, takePendingJoin } from "@/lib/pending-join";
 
@@ -76,7 +77,7 @@ export function AuthForm({
         return;
       }
     }
-    router.push(next && next.startsWith("/") ? next : "/home");
+    router.push(safeNextPath(next) ?? "/home");
     router.refresh();
   }
 
@@ -181,10 +182,10 @@ export function AuthForm({
           <CardSection className="p-6 space-y-5">
             <div className="space-y-1 text-center">
               <h1 className="text-xl font-semibold tracking-tight">One more step</h1>
-            <p className="text-sm text-ink-muted">
-              Open your authenticator app and enter the code it shows.
-            </p>
-          </div>
+              <p className="text-sm text-ink-muted">
+                Open your authenticator app and enter the code it shows.
+              </p>
+            </div>
           <form onSubmit={submitSecondStep} className="space-y-4">
             <Field label="Six-digit code">
               {(props) => (
