@@ -85,7 +85,7 @@ export function AdminRestore({
                   disabled={busyId === set.id}
                 >
                   <ArrowCounterClockwise className="size-4" />
-                  {busyId === set.id ? "Putting back" : "Put back"}
+                  {busyId === set.id ? "Restoring" : "Restore"}
                 </Button>
               </div>
             ))}
@@ -116,7 +116,7 @@ export function AdminRestore({
                   disabled={busyId === card.id}
                 >
                   <ArrowCounterClockwise className="size-4" />
-                  {busyId === card.id ? "Putting back" : "Put back"}
+                  {busyId === card.id ? "Restoring" : "Restore"}
                 </Button>
               </div>
             ))}

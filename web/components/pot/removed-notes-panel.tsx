@@ -86,7 +86,7 @@ export function RemovedNotesPanel({
                     disabled={busyId === note.id}
                   >
                     <ArrowCounterClockwise className="size-4" />
-                    {busyId === note.id ? "Putting it back" : "Put it back"}
+                    {busyId === note.id ? "Restoring" : "Restore"}
                   </Button>
                 </div>
               </li>

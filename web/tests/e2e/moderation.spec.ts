@@ -47,7 +47,7 @@ test.describe("Maintainer moderation", () => {
     await page.getByRole("link", { name: /^Removed/ }).click();
     await expect(page.getByText("Removed notes")).toBeVisible();
     await expect(page.getByText("Duplicate of an earlier note.")).toBeVisible();
-    await page.getByRole("button", { name: "Put it back" }).first().click();
+    await page.getByRole("button", { name: "Restore" }).first().click();
     await expect(page.getByText("Duplicate of an earlier note.")).toHaveCount(0);
 
     // Inside the Pot the way back to the feed is the nav, not the Pot list.

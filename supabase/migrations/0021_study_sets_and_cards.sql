@@ -1,6 +1,6 @@
 -- Two homes for study material.
 --
--- study_sets caches what Gemini generates for a whole Pot. Generation is slow
+-- study_sets caches what the pot mixes for a whole class. Mixing is slow
 -- and metered, so a set that already matches the Pot's current notes is served
 -- again rather than rebuilt. The fingerprint is what makes that safe: it is
 -- derived from the notes that went in, so the moment anyone shares or corrects

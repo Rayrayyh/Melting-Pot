@@ -60,7 +60,7 @@ export function NoteModeration({
           disabled={busy}
         >
           <ArrowCounterClockwise className="size-4" />
-          {busy ? "Putting it back" : "Put it back"}
+          {busy ? "Restoring" : "Restore"}
         </Button>
         {error ? (
           <p role="alert" className="text-[13px] text-danger">

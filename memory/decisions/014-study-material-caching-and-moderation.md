@@ -27,7 +27,7 @@ cache, a CDN, or a browser: the database is the only cache, and it is one a
 maintainer can look at and delete.
 
 Opening a study page peeks at the store rather than generating. That is why
-arriving costs nothing and why a missing Gemini key still shows a class the
+arriving costs nothing and why a missing mixing key still shows a class the
 deck it already has.
 
 ## Removal hides a note; it never deletes one

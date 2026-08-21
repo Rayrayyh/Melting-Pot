@@ -1,5 +1,5 @@
 -- Renumbered from 0019 on merge: the auth branch already held a 0019.
--- Persist reviewable Gemini Vision output without exposing the API key or
+-- Persist reviewable attachment-reading output without exposing the API key or
 -- allowing clients to overwrite another student's private attachment.
 alter table public.attachments
   add column ai_caption text,

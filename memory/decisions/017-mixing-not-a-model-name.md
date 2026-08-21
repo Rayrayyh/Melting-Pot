@@ -28,18 +28,37 @@ about their material, not a brand.
   calling a guess.
 - Every error message a person can read now names the mixer or nothing at all.
 
-## What deliberately still says it
+## The second pass, when the owner asked again
 
-- `supabase/migrations/0020_gemini_attachment_analysis.sql` and a comment in
-  0021. Both are applied migrations. Renaming an applied migration file breaks
-  the mirror between the repo and what the project actually ran, which is worth
-  more than the word.
-- `docs/BUILDLOG.md` and `memory/decisions/014`. Both are records of what
-  happened, and rewriting a record to match today's naming makes it a worse
-  record.
-- The values in `.env.example` and in the deployment's environment, which are
-  the provider's own model identifiers. There is no way to name a model without
-  naming it.
+The first pass left the migrations and `.env.example` alone, on the grounds
+that renaming an applied migration breaks the mirror between the repo and what
+the project ran. The owner asked again, so the reasoning got a second look and
+most of it did not survive it:
+
+- **The migration file was renamed** to `0020_attachment_analysis.sql`, and the
+  comments in it and in 0021 reworded. The mirror argument was weaker than it
+  sounded. Supabase records a migration under the name passed to
+  `apply_migration`, not under the filename here; these files are a mirror kept
+  by hand, and a comment is never executed at all. Nothing about what ran
+  changed.
+- **`.env.example` no longer names a model.** Both identifiers are blank with a
+  comment saying to use whatever the provider publishes. Blank is honest rather
+  than lossy: unset already reads the same as an unset key, so the deterministic
+  organizer carries every flow, which is exactly what a half-configured checkout
+  should do.
+- `memory/decisions/014` was updated, because that line describes how the app
+  behaves today rather than what happened once.
+
+## What still says it, and why that is right
+
+- `docs/BUILDLOG.md` and this note. Both are records. The build log contains a
+  correction about which Flash version was current, and this note contains the
+  old-to-new mapping someone will need when they meet a stale environment
+  variable. Removing the word from either makes it a worse record, and from
+  this note makes it meaningless.
+- The deployment's own environment, where the values are the provider's model
+  identifiers. There is no way to name a model without naming it, which is the
+  whole reason those two identifiers live in configuration and not in source.
 
 ## The one step this cannot do for itself
 
@@ -48,3 +67,31 @@ cannot be copied across from the old name by anything that cannot read it. It
 has to be added to the site by hand, with the same value, before the next
 deploy. `FAST_MODEL` and `REASONING_MODEL` are not secret and were set from
 here.
+
+## Retrying a full pot
+
+`generateStructured` retries on capacity: 429, any 5xx, and a connection that
+failed outright. Four attempts, waits of roughly 0.4s, 0.9s and 2s with jitter
+so a class that all pressed the button together does not come back in lockstep,
+and `Retry-After` is honoured when the mixer sends one.
+
+Two things it deliberately does not do.
+
+**It does not extend the budget.** All four attempts share the same 60 second
+ceiling one attempt used to have. These run as serverless functions with a hard
+timeout, so a retry past that ceiling would not buy another chance; it would be
+killed further from home, after the class had been kept waiting longer. Each
+attempt gets whatever is left, and a wait is only taken if there is still budget
+to use it for.
+
+That works because capacity refusals come back fast. A full mixer answers in a
+few hundred milliseconds, since nothing is queued behind the refusal. Slow calls
+are not the ones being retried, which is also why the waits are short.
+
+**It does not retry a reply that arrived and said nothing usable.** That is not
+a capacity problem, and asking again spends a whole generation to find that out.
+The caller falls back to the deterministic organizer, which is what that
+fallback is for.
+
+A refusal about the request itself is never retried either. Bad credentials, a
+malformed body or a missing model do not become correct by being asked again.
