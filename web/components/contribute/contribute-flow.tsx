@@ -16,13 +16,13 @@ import {
 import { NoteBody, TakeawaysCard } from "@/components/pot/note-body";
 import { NoteChecks } from "@/components/contribute/note-checks";
 import type { NoteCheck } from "@/lib/mix/contracts";
-import { Stir } from "@/components/brand/stir";
 import { Button } from "@/components/ui/button";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Field, Input, TextArea } from "@/components/ui/input";
 import { NoticeBanner } from "@/components/ui/notice-banner";
 import { SectionPill, StatusPill } from "@/components/ui/pills";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 import { FlowProgress, StageChecklist, type StageState } from "@/components/ui/progress-steps";
 import { Settle } from "@/components/ui/settle";
 import { StickyActionBar } from "@/components/ui/sticky-action-bar";
@@ -766,49 +766,43 @@ export function ContributeFlow({
   // ----- Organizing state ---------------------------------------------------
 
   if (step === "organizing") {
+    // The full-screen wait, because this one runs for as long as twenty six
+    // seconds. The checklist and the way out ride along inside it: a cover
+    // this long without a way back to the draft would be a trap, and the
+    // stages are what stop it reading as a hang.
     return (
-      <div className="mx-auto w-full max-w-xl px-6 py-12 space-y-8">
-        <header className="space-y-1 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">Organizing your note</h1>
-          <p className="text-sm text-ink-muted">
-            Your original is saved. Nothing has been shared yet.
-          </p>
-        </header>
-        <Card>
-          <CardSection className="py-6 space-y-6">
-            {/* The mark says something is happening; the checklist says what.
-                It is decorative on purpose: the stage labels below are already
-                read out, and a second announcement would only repeat them. */}
-            <div className="flex justify-center">
-              <Stir size={96} />
-            </div>
-            <StageChecklist
-              stages={STAGES.map((stage, i) => ({
-                ...stage,
-                state: stageStates[i] ?? "waiting",
-              }))}
-            />
-          </CardSection>
-        </Card>
-        <div className="text-center">
-          <Button
-            variant="quiet"
-            onClick={async () => {
-              cancelOrganize.current = true;
-              organizeAbort.current?.abort();
-              if (contributionId) {
-                await supabase
-                  .from("contributions")
-                  .update({ status: "draft" })
-                  .eq("id", contributionId);
-              }
-              setStep("write");
-            }}
-          >
-            Cancel and return to draft
-          </Button>
+      <LoadingScreen
+        open
+        message="Organizing your note"
+        detail="Your original is saved. Nothing has been shared yet."
+      >
+        <div className="space-y-6">
+          <StageChecklist
+            stages={STAGES.map((stage, i) => ({
+              ...stage,
+              state: stageStates[i] ?? "waiting",
+            }))}
+          />
+          <div className="text-center">
+            <Button
+              variant="quiet"
+              onClick={async () => {
+                cancelOrganize.current = true;
+                organizeAbort.current?.abort();
+                if (contributionId) {
+                  await supabase
+                    .from("contributions")
+                    .update({ status: "draft" })
+                    .eq("id", contributionId);
+                }
+                setStep("write");
+              }}
+            >
+              Cancel and return to draft
+            </Button>
+          </div>
         </div>
-      </div>
+      </LoadingScreen>
     );
   }
 

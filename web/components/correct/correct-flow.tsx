@@ -13,6 +13,7 @@ import { Field, Input, TextArea } from "@/components/ui/input";
 import { NoticeBanner } from "@/components/ui/notice-banner";
 import { selectableSentences, summarizeDiff } from "@/lib/diff";
 import { asSingleLine, blocksToBodyText } from "@/lib/organizer/edit";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 import { organizeErrorMessage, organizeNote } from "@/lib/organizer/request";
 import type { ProposedNote } from "@/lib/organizer/types";
 import type { Json } from "@/lib/database.types";
@@ -104,6 +105,9 @@ export function CorrectFlow({
   const [explanation, setExplanation] = useState("");
   const [source, setSource] = useState("");
   const [busy, setBusy] = useState(false);
+  // busy also covers sending the proposal, which is one insert. Only the
+  // organizer call is long enough to earn the full screen.
+  const [organizing, setOrganizing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // The organized note is tied to the text it was built from, so editing after
   // organizing makes it stale rather than wrong. Deriving that beats clearing
@@ -140,15 +144,25 @@ export function CorrectFlow({
       return;
     }
     setBusy(true);
+    setOrganizing(true);
     setError(null);
-    const result = await organizeNote(potId, proposed.trim());
-    setBusy(false);
-    if ("error" in result) {
-      setError(organizeErrorMessage(result.error));
-      return;
+    // finally, not a trailing call: this one puts a cover over the whole
+    // screen, and a rejected request that never cleared it would strand the
+    // reader with no way back to what they were writing.
+    try {
+      const result = await organizeNote(potId, proposed.trim());
+      if ("error" in result) {
+        setError(organizeErrorMessage(result.error));
+        return;
+      }
+      setOrganized({ source: proposed.trim(), note: result.note });
+      setStage("compare");
+    } catch {
+      setError("The connection dropped while this was being organized. Try again.");
+    } finally {
+      setBusy(false);
+      setOrganizing(false);
     }
-    setOrganized({ source: proposed.trim(), note: result.note });
-    setStage("compare");
   }
 
   async function send() {
@@ -200,6 +214,14 @@ export function CorrectFlow({
   if (stage === "select") {
     return (
       <div className="flex flex-col flex-1">
+        <LoadingScreen
+          open={organizing}
+          message={[
+            "Organizing your correction",
+            "Reading what you changed",
+            "Setting it beside the original",
+          ]}
+        />
         <div className="mx-auto w-full max-w-3xl px-6 py-8 space-y-6 flex-1 pb-24">
           <header className="space-y-1">
             <h1 className="text-2xl font-semibold tracking-tight">Suggest a correction</h1>

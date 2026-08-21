@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Stir } from "@/components/brand/stir";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 import { cn } from "@/lib/cn";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import type { Json } from "@/lib/database.types";
@@ -87,6 +88,16 @@ const copy = {
   },
 } as const;
 
+/**
+ * What the full-screen wait says while the model works. Separate from `build`
+ * because that names a button and this narrates a wait already under way.
+ */
+const waiting = {
+  summary: ["Writing your summary", "Reading what the class shared", "Pulling out what matters"],
+  flashcards: ["Building your deck", "Reading what the class shared", "Picking what is worth remembering"],
+  practice: ["Writing your test", "Reading what the class shared", "Choosing what to ask"],
+} as const;
+
 function message(error: string | undefined, detail: string | undefined): string {
   if (error === "mixing_unavailable") {
     return "Mixing is not set up on this server yet, so nothing new can be built. Anything the Pot already has still opens.";
@@ -135,6 +146,9 @@ export function StudyWorkspace({
   // outstanding, which is the whole of what "checking" means.
   const [lookedUpKey, setLookedUpKey] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // busy also covers opening a saved set, which is one read. Only a real
+  // generation earns the full screen; anything shorter would just flash.
+  const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [asking, setAsking] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -223,38 +237,49 @@ export function StudyWorkspace({
   async function generate(regenerate: boolean) {
     if (busy) return;
     setBusy(true);
+    setGenerating(true);
     setError(null);
-    const outcome = await load({ regenerate, options });
-    if (!outcome.loaded) {
-      // The reply is missing, which is not the same as the work being missing.
-      // A generation can finish and be stored and still lose its answer on the
-      // way back: the platform cuts a long call off, a phone changes network,
-      // a tab is backgrounded. Reporting failure without looking told people
-      // their test had not been written while it sat in Previous tests.
-      //
-      // So ask the Pot what it holds before saying anything. A peek never
-      // generates, so this costs nothing and cannot spend a second one.
-      const rescued = await load({ peek: true, options });
-      setBusy(false);
-      if (rescued.loaded) {
-        setOpened(rescued.loaded);
-        setPeeked(rescued.loaded);
-        setSettingUp(false);
-        setTab("new");
-        router.refresh();
+    // The finally is what makes the full screen safe to use here. `load` calls
+    // fetch, which rejects outright when the network drops, and a flag that
+    // only ever cleared on the happy path would leave the cover up with no way
+    // out. A stuck button is an annoyance; a stuck cover is a trap.
+    try {
+      const outcome = await load({ regenerate, options });
+      if (!outcome.loaded) {
+        // The reply is missing, which is not the same as the work being
+        // missing. A generation can finish and be stored and still lose its
+        // answer on the way back: the platform cuts a long call off, a phone
+        // changes network, a tab is backgrounded. Reporting failure without
+        // looking told people their test had not been written while it sat in
+        // Previous tests.
+        //
+        // So ask the Pot what it holds before saying anything. A peek never
+        // generates, so this costs nothing and cannot spend a second one.
+        const rescued = await load({ peek: true, options });
+        if (rescued.loaded) {
+          setOpened(rescued.loaded);
+          setPeeked(rescued.loaded);
+          setSettingUp(false);
+          setTab("new");
+          router.refresh();
+          return;
+        }
+        setError(message(outcome.failure, outcome.detail));
         return;
       }
-      setError(message(outcome.failure, outcome.detail));
-      return;
+      setOpened(outcome.loaded);
+      setPeeked(outcome.loaded);
+      setSettingUp(false);
+      setTab("new");
+      // The list of what the Pot holds is rendered on the server, so it has to
+      // be told that it just grew.
+      router.refresh();
+    } catch {
+      setError("The connection dropped while this was being built. Try again.");
+    } finally {
+      setBusy(false);
+      setGenerating(false);
     }
-    setBusy(false);
-    setOpened(outcome.loaded);
-    setPeeked(outcome.loaded);
-    setSettingUp(false);
-    setTab("new");
-    // The list of what the Pot holds is rendered on the server, so it has to be
-    // told that it just grew.
-    router.refresh();
   }
 
   /** Opens a set the Pot already has, without building anything. */
@@ -339,6 +364,7 @@ export function StudyWorkspace({
 
   return (
     <div className="mx-auto w-full max-w-3xl px-6 py-10 space-y-6">
+      <LoadingScreen open={generating} message={waiting[kind]} />
       <Button variant="quiet" size="sm" href={`/p/${potId}`}>
         <ArrowLeft className="size-4" /> Back to {potTitle}
       </Button>

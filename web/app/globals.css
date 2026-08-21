@@ -66,6 +66,28 @@
   --avatar-5-soft: #d9ebe8;
   --avatar-6: #9c4557;
   --avatar-6-soft: #f7dee3;
+  /* The stir: the loading mark's own palette. Separate from the functional
+     tokens on purpose. --primary was darkened for text contrast, which would
+     make the pot body muddy, and the pot is a brand object rather than a
+     control, so it keeps the brand orange in both themes. The body ramp is
+     deliberately identical light and dark: the pot is the same pot. */
+  --stir-ramp-0: #f0982f;
+  --stir-ramp-1: #e0761a;
+  --stir-ramp-2: #be530e;
+  --stir-liquid-a: #f0982f;
+  --stir-liquid-b: #e8862a;
+  --stir-paddle: #c36514;
+  --stir-glint: #fff8ee;
+  --stir-rim: #fffdf6;
+  --stir-mouth: #a34a0c;
+  --stir-wisp-a: #f2a94f;
+  --stir-wisp-b: #fbe0ad;
+  --stir-wood-light: #c69a63;
+  --stir-wood-dark: #8a5a32;
+  --stir-spice-0: #be530e;
+  --stir-spice-1: #24222c;
+  --stir-spice-2: #e0761a;
+  --stir-spice-3: #c36514;
   color-scheme: light;
 }
 
@@ -115,6 +137,23 @@
   --avatar-5-soft: #1c3230;
   --avatar-6: #dd8d9d;
   --avatar-6-soft: #3a1f26;
+  --stir-ramp-0: #f0982f;
+  --stir-ramp-1: #e0761a;
+  --stir-ramp-2: #be530e;
+  --stir-liquid-a: #e9a85d;
+  --stir-liquid-b: #d99441;
+  --stir-paddle: #9a4c0c;
+  --stir-glint: #fff8ee;
+  --stir-rim: #fff6e8;
+  --stir-mouth: #7c3c08;
+  --stir-wisp-a: #f19a44;
+  --stir-wisp-b: #e9a85d;
+  --stir-wood-light: #c69a63;
+  --stir-wood-dark: #7d5029;
+  --stir-spice-0: #f19a44;
+  --stir-spice-1: #e9a85d;
+  --stir-spice-2: #fff8ee;
+  --stir-spice-3: #f0982f;
   color-scheme: dark;
 }
 
@@ -165,6 +204,23 @@
     --avatar-5-soft: #1c3230;
     --avatar-6: #dd8d9d;
     --avatar-6-soft: #3a1f26;
+    --stir-ramp-0: #f0982f;
+    --stir-ramp-1: #e0761a;
+    --stir-ramp-2: #be530e;
+    --stir-liquid-a: #e9a85d;
+    --stir-liquid-b: #d99441;
+    --stir-paddle: #9a4c0c;
+    --stir-glint: #fff8ee;
+    --stir-rim: #fff6e8;
+    --stir-mouth: #7c3c08;
+    --stir-wisp-a: #f19a44;
+    --stir-wisp-b: #e9a85d;
+    --stir-wood-light: #c69a63;
+    --stir-wood-dark: #7d5029;
+    --stir-spice-0: #f19a44;
+    --stir-spice-1: #e9a85d;
+    --stir-spice-2: #fff8ee;
+    --stir-spice-3: #f0982f;
     color-scheme: dark;
   }
 }

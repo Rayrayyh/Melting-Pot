@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardSection } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/input";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 import { AuthError, getClientAuth } from "@/lib/auth/client";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { clearPendingJoin, takePendingJoin } from "@/lib/pending-join";
@@ -107,7 +108,15 @@ export function AuthForm({
       return;
     }
 
-    await finalize();
+    try {
+      await finalize();
+    } catch {
+      // finalize ends in a redirect, so busy is meant to stay true through it.
+      // It only clears here, where the round trip failed and there will be no
+      // navigation: otherwise the full-screen cover would have no way down.
+      setError("The connection dropped. Check your network and try again.");
+      setBusy(false);
+    }
   }
 
   async function submitSecondStep(e: React.FormEvent) {
@@ -125,7 +134,15 @@ export function AuthForm({
       setBusy(false);
       return;
     }
-    await finalize();
+    try {
+      await finalize();
+    } catch {
+      // finalize ends in a redirect, so busy is meant to stay true through it.
+      // It only clears here, where the round trip failed and there will be no
+      // navigation: otherwise the full-screen cover would have no way down.
+      setError("The connection dropped. Check your network and try again.");
+      setBusy(false);
+    }
   }
 
   const heading =
@@ -147,12 +164,23 @@ export function AuthForm({
 
   const codeParam = code ? `?code=${encodeURIComponent(code)}` : "";
 
+
+  // Signing in is a round trip and then a redirect, so it is one of the waits
+  // the full-screen pot is for. `busy` already spans the whole of it.
+  const waitMessage = secondStepFactorId
+    ? ["Checking your code"]
+    : mode === "signup"
+      ? ["Setting up your account", "Getting your vault ready"]
+      : ["Signing you in", "Finding your Pots"];
+
   if (secondStepFactorId) {
     return (
-      <Card className="w-full max-w-md">
-        <CardSection className="p-6 space-y-5">
-          <div className="space-y-1 text-center">
-            <h1 className="text-xl font-semibold tracking-tight">One more step</h1>
+      <>
+        <LoadingScreen open={busy} message={waitMessage} />
+        <Card className="w-full max-w-md">
+          <CardSection className="p-6 space-y-5">
+            <div className="space-y-1 text-center">
+              <h1 className="text-xl font-semibold tracking-tight">One more step</h1>
             <p className="text-sm text-ink-muted">
               Open your authenticator app and enter the code it shows.
             </p>
@@ -189,13 +217,16 @@ export function AuthForm({
               {busy ? "Checking" : "Continue"}
             </Button>
           </form>
-        </CardSection>
-      </Card>
+          </CardSection>
+        </Card>
+      </>
     );
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <>
+      <LoadingScreen open={busy} message={waitMessage} />
+      <Card className="w-full max-w-md">
       <CardSection className="p-6 space-y-5">
         <div className="space-y-1 text-center">
           <h1 className="text-xl font-semibold tracking-tight">{heading}</h1>
@@ -283,6 +314,7 @@ export function AuthForm({
           )}
         </p>
       </CardSection>
-    </Card>
+      </Card>
+    </>
   );
 }
