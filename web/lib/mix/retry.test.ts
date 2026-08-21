@@ -173,6 +173,47 @@ describe("generateStructured retrying", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it("refuses without calling out when the shared deadline has already gone", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { generateStructured } = await loadMix();
+    await expect(
+      run(
+        generateStructured({
+          model: "m",
+          instruction: "i",
+          parts: [],
+          schema: {},
+          deadlineAt: Date.now() - 1,
+        }),
+      ),
+    ).rejects.toThrow();
+    // The point of the shared budget: a later call in the same request does
+    // not get to start once the earlier ones have spent the time.
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("stops retrying once the shared deadline leaves no room for the wait", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(reply(503, { error: { message: "overloaded" } }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { generateStructured } = await loadMix();
+    await expect(
+      run(
+        generateStructured({
+          model: "m",
+          instruction: "i",
+          parts: [],
+          schema: {},
+          // Enough for one attempt, not enough to wait and go again.
+          deadlineAt: Date.now() + 50,
+        }),
+      ),
+    ).rejects.toThrow(/overloaded/);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it("does not spend a second generation on a reply that arrived but said nothing", async () => {
     const fetchMock = vi.fn().mockResolvedValue(reply(200, { steps: [] }));
     vi.stubGlobal("fetch", fetchMock);

@@ -77,6 +77,55 @@ async function serveStudy(
   });
 }
 
+test.describe("A reply that goes missing", () => {
+  /**
+   * The bug this covers: a generation finishes and is stored, and only the
+   * answer is lost on its way back. The platform cuts a long call off, or a
+   * phone changes network. The page used to report that nothing had been
+   * built, while the thing it said did not exist sat in Previous tests.
+   *
+   * The stub models exactly that: the build call stores the deck and then
+   * fails, so every peek after it finds what the failed call left behind.
+   */
+  test("opens the set that was stored rather than claiming it failed", async ({ page }) => {
+    await loginAs(page, "ava@meltingpot.dev");
+    const id = await potId(page);
+
+    let storedByTheFailedCall = false;
+    await page.route("**/api/ai/study", async (route) => {
+      const body = route.request().postDataJSON() as { peek?: boolean };
+      if (body?.peek) {
+        if (!storedByTheFailedCall) {
+          await route.fulfill({ status: 404, json: { error: "not_generated" } });
+          return;
+        }
+        await route.fulfill({
+          status: 200,
+          json: {
+            result: DECK,
+            cached: true,
+            generatedAt: "2026-08-20T10:00:00.000Z",
+            studySetId: "00000000-0000-0000-0000-000000000002",
+          },
+        });
+        return;
+      }
+      // The work lands; the answer does not come back.
+      storedByTheFailedCall = true;
+      await route.fulfill({ status: 502, json: { error: "generation_failed" } });
+    });
+
+    await page.goto(`/p/${id}/study/flashcards`);
+    await page.getByRole("button", { name: /Build the deck|Build a new deck/ }).first().click();
+
+    // The deck opens, and nothing accuses it of having failed.
+    await expect(page.locator('[data-face="front"]')).toContainText("What is osmosis?", {
+      timeout: 15_000,
+    });
+    await expect(page.getByText(/could not be built/i)).toHaveCount(0);
+  });
+});
+
 test.describe("Flashcards", () => {
   test("turns one card at a time and ends on a round summary", async ({ page }) => {
     await loginAs(page, "ava@meltingpot.dev");

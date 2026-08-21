@@ -95,3 +95,50 @@ fallback is for.
 
 A refusal about the request itself is never retried either. Bad credentials, a
 malformed body or a missing model do not become correct by being asked again.
+
+## Why attaching an image failed the whole contribution
+
+Reported as "uploading images for vision to analyse, the contribution always
+fails". It did, and the cause was not the vision call.
+
+Organizing a note with attachments makes several model calls: one per image,
+then one to write the note. They ran end to end, up to four images deep, with
+no shared clock, inside a function whose ceiling was the platform default of
+ten seconds because no `maxDuration` was ever set. One image was enough to run
+past it. Four was certain.
+
+Every fallback in that route is written to survive a model failure. **None of
+them run when the platform severs the invocation**, which is why the failure
+looked absolute rather than degraded: the deterministic organizer was right
+there and never got the chance.
+
+Three changes:
+
+- `maxDuration = 26` on both AI routes, the most a synchronous Netlify function
+  is given.
+- One budget for the whole request, split. Reading images may spend part of it;
+  the rest belongs to writing the note, which is the part that has to succeed.
+  `generateStructured` takes a `deadlineAt` so several calls share one clock
+  instead of each starting a fresh sixty second one.
+- The images are read all at once rather than one after another. Four
+  sequential round trips were the bulk of the time.
+
+Captions are enrichment and the note is not. If there is no time for the
+pictures, the note is organized without them and says so, which was always the
+intent of the `visionWarning` path; it simply never survived long enough to be
+sent.
+
+### What was checked and found correct
+
+The request shape. The build log records that it had never met the real API,
+so it was the obvious suspect. The Interactions API takes an inline image as
+`{ type: "image", data, mime_type }`, which is exactly what this sends, and its
+20MB request ceiling is well clear of the 7MB cap here.
+
+### What remains unverified
+
+A live vision call. The key is set on the deployment and not in this container,
+and the end-to-end suite runs with mixing unconfigured, so it takes the
+deterministic path and has never exercised vision at all. That is why this
+shipped. If captions are still empty after this, the timeout was not the only
+fault and the next step is a real call with a real key.

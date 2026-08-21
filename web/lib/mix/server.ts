@@ -29,12 +29,20 @@ type MixPart =
 export const MAX_ATTEMPTS = 4;
 
 /**
- * The whole call, retries included, may take no longer than one attempt used
- * to. These run as serverless functions with a hard ceiling, so a retry that
- * extended the budget would not buy another chance: it would just be killed
- * further from home, after the pot had already been kept waiting.
+ * The whole call, retries included.
+ *
+ * This has to be under the route's maxDuration, not near it and not over it.
+ * At 60 seconds against a 26 second function the platform always won the race,
+ * which meant the timeout here could never fire: the invocation was severed
+ * mid-flight, the browser was handed a gateway error, and the function went on
+ * to finish and save. The class saw a failure sitting next to a test that
+ * plainly existed.
+ *
+ * Under the ceiling, this code gives up first. That matters because giving up
+ * here happens before the set is stored, so a run that runs out of time leaves
+ * nothing behind and says so honestly.
  */
-const TOTAL_BUDGET_MS = 60_000;
+const TOTAL_BUDGET_MS = 22_000;
 
 /**
  * Worth another go, or worth giving up on.
@@ -81,16 +89,26 @@ export async function generateStructured<T>({
   instruction,
   parts,
   schema,
+  deadlineAt,
 }: {
   model: string;
   instruction: string;
   parts: MixPart[];
   schema: unknown;
+  /**
+   * When this call must be finished by, as an absolute time.
+   *
+   * A request that makes more than one call has to share one budget between
+   * them, or the first spends everything and the platform kills the function
+   * before the second runs. Organizing a note with images is exactly that
+   * shape: reading the pictures, then writing the note.
+   */
+  deadlineAt?: number;
 }): Promise<T> {
   const apiKey = process.env.MODEL_API_KEY;
   if (!apiKey || !model) throw new MixError("Mixing is not configured", 503);
 
-  const deadline = Date.now() + TOTAL_BUDGET_MS;
+  const deadline = deadlineAt ?? Date.now() + TOTAL_BUDGET_MS;
   let lastError: MixError = new MixError("The mixer could not be reached", 502);
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {

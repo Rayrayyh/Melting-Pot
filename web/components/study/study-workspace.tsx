@@ -225,11 +225,29 @@ export function StudyWorkspace({
     setBusy(true);
     setError(null);
     const outcome = await load({ regenerate, options });
-    setBusy(false);
     if (!outcome.loaded) {
+      // The reply is missing, which is not the same as the work being missing.
+      // A generation can finish and be stored and still lose its answer on the
+      // way back: the platform cuts a long call off, a phone changes network,
+      // a tab is backgrounded. Reporting failure without looking told people
+      // their test had not been written while it sat in Previous tests.
+      //
+      // So ask the Pot what it holds before saying anything. A peek never
+      // generates, so this costs nothing and cannot spend a second one.
+      const rescued = await load({ peek: true, options });
+      setBusy(false);
+      if (rescued.loaded) {
+        setOpened(rescued.loaded);
+        setPeeked(rescued.loaded);
+        setSettingUp(false);
+        setTab("new");
+        router.refresh();
+        return;
+      }
       setError(message(outcome.failure, outcome.detail));
       return;
     }
+    setBusy(false);
     setOpened(outcome.loaded);
     setPeeked(outcome.loaded);
     setSettingUp(false);

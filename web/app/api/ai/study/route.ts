@@ -21,6 +21,20 @@ const KINDS = new Set<StudyKind>(["summary", "flashcards", "practice"]);
 /** Generated material is never HTTP cached; the store below is the only cache. */
 const NO_STORE = { "Cache-Control": "no-store, no-cache, must-revalidate" };
 
+/**
+ * Serverless functions have a hard ceiling, and the default is ten seconds.
+ * A practice test goes to the reasoning model and routinely takes longer, so
+ * the platform was cutting the answer off on its way back to the browser while
+ * the function carried on and saved the set. That is the "it failed but the
+ * test is there" report: the work landed, the reply did not.
+ *
+ * 26 is the most a synchronous Netlify function is allowed. The mixing budget
+ * in lib/mix/server.ts sits under it deliberately, so when time runs out it is
+ * this code that gives up, with nothing saved, rather than the platform
+ * severing a call that then completes unseen.
+ */
+export const maxDuration = 26;
+
 export async function POST(request: Request) {
   const supabase = await supabaseServer();
   const { data: { user } } = await supabase.auth.getUser();
