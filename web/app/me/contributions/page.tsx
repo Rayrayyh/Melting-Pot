@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { NotePencil, Tray } from "@phosphor-icons/react/dist/ssr";
 import { UserShell } from "@/components/shell/user-shell";
+import { Avatar } from "@/components/ui/avatar";
 import { Card, CardSection } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SectionPill, StatusPill } from "@/components/ui/pills";
@@ -8,12 +9,13 @@ import { requireUser } from "@/lib/data/user";
 import { supabaseServer } from "@/lib/supabase/server";
 import { relativeTime } from "@/lib/time";
 
-export const metadata = { title: "My contributions" };
+export const metadata = { title: "Contributions" };
 
 const TABS = [
   { key: "shared", label: "Shared" },
   { key: "drafts", label: "Drafts" },
   { key: "proposals", label: "Proposals" },
+  { key: "everyone", label: "Everyone" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
@@ -50,7 +52,7 @@ export default async function MyContributionsPage({
     .eq("user_id", user.id);
   const potIds = (membershipRows ?? []).map((m) => m.pot_id);
 
-  const [sharedRows, draftRows, proposalRows] = await Promise.all([
+  const [sharedRows, draftRows, proposalRows, everyoneRows] = await Promise.all([
     supabase
       .from("contributions")
       .select(
@@ -82,12 +84,28 @@ export default async function MyContributionsPage({
       .eq("proposer_id", user.id)
       .in("pot_id", potIds)
       .order("updated_at", { ascending: false }),
+    // What the classes this person is in have actually put in. Drafts are
+    // deliberately absent: a contribution is private to its author until they
+    // share it, and row level security enforces that rather than this query.
+    supabase
+      .from("contributions")
+      .select(
+        `id, pot_id, author_id, shared_note_id, updated_at, pots(title),
+         author:profiles!contributions_author_id_fkey(display_name),
+         note:shared_notes!contributions_shared_note_fk(
+           current:note_versions!shared_notes_current_version_fk(title, summary)
+         )`,
+      )
+      .eq("status", "shared")
+      .in("pot_id", potIds)
+      .order("updated_at", { ascending: false })
+      .limit(200),
   ]);
 
   return (
     <UserShell>
       <div className="mx-auto w-full max-w-3xl px-6 py-10 space-y-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Your contributions</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Contributions</h1>
 
         <nav aria-label="Contribution tabs" className="flex gap-2">
           {TABS.map(({ key, label }) => (
@@ -210,6 +228,57 @@ export default async function MyContributionsPage({
               ))}
             </div>
           )
+        ) : null}
+
+        {tab === "everyone" ? (
+          <>
+            <p className="text-[13px] text-ink-muted">
+              What everyone in your Pots has shared. Drafts are not here and are
+              not meant to be: a contribution belongs to whoever wrote it until
+              they share it.
+            </p>
+            {(everyoneRows.data ?? []).length === 0 ? (
+              <Card>
+                <EmptyState
+                  icon={<Tray />}
+                  title="Nothing shared yet"
+                  body="As soon as anyone in your Pots shares a note, it appears here."
+                />
+              </Card>
+            ) : (
+              <div className="space-y-3">
+                {(everyoneRows.data ?? []).map((row) => (
+                  <Link
+                    key={row.id}
+                    href={
+                      row.shared_note_id
+                        ? `/p/${row.pot_id}/n/${row.shared_note_id}`
+                        : `/p/${row.pot_id}`
+                    }
+                    className="block group"
+                  >
+                    <Card className="mp-lift group-hover:border-edge-strong">
+                      <CardSection className="flex items-center gap-3 py-4">
+                        <Avatar name={row.author?.display_name ?? "Member"} size="sm" />
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <p className="text-sm font-medium text-ink truncate group-hover:text-primary transition-colors">
+                            {row.note?.current?.title ?? "Shared note"}
+                          </p>
+                          <p className="text-[12px] text-ink-faint truncate">
+                            {row.author_id === user.id
+                              ? "You"
+                              : row.author?.display_name ?? "A member"}{" "}
+                            &middot; {row.pots?.title} &middot;{" "}
+                            {relativeTime(row.updated_at)}
+                          </p>
+                        </div>
+                      </CardSection>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </>
         ) : null}
       </div>
     </UserShell>

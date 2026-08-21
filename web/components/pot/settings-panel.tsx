@@ -241,7 +241,9 @@ export function SettingsPanel({
             <CopyButton value={classCode} label="Copy code" />
           </div>
           <p className="text-[13px] text-ink-muted">
-            Anyone with the code can join this Pot.
+            {joinOpen
+              ? "Anyone with the code can join this Pot."
+              : "Joining is closed, so this code admits nobody new until it is reopened below."}
           </p>
           {isOwner ? (
             <div>

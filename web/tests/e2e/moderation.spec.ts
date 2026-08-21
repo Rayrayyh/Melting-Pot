@@ -41,9 +41,10 @@ test.describe("Maintainer moderation", () => {
     await page.goto("/search?q=checkpoints");
     await expect(page.getByText("The cell cycle and its checkpoints")).toHaveCount(0);
 
-    // Settings lists it, and puts it back.
+    // The admin page lists it, and puts it back.
     await openBiologyPot(page);
-    await page.getByRole("link", { name: "Settings", exact: true }).click();
+    await page.getByRole("link", { name: /^Admin/ }).click();
+    await page.getByRole("link", { name: /^Removed/ }).click();
     await expect(page.getByText("Removed notes")).toBeVisible();
     await expect(page.getByText("Duplicate of an earlier note.")).toBeVisible();
     await page.getByRole("button", { name: "Put it back" }).first().click();

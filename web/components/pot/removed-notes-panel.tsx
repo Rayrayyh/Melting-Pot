@@ -50,7 +50,7 @@ export function RemovedNotesPanel({
           <Eyebrow>Removed notes</Eyebrow>
           <p className="text-[13px] text-ink-muted">
             {notes.length === 0
-              ? "Nothing has been removed from this Pot."
+              ? "No notes have been removed."
               : "Out of the feed, out of search, out of study material. Nothing was deleted."}
           </p>
         </div>
