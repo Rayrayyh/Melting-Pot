@@ -29,10 +29,12 @@ export function NoteCards({
     if (busyId) return;
     setBusyId(id);
     setError(null);
-    const { error: deleteError } = await supabaseBrowser()
-      .from("note_flashcards")
-      .delete()
-      .eq("id", id);
+    // Taking a card out no longer destroys it: the row keeps its writer and
+    // can be put back from the Pot's admin page.
+    const { error: deleteError } = await supabaseBrowser().rpc("set_flashcard_removed", {
+      p_card_id: id,
+      p_removed: true,
+    });
     setBusyId(null);
     if (deleteError) {
       setError("That card could not be removed. Try again.");

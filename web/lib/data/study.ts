@@ -52,6 +52,7 @@ export async function listStudySets(
     .select("id, payload, options, created_at")
     .eq("pot_id", potId)
     .eq("kind", kind)
+    .is("removed_at", null)
     .order("created_at", { ascending: false })
     .limit(limit);
 

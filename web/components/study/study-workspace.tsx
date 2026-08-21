@@ -6,7 +6,9 @@ import {
   ArrowLeft,
   Brain,
   Cards,
+  Check,
   ClockCounterClockwise,
+  FloppyDisk,
   Sparkle,
   TrashSimple,
 } from "@phosphor-icons/react";
@@ -19,6 +21,7 @@ import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/cn";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import type { Json } from "@/lib/database.types";
 import type { StudyKind } from "@/lib/mix/contracts";
 import type { SavedStudySet } from "@/lib/data/study";
 import type { StudyCard } from "@/lib/study/flashcard-session";
@@ -47,6 +50,14 @@ type Loaded = {
   cached: boolean;
   generatedAt: string | null;
   studySetId: string | null;
+  /**
+   * What the set was built from. Carried so the browser can store a set the
+   * server failed to store: saving there is best effort on purpose, because a
+   * storage failure must not throw away a generation somebody waited for.
+   * Null for a set that was opened from the store, which is already saved.
+   */
+  fingerprint: string | null;
+  model: string | null;
 };
 
 /** How long a settings change waits before the store is asked about it. */
@@ -88,6 +99,9 @@ function message(error: string | undefined, detail: string | undefined): string 
     return "You have built several study sets recently. Wait a little and try again.";
   }
   if (error === "not_pot_member") return "You need to be in this Pot to study from it.";
+  if (error === "generation_closed") {
+    return "This Pot is set so only maintainers build new study material. Anything the class has already built still opens.";
+  }
   return detail || "This study set could not be built.";
 }
 
@@ -124,6 +138,7 @@ export function StudyWorkspace({
   const [error, setError] = useState<string | null>(null);
   const [asking, setAsking] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [options, setOptions] = useState<PracticeOptions>(DEFAULT_PRACTICE_OPTIONS);
   // A test is set up before it is written, so the settings are a screen of
   // their own that the reader can come back to.
@@ -145,7 +160,16 @@ export function StudyWorkspace({
         body: JSON.stringify({ potId, kind, ...flags, options: chosen }),
       });
       const payload = (await response.json().catch(() => null)) as
-        | { result?: StudyResult; cached?: boolean; generatedAt?: string; studySetId?: string | null; error?: string; detail?: string }
+        | {
+            result?: StudyResult;
+            cached?: boolean;
+            generatedAt?: string;
+            studySetId?: string | null;
+            fingerprint?: string | null;
+            model?: string | null;
+            error?: string;
+            detail?: string;
+          }
         | null;
       if (!response.ok || !payload?.result) {
         return { failure: payload?.error, detail: payload?.detail };
@@ -156,6 +180,8 @@ export function StudyWorkspace({
           cached: payload.cached === true,
           generatedAt: payload.generatedAt ?? null,
           studySetId: payload.studySetId ?? null,
+          fingerprint: payload.fingerprint ?? null,
+          model: payload.model ?? null,
         } satisfies Loaded,
       };
     },
@@ -222,6 +248,7 @@ export function StudyWorkspace({
       .from("study_sets")
       .select("id, payload, created_at, options")
       .eq("id", set.id)
+      .is("removed_at", null)
       .maybeSingle();
     setBusy(false);
     if (!data) {
@@ -233,12 +260,40 @@ export function StudyWorkspace({
       cached: true,
       generatedAt: data.created_at,
       studySetId: data.id,
+      fingerprint: null,
+      model: null,
     });
     // The settings move to the ones this test was written for, so the line
     // above it describes the test on screen rather than the last thing chosen.
     if (data.options) setOptions(normalizePracticeOptions(data.options));
     setSettingUp(false);
     setTab("new");
+  }
+
+  // Saving is normally done by the server the moment a set is built, and the
+  // control below says so rather than pretending to be the thing that does it.
+  // It becomes a real button in the one case that matters: the server's save
+  // is best effort, and when it fails the work is otherwise lost on the next
+  // navigation with nothing on screen admitting it.
+  async function saveSet() {
+    if (!opened || opened.studySetId || !opened.fingerprint || saving) return;
+    setSaving(true);
+    setError(null);
+    const { data, error: rpcError } = await supabaseBrowser().rpc("save_study_set", {
+      p_pot_id: potId,
+      p_kind: kind,
+      p_fingerprint: opened.fingerprint,
+      p_payload: opened.result as unknown as Json,
+      p_model: opened.model,
+      p_options: kind === "practice" ? (options as unknown as Json) : null,
+    });
+    setSaving(false);
+    if (rpcError || !data) {
+      setError("That set could not be saved to the Pot. Try again.");
+      return;
+    }
+    setOpened({ ...opened, studySetId: data });
+    router.refresh();
   }
 
   async function removeSet() {
@@ -381,6 +436,17 @@ export function StudyWorkspace({
                 <Sparkle className="size-4" />
                 {kind === "practice" ? "Change the test" : regenerating ? "Mixing" : mode.rebuild}
               </Button>
+              {opened.studySetId ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-3 h-8 text-[13px] font-medium text-success">
+                  <Check weight="bold" className="size-3.5" aria-hidden />
+                  Saved to this Pot
+                </span>
+              ) : (
+                <Button variant="secondary" size="sm" onClick={() => void saveSet()} disabled={saving}>
+                  {saving ? <Stir size={16} /> : <FloppyDisk className="size-4" />}
+                  {saving ? "Saving" : "Save to this Pot"}
+                </Button>
+              )}
               {canModerate && opened.studySetId ? (
                 <Button variant="quiet" size="sm" onClick={() => setAsking(true)}>
                   <TrashSimple className="size-4" />

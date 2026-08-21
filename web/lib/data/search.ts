@@ -165,12 +165,14 @@ export async function searchAcrossPots({
       .select("id, pot_id, kind, payload, created_at")
       .in("pot_id", scopeIds)
       .in("kind", ["summary", "flashcards"])
+      .is("removed_at", null)
       .order("created_at", { ascending: false })
       .limit(60),
     supabase
       .from("note_flashcards")
       .select("id, pot_id, note_id, front, back, tags, source_excerpt, created_by, created_at")
       .in("pot_id", scopeIds)
+      .is("removed_at", null)
       .order("created_at", { ascending: false })
       .limit(200),
     // Sections are how a Pot is organized, so their names are worth finding:

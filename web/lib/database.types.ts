@@ -34,6 +34,9 @@ export type AttachmentKind = "image" | "pdf" | "file" | "link";
 /** Not a Postgres enum: study_sets.kind is a checked text column. */
 export type StudySetKind = "summary" | "flashcards" | "practice";
 
+/** Not a Postgres enum: pots.study_generation is a checked text column. */
+export type PotStudyGeneration = "members" | "maintainers";
+
 export type Database = {
   public: {
     Tables: {
@@ -270,7 +273,9 @@ export type Database = {
           created_at: string;
           description: string | null;
           id: string;
+          join_open: boolean;
           owner_id: string;
+          study_generation: PotStudyGeneration;
           title: string;
         };
         Insert: {
@@ -279,7 +284,9 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           id?: string;
+          join_open?: boolean;
           owner_id: string;
+          study_generation?: PotStudyGeneration;
           title: string;
         };
         Update: Partial<Database["public"]["Tables"]["pots"]["Insert"]>;
@@ -521,6 +528,9 @@ export type Database = {
           options: Json | null;
           generated_by: string;
           created_at: string;
+          removed_at: string | null;
+          removed_by: string | null;
+          removed_reason: string | null;
         };
         Insert: {
           id?: string;
@@ -531,6 +541,9 @@ export type Database = {
           model?: string | null;
           options?: Json | null;
           generated_by: string;
+          removed_at?: string | null;
+          removed_by?: string | null;
+          removed_reason?: string | null;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["study_sets"]["Insert"]>;
@@ -562,6 +575,8 @@ export type Database = {
           source_excerpt: string | null;
           created_by: string;
           created_at: string;
+          removed_at: string | null;
+          removed_by: string | null;
         };
         Insert: {
           id?: string;
@@ -573,6 +588,8 @@ export type Database = {
           source_excerpt?: string | null;
           created_by: string;
           created_at?: string;
+          removed_at?: string | null;
+          removed_by?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["note_flashcards"]["Insert"]>;
         Relationships: [
@@ -678,13 +695,16 @@ export type Database = {
         };
         Returns: undefined;
       };
+      restore_study_set: { Args: { p_study_set_id: string }; Returns: undefined };
+      set_flashcard_removed: { Args: { p_card_id: string; p_removed: boolean }; Returns: undefined };
       save_study_set: {
         Args: {
           p_pot_id: string;
           p_kind: StudySetKind;
           p_fingerprint: string;
           p_payload: Json;
-          p_model: string;
+          /** text, and nullable: study_sets.model is nullable and left(null, n) is null. */
+          p_model: string | null;
           p_options?: Json | null;
         };
         Returns: string;

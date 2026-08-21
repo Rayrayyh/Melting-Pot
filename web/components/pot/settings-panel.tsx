@@ -10,8 +10,10 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { NoticeBanner } from "@/components/ui/notice-banner";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Field, Input, TextArea } from "@/components/ui/input";
+import type { PotStudyGeneration } from "@/lib/database.types";
 import type { PotContext } from "@/lib/data/pot";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { cn } from "@/lib/cn";
 
 export function SettingsPanel({
   pot,
@@ -30,8 +32,42 @@ export function SettingsPanel({
   const [dialog, setDialog] = useState<"regenerate" | "archive" | "delete" | "leave" | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // How the Pot is run, as opposed to what it is called. Kept in state so the
+  // toggle answers immediately rather than waiting on a refresh.
+  const [joinOpen, setJoinOpen] = useState(pot.joinOpen);
+  const [studyGeneration, setStudyGeneration] = useState(pot.studyGeneration);
+  const [ruleBusy, setRuleBusy] = useState(false);
 
   const supabase = supabaseBrowser();
+
+  /**
+   * Both of these are enforced in Postgres, not here: joining goes through
+   * join_pot_with_code, which refuses a closed Pot, and generating goes
+   * through the study route, which refuses a member when the Pot says
+   * maintainers only. This writes the setting; it does not police it.
+   */
+  async function saveRule(next: { joinOpen?: boolean; studyGeneration?: PotStudyGeneration }) {
+    if (ruleBusy) return;
+    setRuleBusy(true);
+    setError(null);
+    const { error: updateError } = await supabase
+      .from("pots")
+      .update({
+        ...(next.joinOpen === undefined ? {} : { join_open: next.joinOpen }),
+        ...(next.studyGeneration === undefined ? {} : { study_generation: next.studyGeneration }),
+      })
+      .eq("id", pot.id);
+    setRuleBusy(false);
+    if (updateError) {
+      setError("That setting could not be saved. Try again.");
+      // Put the control back where the Pot actually is.
+      setJoinOpen(pot.joinOpen);
+      setStudyGeneration(pot.studyGeneration);
+      return;
+    }
+    setSavedNote("Saved");
+    router.refresh();
+  }
 
   async function saveIdentity() {
     if (busy || !title.trim()) return;
@@ -214,6 +250,88 @@ export function SettingsPanel({
               </Button>
             </div>
           ) : null}
+        </CardSection>
+      </Card>
+
+      <Card>
+        <CardSection className="space-y-5">
+          <Eyebrow>How this Pot runs</Eyebrow>
+
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-ink">Joining</p>
+              <p className="text-[13px] text-ink-muted">
+                {joinOpen
+                  ? "Anyone with the code can join."
+                  : "Closed. The code still works for people already in, so invites you have sent stay valid for whenever you reopen it."}
+              </p>
+            </div>
+            <div className="flex gap-1.5 shrink-0">
+              {(
+                [
+                  [true, "Open"],
+                  [false, "Closed"],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={label}
+                  type="button"
+                  aria-pressed={joinOpen === value}
+                  disabled={ruleBusy}
+                  onClick={() => {
+                    setJoinOpen(value);
+                    void saveRule({ joinOpen: value });
+                  }}
+                  className={cn(
+                    "h-8 px-3.5 rounded-full border text-[13px] font-medium transition-colors disabled:opacity-50",
+                    joinOpen === value
+                      ? "bg-primary-soft border-primary/30 text-primary"
+                      : "bg-surface border-edge-strong text-ink-muted hover:text-ink",
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-start justify-between gap-3 border-t border-edge pt-5">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-ink">Building study material</p>
+              <p className="text-[13px] text-ink-muted">
+                {studyGeneration === "members"
+                  ? "Anyone in the Pot can build a summary, a deck, or a test."
+                  : "Only maintainers build new material. Everyone can still open anything the class has already built."}
+              </p>
+            </div>
+            <div className="flex gap-1.5 shrink-0">
+              {(
+                [
+                  ["members", "Anyone"],
+                  ["maintainers", "Maintainers"],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={studyGeneration === value}
+                  disabled={ruleBusy}
+                  onClick={() => {
+                    setStudyGeneration(value);
+                    void saveRule({ studyGeneration: value });
+                  }}
+                  className={cn(
+                    "h-8 px-3.5 rounded-full border text-[13px] font-medium transition-colors disabled:opacity-50",
+                    studyGeneration === value
+                      ? "bg-primary-soft border-primary/30 text-primary"
+                      : "bg-surface border-edge-strong text-ink-muted hover:text-ink",
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
         </CardSection>
       </Card>
 

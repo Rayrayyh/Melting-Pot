@@ -4,12 +4,12 @@ import { ThemeChoice } from "@/components/settings/theme-choice";
 import { TwoFactorPanel } from "@/components/settings/two-factor-panel";
 import { Avatar } from "@/components/ui/avatar";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
-import { ownsAnyPot, requireUser } from "@/lib/data/user";
+import { requireUser, runsAnyPot } from "@/lib/data/user";
 
 export const metadata = { title: "Settings" };
 
 export default async function AccountSettingsPage() {
-  const [user, runsAPot] = await Promise.all([requireUser(), ownsAnyPot()]);
+  const [user, runsAPot] = await Promise.all([requireUser(), runsAnyPot()]);
 
   // Read the enrolled factor here so the security panel opens in the right
   // state instead of resolving it after paint.

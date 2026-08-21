@@ -40,9 +40,16 @@ export async function POST(request: Request) {
   // Only a practice test is configurable; a summary and a deck describe the
   // whole Pot and have nothing to choose.
   const options = normalizePracticeOptions(body?.options);
-  const { data: membership } = await supabase
-    .from("memberships").select("role").eq("pot_id", potId).eq("user_id", user.id).maybeSingle();
+  const [{ data: membership }, { data: pot }] = await Promise.all([
+    supabase
+      .from("memberships").select("role").eq("pot_id", potId).eq("user_id", user.id).maybeSingle(),
+    supabase.from("pots").select("study_generation").eq("id", potId).maybeSingle(),
+  ]);
   if (!membership) return NextResponse.json({ error: "not_pot_member" }, { status: 403 });
+  const mayGenerate =
+    pot?.study_generation !== "maintainers" ||
+    membership.role === "maintainer" ||
+    membership.role === "owner";
 
   let notesQuery = supabase
     .from("shared_notes")
@@ -74,6 +81,8 @@ export async function POST(request: Request) {
       .eq("pot_id", potId)
       .eq("kind", kind)
       .eq("source_fingerprint", fingerprint)
+      // A set a maintainer took out must not come back as a cache hit.
+      .is("removed_at", null)
       .maybeSingle();
     if (stored) {
       return NextResponse.json(
@@ -90,6 +99,16 @@ export async function POST(request: Request) {
   }
   if (peek) {
     return NextResponse.json({ error: "not_generated" }, { status: 404, headers: NO_STORE });
+  }
+
+  // The Pot can say that only maintainers may spend a generation. It applies
+  // here and nowhere earlier: reading a set the class already has stays open
+  // to everyone, which is the whole point of storing them.
+  if (!mayGenerate) {
+    return NextResponse.json(
+      { error: "generation_closed" },
+      { status: 403, headers: NO_STORE },
+    );
   }
 
   // Only now, with a real generation ahead, do the key and the quota matter.
@@ -165,7 +184,17 @@ export async function POST(request: Request) {
       p_options: kind === "practice" ? (options as unknown as Json) : null,
     });
     return NextResponse.json(
-      { result, model, cached: false, generatedAt: new Date().toISOString(), studySetId: saved.data ?? null },
+      {
+        result,
+        model,
+        cached: false,
+        generatedAt: new Date().toISOString(),
+        studySetId: saved.data ?? null,
+        // Returned so the browser can save this set itself when the line
+        // above failed. Storing is best effort and must not lose the work
+        // somebody already waited for.
+        fingerprint,
+      },
       { headers: NO_STORE },
     );
   } catch (error) {

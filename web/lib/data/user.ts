@@ -49,7 +49,15 @@ export async function getUserPots(): Promise<UserPot[]> {
  * True when the caller runs a Pot. Archived Pots still count: the account
  * holds that class's work either way.
  */
-export async function ownsAnyPot(): Promise<boolean> {
+/**
+ * Whether this person is trusted with someone else's work anywhere.
+ *
+ * This gates the second factor, and it used to ask for "owner", which was the
+ * wrong question: a maintainer accepts corrections, removes notes and promotes
+ * members, so their account being taken is worth as much to an attacker as the
+ * owner's. Anyone who can act on a Pot can protect the account that does it.
+ */
+export async function runsAnyPot(): Promise<boolean> {
   const user = await getAuthUser();
   if (!user) return false;
   const supabase = await supabaseServer();
@@ -57,7 +65,7 @@ export async function ownsAnyPot(): Promise<boolean> {
     .from("memberships")
     .select("role")
     .eq("user_id", user.id)
-    .eq("role", "owner")
+    .in("role", ["owner", "maintainer"])
     .limit(1);
   return (data ?? []).length > 0;
 }

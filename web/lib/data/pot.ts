@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { getAuthUser } from "@/lib/auth/server";
 import { supabaseServer } from "@/lib/supabase/server";
-import type { Json, PotRole } from "@/lib/database.types";
+import type { Json, PotRole, PotStudyGeneration } from "@/lib/database.types";
 
 export type PotContext = {
   id: string;
@@ -14,6 +14,10 @@ export type PotContext = {
   openProposalCount: number;
   sections: Array<{ id: string; title: string }>;
   archived: boolean;
+  /** False closes the Pot to new members without changing the class code. */
+  joinOpen: boolean;
+  /** Who may spend a generation. Reading what exists is never restricted. */
+  studyGeneration: PotStudyGeneration;
 };
 
 /**
@@ -32,7 +36,7 @@ export const getPotContext = cache(async function getPotContext(
   const [{ data: pot }, { data: membership }] = await Promise.all([
     supabase
       .from("pots")
-      .select("id, title, description, class_code, archived_at")
+      .select("id, title, description, class_code, archived_at, join_open, study_generation")
       .eq("id", potId)
       .maybeSingle(),
     supabase
@@ -75,6 +79,8 @@ export const getPotContext = cache(async function getPotContext(
     openProposalCount: openProposals.data ?? 0,
     sections: sections.data ?? [],
     archived: pot.archived_at !== null,
+    joinOpen: pot.join_open,
+    studyGeneration: pot.study_generation,
   };
 });
 
@@ -275,6 +281,7 @@ export async function getNoteFlashcards(
     .select("id, front, back, tags, created_by, created_at, writer:profiles!note_flashcards_created_by_fkey (display_name)")
     .eq("pot_id", potId)
     .eq("note_id", noteId)
+    .is("removed_at", null)
     .order("created_at", { ascending: false })
     .limit(50);
   return (data ?? []).map((card) => ({
