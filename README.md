@@ -84,7 +84,7 @@ Built for the [Pixel Forge AI Hackathon](https://pixel-forge-ai-hackathon-08.dev
 
 Next.js 16 (App Router, TypeScript, Tailwind) in `web/`, on Supabase for Postgres, auth, and file storage, hosted on Netlify. Security is enforced in the database, not the client: row level security on every table, privileged transitions through security definer functions that re-validate the caller at time of use, database enforced rate limiting on every sensitive operation (sized so an entire class behind one school network can sign up together), and an API surface closed down to exactly what the app uses. Anonymous visitors can reach two functions: look up a class code and register. Shared notes and their versions can only be written through the reviewed publish paths.
 
-The build is covered by 138 unit tests and 56 Playwright end to end tests over every core flow, plus two adversarial review passes whose confirmed findings, from access control holes to a diff that could hang a browser tab, were all fixed and are documented in the build log. Both study sessions are written as reducers, so how a deck is walked and how a test is marked are unit tests rather than browser tests. A Checks workflow runs lint, types, unit tests, and a production build on every push and pull request.
+The build is covered by 186 unit tests and 53 Playwright end to end tests over every core flow, plus two adversarial review passes whose confirmed findings, from access control holes to a diff that could hang a browser tab, were all fixed and are documented in the build log. Both study sessions are written as reducers, so how a deck is walked and how a test is marked are unit tests rather than browser tests. A Checks workflow runs lint, types, unit tests, and a production build on every push and pull request.
 
 ## Running it locally
 
@@ -95,9 +95,34 @@ cp .env.example .env.local   # add Supabase values and a server-only model key
 pnpm dev
 ```
 
-Apply the migrations in `supabase/migrations/` to a Supabase project in order (0001 through 0023). For a development database with sample data, the dev seed lives in 0006, 0009, and 0010; call the `dev_reseed` function to reset it. 0013 is the production data cleanup and is only for a database going live.
+Apply every migration in `supabase/migrations/` in filename order. For a development database with sample data, the dev seed lives in 0006, 0009, and 0010; call the `dev_reseed` function to reset it. 0013 is the production data cleanup and is only for a database going live, and it drops the seed functions, so a development database should stop before it.
 
 Tests: `pnpm test:unit` (vitest) and `pnpm test:e2e` (Playwright, expects the dev seed).
+
+## Configuring the model
+
+Three server-side variables, and it is all or nothing: `mixingConfigured()` in `lib/mix/server.ts` requires the key and both model names together. Leave any one of them empty and the deterministic organizer quietly carries every flow while the study tools report that mixing is unavailable. That fallback is deliberate, so a model outage never stops a class sharing anything, but it does mean a misconfiguration looks like the AI simply not being there.
+
+```bash
+MODEL_API_KEY=        # server only, never prefixed with NEXT_PUBLIC_
+FAST_MODEL=           # organizing, reading images, summaries, decks
+REASONING_MODEL=      # practice tests
+```
+
+**Where the key goes.** Locally, `web/.env.local`. On Netlify, Site configuration then Environment variables, scoped to *every* context you expect to use and marked secret. A key set only on the `production` context means deploy previews and branch deploys fall back to the deterministic organizer with nothing on screen saying why, which is a confusing way to demo. The key is read only on the server and never reaches the browser.
+
+**Which provider.** The variable names are provider-neutral but the client is not. `lib/mix/server.ts` posts to Google's Gemini Interactions API at `generativelanguage.googleapis.com/v1beta/interactions`, sends the key as an `x-goog-api-key` header, and pins `Api-Revision: 2026-05-20`. So `MODEL_API_KEY` wants a Gemini API key from Google AI Studio. Pointing this at another provider takes an adapter, not just a different key.
+
+**Which models.** Model identifiers belong to the provider and change on its schedule, so the app never names one in source: set both to whatever your provider currently publishes.
+
+| Variable | What it drives | What it wants |
+| --- | --- | --- |
+| `FAST_MODEL` | organizing a note, reading image attachments, class summaries, flashcards | a fast, cheap model, a Flash tier. Most calls are this one |
+| `REASONING_MODEL` | writing practice tests | a stronger model. Question quality and answer keys are where the difference shows |
+
+A Flash-tier identifier such as `gemini-3.6-flash` is the shape `FAST_MODEL` expects.
+
+Every request sets `store: false`, so prompts are not kept by the provider's stored-content path. Calls are bounded by a shared deadline that sits under the platform's function ceiling, and retry on capacity errors up to four attempts.
 
 ## Repo map
 
