@@ -14,6 +14,7 @@ import {
   X,
 } from "@phosphor-icons/react";
 import { NoteBody, TakeawaysCard } from "@/components/pot/note-body";
+import { Stir } from "@/components/brand/stir";
 import { Button } from "@/components/ui/button";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -758,7 +759,13 @@ export function ContributeFlow({
           </p>
         </header>
         <Card>
-          <CardSection className="py-6">
+          <CardSection className="py-6 space-y-6">
+            {/* The mark says something is happening; the checklist says what.
+                It is decorative on purpose: the stage labels below are already
+                read out, and a second announcement would only repeat them. */}
+            <div className="flex justify-center">
+              <Stir size={96} />
+            </div>
             <StageChecklist
               stages={STAGES.map((stage, i) => ({
                 ...stage,

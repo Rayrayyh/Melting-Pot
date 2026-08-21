@@ -8,6 +8,7 @@ import { ProposalTimeline } from "@/components/correct/proposal-timeline";
 import { NoteBody, TakeawaysCard } from "@/components/pot/note-body";
 import { AttributionRow } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Stir } from "@/components/brand/stir";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { Field, TextArea } from "@/components/ui/input";
 import { StatusPill } from "@/components/ui/pills";
@@ -441,7 +442,14 @@ export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
                 </Button>
               ) : (
                 <Button onClick={() => void decide("accepted")} disabled={busy || settled}>
-                  {busy ? "Working" : "Accept changes"}
+                  {busy ? (
+                    <>
+                      <Stir size={16} tone="on-primary" />
+                      Working
+                    </>
+                  ) : (
+                    "Accept changes"
+                  )}
                 </Button>
               )}
             </div>

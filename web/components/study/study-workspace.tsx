@@ -14,6 +14,7 @@ import { FlashcardSession } from "@/components/study/flashcard-session";
 import { PracticeSession } from "@/components/study/practice-session";
 import { PracticeSetup } from "@/components/study/practice-setup";
 import { Button } from "@/components/ui/button";
+import { Stir } from "@/components/brand/stir";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/cn";
@@ -345,7 +346,14 @@ export function StudyWorkspace({
             </p>
             <Button onClick={() => void generate(false)} disabled={busy}>
               <Sparkle className="size-4" weight="fill" />
-              {busy ? "Mixing" : mode.build}
+              {busy ? (
+                <>
+                  <Stir size={16} tone="on-primary" />
+                  Mixing
+                </>
+              ) : (
+                mode.build
+              )}
             </Button>
             {error ? (
               <p role="alert" className="text-[13px] text-danger">

@@ -303,3 +303,73 @@ blockquote {
     transform: none;
   }
 }
+
+/* The stir, the loading mark. The angle steps evenly and the ellipse is the
+   projection of a circle seen from a low angle, so the paddle comes out faster
+   across the front and slower across the back on its own. Do not add easing:
+   that is the projection doing the work, and easing would fight it. Generated
+   at 36 stops; regenerate rather than hand-editing. */
+@keyframes mp-stir {
+  0% { transform: translate(82.00px, 32.00px) scale(0.880); }
+  2.7778% { transform: translate(81.51px, 33.04px) scale(0.901); }
+  5.5556% { transform: translate(80.07px, 34.05px) scale(0.921); }
+  8.3333% { transform: translate(77.71px, 35.00px) scale(0.940); }
+  11.1111% { transform: translate(74.51px, 35.86px) scale(0.957); }
+  13.8889% { transform: translate(70.57px, 36.60px) scale(0.972); }
+  16.6667% { transform: translate(66.00px, 37.20px) scale(0.984); }
+  19.4444% { transform: translate(60.94px, 37.64px) scale(0.993); }
+  22.2222% { transform: translate(55.56px, 37.91px) scale(0.998); }
+  25% { transform: translate(50.00px, 38.00px) scale(1.000); }
+  27.7778% { transform: translate(44.44px, 37.91px) scale(0.998); }
+  30.5556% { transform: translate(39.06px, 37.64px) scale(0.993); }
+  33.3333% { transform: translate(34.00px, 37.20px) scale(0.984); }
+  36.1111% { transform: translate(29.43px, 36.60px) scale(0.972); }
+  38.8889% { transform: translate(25.49px, 35.86px) scale(0.957); }
+  41.6667% { transform: translate(22.29px, 35.00px) scale(0.940); }
+  44.4444% { transform: translate(19.93px, 34.05px) scale(0.921); }
+  47.2222% { transform: translate(18.49px, 33.04px) scale(0.901); }
+  50% { transform: translate(18.00px, 32.00px) scale(0.880); }
+  52.7778% { transform: translate(18.49px, 30.96px) scale(0.859); }
+  55.5556% { transform: translate(19.93px, 29.95px) scale(0.839); }
+  58.3333% { transform: translate(22.29px, 29.00px) scale(0.820); }
+  61.1111% { transform: translate(25.49px, 28.14px) scale(0.803); }
+  63.8889% { transform: translate(29.43px, 27.40px) scale(0.788); }
+  66.6667% { transform: translate(34.00px, 26.80px) scale(0.776); }
+  69.4444% { transform: translate(39.06px, 26.36px) scale(0.767); }
+  72.2222% { transform: translate(44.44px, 26.09px) scale(0.762); }
+  75% { transform: translate(50.00px, 26.00px) scale(0.760); }
+  77.7778% { transform: translate(55.56px, 26.09px) scale(0.762); }
+  80.5556% { transform: translate(60.94px, 26.36px) scale(0.767); }
+  83.3333% { transform: translate(66.00px, 26.80px) scale(0.776); }
+  86.1111% { transform: translate(70.57px, 27.40px) scale(0.788); }
+  88.8889% { transform: translate(74.51px, 28.14px) scale(0.803); }
+  91.6667% { transform: translate(77.71px, 29.00px) scale(0.820); }
+  94.4444% { transform: translate(80.07px, 29.95px) scale(0.839); }
+  97.2222% { transform: translate(81.51px, 30.96px) scale(0.859); }
+  100% { transform: translate(82.00px, 32.00px) scale(0.880); }
+}
+
+.mp-stir-orbit {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  animation: mp-stir 1.2s linear infinite;
+}
+
+/* The still counterpart, swapped in below rather than shown by default. */
+.mp-stir-still {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Nothing travels. The rule above this file's reduced-motion block already
+     flattens every animation to nothing, which would leave the six paddles
+     stacked on one spot, so the moving group is removed outright and a still
+     surface takes its place. The word beside the mark carries the meaning. */
+  .mp-stir-motion {
+    display: none;
+  }
+
+  .mp-stir-still {
+    display: block;
+  }
+}

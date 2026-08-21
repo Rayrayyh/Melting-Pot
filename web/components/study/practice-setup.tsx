@@ -2,6 +2,7 @@
 
 import { Clock } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
+import { Stir } from "@/components/brand/stir";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/input";
 import { cn } from "@/lib/cn";
@@ -184,12 +185,26 @@ export function PracticeSetup({
               <>
                 <Button onClick={onOpenSaved}>Open the saved test</Button>
                 <Button variant="secondary" onClick={onBuild} disabled={busy}>
-                  {busy ? "Writing" : "Write a new one"}
+                  {busy ? (
+                    <>
+                      <Stir size={16} />
+                      Writing
+                    </>
+                  ) : (
+                    "Write a new one"
+                  )}
                 </Button>
               </>
             ) : (
               <Button onClick={onBuild} disabled={busy}>
-                {busy ? "Writing the test" : "Write the test"}
+                {busy ? (
+                  <>
+                    <Stir size={16} tone="on-primary" />
+                    Writing the test
+                  </>
+                ) : (
+                  "Write the test"
+                )}
               </Button>
             )}
           </div>

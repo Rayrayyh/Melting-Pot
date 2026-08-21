@@ -17,7 +17,7 @@ const potGradient = (id: string) => (
 /** The path of the lowercase m, stroked to become the knockout. */
 const MARK_M = "M82 204v-46c0-15 9-23 19-23s17 8 17 21v48M118 156c0-13 7-21 17-21s19 8 19 23v46";
 const HERO_M =
-  "M212 890v-172c0-30 22-48 52-48s52 20 52 50v170M316 720c0-30 22-50 52-50s52 20 52 50v170";
+  "M208 890v-176c0-32 24-52 56-52s56 22 56 54v174M320 716c0-32 24-54 56-54s56 22 56 54v174";
 
 /**
  * The square mark alone. Simplified for small sizes: a bold pot, one rising
@@ -82,20 +82,30 @@ export function PotMark({ className, title }: { className?: string; title?: stri
 }
 
 /**
- * The hero composition: the pot large at the bottom, a liquid ribbon rising
- * out of the mouth and splitting into two rounded prongs, and a heavy drop
- * pouring back down into it. Meant to bleed off the bottom edge of the hero.
+ * The hero composition: the pot at the bottom, a liquid ribbon rising out of
+ * the mouth into two fat lobes, and a heavy drop pouring back down into it.
+ * Meant to bleed off the bottom edge of the hero.
  *
- * The ribbon, the drop and the dot are three separate gestures with cream
- * between them. They read as one pour only because they line up: overlap any
- * two and the whole thing turns into a single orange mass.
+ * The drop crosses in front of the ribbon rather than dodging it, and what
+ * keeps the two readable is a gap rather than an outline: the ribbon is masked
+ * by a fattened copy of the drop, so the separation is a hole and reads the
+ * same on cream, on dark, and on anything else. A cream keyline would have
+ * been simpler and would have been wrong the moment the page went dark.
  */
 export function PotHeroArt({ className }: { className?: string }) {
+  // Drawn once and used twice: as the drop itself, and fattened by a stroke to
+  // cut the ribbon behind it. They have to stay identical or the gap wanders.
+  const drop = (
+    <>
+      <ellipse cx="508" cy="306" rx="104" ry="94" transform="rotate(-12 508 306)" />
+      <path d="M470 386C442 420 400 448 372 462C356 470 342 462 346 448C350 434 372 424 392 406C418 384 442 360 454 336Z" />
+      <circle cx="344" cy="506" r="18" />
+    </>
+  );
+
   return (
     // The pot's base sits at y 862, so the box runs past it: the whole pot has
     // to land above the fold when the landing first paints.
-    // Hugging the bottom right keeps the pot in place when a short viewport
-    // constrains the height and the drawing has to scale down inside its box.
     <svg
       viewBox="0 0 680 872"
       preserveAspectRatio="xMaxYMax meet"
@@ -104,81 +114,85 @@ export function PotHeroArt({ className }: { className?: string }) {
     >
       <defs>
         {/* The hero carries its own pot ramp rather than the shared one: at
-            this size the mark can hold a deeper, more saturated body without
-            the muddiness that the same stops would give a 16px favicon. */}
+            this size the body holds deeper stops that would go muddy on a
+            16px favicon. */}
         <linearGradient id="mp-hero-pot" x1="0.12" y1="0" x2="0.88" y2="1">
           <stop offset="0" stopColor="#F0982F" />
           <stop offset="0.45" stopColor="#E0761A" />
           <stop offset="1" stopColor="#BE530E" />
         </linearGradient>
         {/* Bottom to top: the ribbon cools as it rises, so it pales upward. */}
-        <linearGradient id="mp-hero-ribbon" x1="0.25" y1="1" x2="0.8" y2="0">
-          <stop offset="0" stopColor="#D96F16" />
-          <stop offset="0.32" stopColor="#EA8E2B" />
-          <stop offset="0.7" stopColor="#F5B860" />
-          <stop offset="1" stopColor="#FBDDA6" />
+        <linearGradient id="mp-hero-ribbon" x1="0.3" y1="1" x2="0.75" y2="0">
+          <stop offset="0" stopColor="#DE7A1B" />
+          <stop offset="0.35" stopColor="#EE9B33" />
+          <stop offset="0.72" stopColor="#F7C476" />
+          <stop offset="1" stopColor="#FBE0AE" />
         </linearGradient>
-        <linearGradient id="mp-hero-drop" x1="0.05" y1="1" x2="0.9" y2="0">
-          <stop offset="0" stopColor="#CF6210" />
-          <stop offset="0.55" stopColor="#E2791B" />
-          <stop offset="1" stopColor="#F5A845" />
+        <linearGradient id="mp-hero-drop" x1="0.1" y1="1" x2="0.9" y2="0">
+          <stop offset="0" stopColor="#D66A12" />
+          <stop offset="0.6" stopColor="#E8811F" />
+          <stop offset="1" stopColor="#F4A63F" />
         </linearGradient>
         <mask id="mp-hero-body">
           <rect width="680" height="872" fill="#fff" />
           <ellipse cx="340" cy="552" rx="268" ry="24" fill="#000" />
-          <path d={HERO_M} fill="none" stroke="#000" strokeWidth="56" strokeLinecap="round" />
+          <path d={HERO_M} fill="none" stroke="#000" strokeWidth="62" strokeLinecap="round" />
         </mask>
         <mask id="mp-hero-lip">
           <rect width="680" height="872" fill="#fff" />
-          <path d={HERO_M} fill="none" stroke="#000" strokeWidth="56" strokeLinecap="round" />
+          <path d={HERO_M} fill="none" stroke="#000" strokeWidth="62" strokeLinecap="round" />
+        </mask>
+        {/* The gap the drop leaves in the ribbon it crosses. */}
+        <mask id="mp-hero-cut">
+          <rect width="680" height="872" fill="#fff" />
+          <g fill="#000" stroke="#000" strokeWidth="17" strokeLinejoin="round">
+            {drop}
+          </g>
         </mask>
       </defs>
 
       <g mask="url(#mp-hero-body)">
         {/* Handles, tilted out so they read as rings rather than blobs. */}
         <ellipse
-          cx="52"
-          cy="596"
-          rx="32"
-          ry="34"
+          cx="58"
+          cy="590"
+          rx="26"
+          ry="28"
           fill="none"
           stroke="url(#mp-hero-pot)"
-          strokeWidth="21"
-          transform="rotate(-20 52 596)"
+          strokeWidth="18"
+          transform="rotate(-22 58 590)"
         />
         <ellipse
-          cx="628"
-          cy="596"
-          rx="32"
-          ry="34"
+          cx="622"
+          cy="590"
+          rx="26"
+          ry="28"
           fill="none"
           stroke="url(#mp-hero-pot)"
-          strokeWidth="21"
-          transform="rotate(20 628 596)"
+          strokeWidth="18"
+          transform="rotate(22 622 590)"
         />
         {/* Pot body. The m runs off the bottom and the belly clips it. */}
         <path
-          d="M58 552c0-9 20-16 44-20 56-9 148-13 238-13s182 4 238 13c24 4 44 11 44 20 0 118-32 204-88 254-42 38-110 56-194 56s-152-18-194-56c-56-50-88-136-88-254Z"
+          d="M62 552c0-9 20-16 44-20 56-9 146-13 234-13s178 4 234 13c24 4 44 11 44 20 0 120-32 206-88 256-42 38-108 56-190 56s-148-18-190-56c-56-50-88-136-88-256Z"
           fill="url(#mp-hero-pot)"
         />
       </g>
 
-      {/* The ribbon: out of the mouth, a slow S, then two rounded prongs. */}
+      {/* The ribbon, cut where the drop passes over it. */}
       <path
-        d="M268 566C224 526 210 472 222 428c12-42 46-68 50-110 4-44-30-68-24-108 6-42 40-64 50-98 8-30-8-64 18-84 26-20 64-6 66 28 2 30-26 48-26 74 0 26 22 42 40 28 8-6 12-34 16-62 7-40 62-42 66 2 4 38-20 66-30 94-14 38-36 68-46 110-10 42-4 80-8 122-4 46-16 104-10 142Z"
+        d="M224 552C186 500 172 420 190 350c16-62 56-100 50-160-6-60 10-120 56-148 40-24 78 2 70 50-5 30-22 38-22 60 0 24 22 36 42 20 14-11 10-52 24-82 18-40 60-32 58 14-2 42-28 74-40 110-16 48-28 86-28 136 0 70 8 150 12 202Z"
         fill="url(#mp-hero-ribbon)"
+        mask="url(#mp-hero-cut)"
       />
 
-      {/* The drop pouring back in: one head, one tail, tapering to a point. */}
-      <g fill="url(#mp-hero-drop)">
-        <ellipse cx="578" cy="232" rx="94" ry="104" transform="rotate(-22 578 232)" />
-        <path d="M556 306c-22 46-56 100-86 140-18 24-54 54-70 38-16-16 0-42 14-60 28-38 62-88 86-144Z" />
-      </g>
-      <circle cx="392" cy="522" r="15" fill="#CE5D14" />
+      {/* The drop pouring back in, over the ribbon. */}
+      <g fill="url(#mp-hero-drop)">{drop}</g>
 
       {/* Front lip clips the ribbon into the pot. */}
       <path
-        d="M60 556c58 22 146 34 280 34s222-12 280-34c-3 17-7 33-12 48-60 20-156 30-268 30s-208-10-268-30c-5-15-9-31-12-48Z"
+        d="M64 556c58 22 144 34 276 34s218-12 276-34c-3 17-7 33-12 48-58 20-152 30-264 30s-206-10-264-30c-5-15-9-31-12-48Z"
         fill="url(#mp-hero-pot)"
         mask="url(#mp-hero-lip)"
       />

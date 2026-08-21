@@ -7,6 +7,7 @@ import { ArrowLeft, Eye, ShieldCheck } from "@phosphor-icons/react";
 import { BeforeAfter, DiffText } from "@/components/correct/diff-view";
 import { NoteBody, TakeawaysCard } from "@/components/pot/note-body";
 import { Button } from "@/components/ui/button";
+import { Stir } from "@/components/brand/stir";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { Field, Input, TextArea } from "@/components/ui/input";
 import { NoticeBanner } from "@/components/ui/notice-banner";
@@ -392,7 +393,14 @@ export function CorrectFlow({
               disabled={!selected || !proposed.trim() || unchanged || busy}
               onClick={() => void continueToCompare()}
             >
-              {busy ? "Organizing" : "Continue"}
+              {busy ? (
+                <>
+                  <Stir size={16} tone="on-primary" />
+                  Organizing
+                </>
+              ) : (
+                "Continue"
+              )}
             </Button>
           </div>
         </div>

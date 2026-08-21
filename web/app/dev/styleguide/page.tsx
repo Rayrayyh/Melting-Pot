@@ -7,6 +7,7 @@ import { PotNav, UserNav } from "@/components/shell/left-nav";
 import { AttributionRow, Avatar } from "@/components/ui/avatar";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
+import { Stir } from "@/components/brand/stir";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { ClassCodeInput } from "@/components/ui/class-code-input";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -86,6 +87,28 @@ export default function StyleguidePage() {
             <Button size="sm" variant="secondary">Copy code</Button>
             <Button size="lg">Join Pot</Button>
           </div>
+        </section>
+
+        <section className="space-y-4">
+          <Eyebrow>The stir</Eyebrow>
+          <Card>
+            <CardSection className="flex flex-wrap items-center gap-8">
+              {[96, 56, 24, 14].map((size) => (
+                <div key={size} className="flex flex-col items-center gap-2">
+                  <Stir size={size} />
+                  <span className="text-[12px] text-ink-faint">{size}</span>
+                </div>
+              ))}
+              <Button disabled>
+                <Stir size={16} tone="on-primary" />
+                Mixing
+              </Button>
+              <Button variant="secondary" disabled>
+                <Stir size={16} />
+                Writing
+              </Button>
+            </CardSection>
+          </Card>
         </section>
 
         <section className="space-y-4">
