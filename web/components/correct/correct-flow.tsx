@@ -334,6 +334,7 @@ export function CorrectFlow({
                   <TextArea
                     {...props}
                     rows={3}
+                    autoGrow
                     value={proposed}
                     onChange={(e) => setProposed(e.target.value)}
                     placeholder="Pick a sentence above to edit it."
@@ -356,6 +357,7 @@ export function CorrectFlow({
                 <TextArea
                   {...props}
                   rows={2}
+                  autoGrow
                   value={explanation}
                   onChange={(e) => setExplanation(e.target.value.slice(0, 300))}
                 />

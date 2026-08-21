@@ -204,6 +204,7 @@ export function SettingsPanel({
                   <TextArea
                     {...props}
                     rows={2}
+                    autoGrow
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     maxLength={2000}
@@ -360,8 +361,12 @@ export function SettingsPanel({
       </Card>
 
       <Card className={isOwner ? "border-danger/25" : undefined}>
-        <CardSection className="space-y-3">
-          <Eyebrow>{isOwner ? "Careful actions" : "Membership"}</Eyebrow>
+        <CardSection className={cn("space-y-3", isOwner && "text-danger")}>
+          {/* cn joins rather than merges, so the override carries `!` to beat
+              the colour each component bakes into its own base classes. */}
+          <Eyebrow className={isOwner ? "text-danger!" : undefined}>
+            {isOwner ? "Danger zone" : "Membership"}
+          </Eyebrow>
           {error ? (
             <p role="alert" className="text-[13px] text-danger">
               {error}
@@ -373,13 +378,19 @@ export function SettingsPanel({
                 <Button
                   variant="secondary"
                   size="sm"
+                  className="border-danger/40 text-danger!"
                   onClick={() => void unarchive()}
                   disabled={busy}
                 >
                   Unarchive Pot
                 </Button>
               ) : (
-                <Button variant="secondary" size="sm" onClick={() => setDialog("archive")}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="border-danger/40 text-danger!"
+                  onClick={() => setDialog("archive")}
+                >
                   Archive Pot
                 </Button>
               )}

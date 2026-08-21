@@ -365,6 +365,7 @@ export function ReviewWorkspace({ proposal }: { proposal: ProposalDetail }) {
                 <TextArea
                   {...props}
                   rows={2}
+                  autoGrow
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   autoFocus

@@ -228,6 +228,10 @@ export function ContributeFlow({
           blocks: editableTextToBlocks(organized.bodyDraft),
           takeaways: takeawayLines(organized.takeawaysDraft),
           suggested_section_id: organized.suggestedSectionId,
+          // Saved with the rest or the doubts vanish the first time anything
+          // is edited, which is exactly when someone is taking care over the
+          // note and most wants to see them.
+          checks: organized.checks,
         },
         section_id: sectionChoice ?? null,
       })
@@ -458,6 +462,7 @@ export function ContributeFlow({
             blocks: result.blocks,
             takeaways: result.takeaways,
             suggested_section_id: result.suggestedSectionId,
+            checks: result.checks,
           },
           section_id: chosen,
         })
@@ -912,6 +917,7 @@ export function ContributeFlow({
                           <TextArea
                             {...props}
                             rows={2}
+                            autoGrow
                             maxLength={400}
                             value={organized.summary}
                             onChange={(e) =>
@@ -944,6 +950,7 @@ export function ContributeFlow({
                           <TextArea
                             {...props}
                             rows={2}
+                            autoGrow
                             value={organized.takeawaysDraft}
                             onChange={(e) =>
                               editOrganized({ ...organized, takeawaysDraft: e.target.value })

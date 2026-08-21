@@ -103,6 +103,7 @@ export function NoteModeration({
               <TextArea
                 {...props}
                 rows={3}
+                autoGrow
                 value={reason}
                 maxLength={400}
                 placeholder="Duplicate of an earlier note."

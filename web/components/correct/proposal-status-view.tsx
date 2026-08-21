@@ -253,6 +253,7 @@ export function ProposalStatusView({
                 <TextArea
                   {...props}
                   rows={2}
+                  autoGrow
                   value={explanation}
                   onChange={(e) => setExplanation(e.target.value.slice(0, 300))}
                 />

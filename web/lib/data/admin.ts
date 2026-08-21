@@ -68,8 +68,17 @@ export type AdminRecord = {
   removedCards: AdminRemovedCard[];
 };
 
-/** A draft has no organized title yet, so the first line of the writing stands in. */
-function contributionTitle(organized: Json | null, rawText: string): string {
+/**
+ * Best available name, in the order a reader would want it: what the class sees
+ * on the shared note now, then the title the draft was organized under, and
+ * only for an unorganized draft the first line of the raw writing.
+ */
+function contributionTitle(
+  noteTitle: string | null | undefined,
+  organized: Json | null,
+  rawText: string,
+): string {
+  if (typeof noteTitle === "string" && noteTitle.trim()) return noteTitle.trim();
   if (organized && typeof organized === "object" && !Array.isArray(organized)) {
     const title = (organized as Record<string, Json | undefined>).title;
     if (typeof title === "string" && title.trim()) return title.trim();
@@ -97,7 +106,11 @@ export async function getAdminRecord(potId: string): Promise<AdminRecord> {
     supabase
       .from("contributions")
       .select(
-        "id, status, author_id, organized, raw_text, shared_note_id, created_at, updated_at, author:profiles!contributions_author_id_fkey (display_name)",
+        `id, status, author_id, organized, raw_text, shared_note_id, created_at, updated_at,
+         author:profiles!contributions_author_id_fkey (display_name),
+         note:shared_notes!contributions_shared_note_fk (
+           current:note_versions!shared_notes_current_version_fk (title)
+         )`,
       )
       .eq("pot_id", potId)
       .order("updated_at", { ascending: false })
@@ -148,7 +161,7 @@ export async function getAdminRecord(potId: string): Promise<AdminRecord> {
       status: row.status,
       authorId: row.author_id,
       authorName: row.author?.display_name ?? "A member",
-      title: contributionTitle(row.organized, row.raw_text),
+      title: contributionTitle(row.note?.current?.title, row.organized, row.raw_text),
       sharedNoteId: row.shared_note_id,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
