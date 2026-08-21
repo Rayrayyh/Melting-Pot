@@ -14,6 +14,8 @@ import {
   X,
 } from "@phosphor-icons/react";
 import { NoteBody, TakeawaysCard } from "@/components/pot/note-body";
+import { NoteChecks } from "@/components/contribute/note-checks";
+import type { NoteCheck } from "@/lib/mix/contracts";
 import { Stir } from "@/components/brand/stir";
 import { Button } from "@/components/ui/button";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
@@ -45,6 +47,8 @@ export type StoredOrganized = {
   blocks: NoteBlock[];
   takeaways: string[];
   suggested_section_id: string | null;
+  /** Absent on drafts organized before the mixer started raising doubts. */
+  checks?: NoteCheck[];
 };
 
 export type InitialContribution = {
@@ -60,6 +64,11 @@ type EditableOrganized = {
   bodyDraft: string;
   takeawaysDraft: string;
   suggestedSectionId: string | null;
+  /**
+   * Claims the mixer doubts. Not edited here and not part of the note: they
+   * are shown so the writer can fix the writing before the class reads it.
+   */
+  checks: NoteCheck[];
 };
 
 const STAGES = [
@@ -93,6 +102,7 @@ export function ContributeFlow({
         bodyDraft: blocksToEditableText(initial.organized.blocks),
         takeawaysDraft: initial.organized.takeaways.join("\n"),
         suggestedSectionId: initial.organized.suggested_section_id,
+        checks: initial.organized.checks ?? [],
       }
     : null;
   const [step, setStep] = useState<Step>(initialOrganized ? "review" : "write");
@@ -430,6 +440,7 @@ export function ContributeFlow({
         summary: result.summary,
         bodyDraft: blocksToEditableText(result.blocks),
         takeawaysDraft: result.takeaways.join("\n"),
+        checks: result.checks ?? [],
         suggestedSectionId: result.suggestedSectionId,
       };
       setOrganized(next);
@@ -951,6 +962,7 @@ export function ContributeFlow({
                       </div>
                       <NoteBody blocks={blocks} className="text-[15px]" />
                       <TakeawaysCard takeaways={takeaways} />
+                      <NoteChecks checks={organized.checks} />
                     </div>
                   )}
                 </CardSection>

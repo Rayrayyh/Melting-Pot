@@ -32,6 +32,22 @@ const noteBlockSchema = {
   additionalProperties: false,
 } as const;
 
+/**
+ * Something in the note that looks wrong, said out loud rather than tidied
+ * away. The claim is quoted from the writing; the concern says why it is
+ * doubtful. Never a rewrite: the body stays what the person wrote, and a
+ * person decides what to do about the doubt.
+ */
+const noteCheckSchema = {
+  type: "object",
+  properties: {
+    claim: { type: "string" },
+    concern: { type: "string" },
+  },
+  required: ["claim", "concern"],
+  additionalProperties: false,
+} as const;
+
 export const organizedNoteSchema = {
   type: "object",
   properties: {
@@ -39,12 +55,15 @@ export const organizedNoteSchema = {
     summary: { type: "string" },
     blocks: { type: "array", items: noteBlockSchema },
     takeaways: { type: "array", items: { type: "string" } },
+    checks: { type: "array", items: noteCheckSchema },
     suggestedSectionId: { type: ["string", "null"] },
     sectionConfidence: { type: "number" },
   },
-  required: ["title", "summary", "blocks", "takeaways", "suggestedSectionId", "sectionConfidence"],
+  required: ["title", "summary", "blocks", "takeaways", "checks", "suggestedSectionId", "sectionConfidence"],
   additionalProperties: false,
 } as const;
+
+export type NoteCheck = { claim: string; concern: string };
 
 export const studySchemas = {
   summary: {
@@ -150,11 +169,22 @@ export function normalizeOrganizedNote(value: unknown, validSectionIds: Set<stri
   const suggested = typeof item.suggestedSectionId === "string" && validSectionIds.has(item.suggestedSectionId)
     ? item.suggestedSectionId
     : null;
+  const checks: NoteCheck[] = [];
+  for (const candidate of Array.isArray(item.checks) ? item.checks.slice(0, 6) : []) {
+    if (!candidate || typeof candidate !== "object") continue;
+    const row = candidate as Record<string, unknown>;
+    const claim = text(row.claim, 300);
+    const concern = text(row.concern, 400);
+    // Both halves or neither: a doubt with no reason is just a shrug, and a
+    // reason with nothing attached cannot be checked against the note.
+    if (claim && concern) checks.push({ claim, concern });
+  }
   return {
     title: text(item.title, 160) || "Untitled note",
     summary: text(item.summary, 500),
     blocks,
     takeaways: textList(item.takeaways, 8, 400),
+    checks,
     suggestedSectionId: suggested,
     sectionConfidence: Math.min(1, Math.max(0, Number(item.sectionConfidence) || 0)),
   };

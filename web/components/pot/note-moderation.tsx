@@ -84,7 +84,8 @@ export function NoteModeration({
         title="Remove this note from the Pot?"
         confirmLabel={busy ? "Removing" : "Remove"}
         tone="danger"
-        busy={busy || trimmed.length === 0}
+        busy={busy}
+        confirmDisabled={trimmed.length === 0}
         onConfirm={() => void submit(true, trimmed)}
         onCancel={() => {
           setAsking(false);

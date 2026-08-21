@@ -24,6 +24,16 @@ test.describe("Maintainer moderation", () => {
     ).toBeVisible();
 
     await page.getByRole("button", { name: "Remove from the Pot" }).click();
+
+    // The dialog asks for a reason before it will remove anything, and that
+    // used to switch off the way out as well: one flag drove both buttons, so
+    // an empty box left Cancel dead. Leaving is never the thing to block.
+    await expect(page.getByRole("button", { name: "Remove", exact: true })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Cancel" })).toBeEnabled();
+    await page.getByRole("button", { name: "Cancel" }).click();
+    await expect(page.getByRole("button", { name: "Remove", exact: true })).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Remove from the Pot" }).click();
     await page.getByLabel("Why").fill("Duplicate of an earlier note.");
     await page.getByRole("button", { name: "Remove", exact: true }).click();
 
