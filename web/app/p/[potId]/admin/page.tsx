@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ListChecks, ClockCounterClockwise, Notebook, TrashSimple } from "@phosphor-icons/react/dist/ssr";
+import { Brain, ListChecks, ClockCounterClockwise, Notebook, TrashSimple } from "@phosphor-icons/react/dist/ssr";
 import { AdminRestore } from "@/components/pot/admin-restore";
 import { RemovedNotesPanel } from "@/components/pot/removed-notes-panel";
 import { PotShell } from "@/components/shell/pot-shell";
@@ -18,6 +18,7 @@ const TABS = [
   { key: "review", label: "Review" },
   { key: "contributions", label: "Contributions" },
   { key: "history", label: "History" },
+  { key: "study", label: "Study" },
   { key: "removed", label: "Removed" },
 ] as const;
 type Tab = (typeof TABS)[number]["key"];
@@ -82,7 +83,7 @@ export default async function AdminPage({
   const who = Array.isArray(query.who) ? query.who[0] : query.who;
 
   const supabase = await supabaseServer();
-  const [{ data: proposals }, record] = await Promise.all([
+  const [{ data: proposals }, record, { data: studyOverview }] = await Promise.all([
     supabase
       .from("revision_proposals")
       .select(
@@ -96,6 +97,7 @@ export default async function AdminPage({
       // Queue order, not history order: the longest wait is the one to clear next.
       .order("created_at", { ascending: true }),
     getAdminRecord(potId),
+    supabase.rpc("admin_study_overview", { p_pot_id: potId }),
   ]);
 
   return (
@@ -127,6 +129,22 @@ export default async function AdminPage({
         );
         const removedCount =
           record.removedNotes.length + record.removedSets.length + record.removedCards.length;
+
+        const studyRows = (Array.isArray(studyOverview) ? studyOverview : []) as Array<{
+          userId: string;
+          name: string;
+          tests: {
+            attempts: number;
+            firstPass: number;
+            latestFirstPass: { correct: number; total: number; at: string } | null;
+          };
+          flashcards: {
+            runs: number;
+            latest: { known: number; learning: number; at: string } | null;
+          };
+          lastPracticed: string | null;
+        }>;
+        const practicing = studyRows.filter((row) => row.lastPracticed).length;
 
         const href = (next: { tab?: Tab; sort?: string; who?: string | null }) => {
           const p = new URLSearchParams();
@@ -163,6 +181,8 @@ export default async function AdminPage({
                         ? record.contributions.length
                         : key === "history"
                         ? record.edits.length
+                        : key === "study"
+                        ? practicing
                         : removedCount}
                     </span>
                   </SectionPill>
@@ -312,6 +332,82 @@ export default async function AdminPage({
                         {edit.changeSummary ? (
                           <p className="text-[13px] text-ink-muted">{edit.changeSummary}</p>
                         ) : null}
+                      </CardSection>
+                    </Card>
+                  ))
+                )}
+              </section>
+            ) : null}
+
+            {tab === "study" ? (
+              <section className="space-y-3">
+                <div className="space-y-0.5">
+                  <p className="text-[13px] font-medium text-ink-muted">Study record</p>
+                  <p className="text-[12px] text-ink-faint">
+                    Practice, not grades. Tests count first passes only, retries
+                    show as coming back, and a couple of results is too few to
+                    read anything into. Members are told this page can see their
+                    results. Alphabetical, because a class is not a ranking.
+                  </p>
+                </div>
+                {practicing === 0 ? (
+                  <Card>
+                    <EmptyState
+                      icon={<Brain />}
+                      title="Nobody has practiced yet"
+                      body="When someone hands in a practice test or finishes a flashcard round, it shows up here."
+                    />
+                  </Card>
+                ) : (
+                  studyRows.map((row) => (
+                    <Card key={row.userId}>
+                      <CardSection className="flex flex-wrap items-center justify-between gap-3 py-4">
+                        <div className="flex min-w-0 items-center gap-3">
+                          <Avatar name={row.name} size="sm" />
+                          <div className="min-w-0 space-y-0.5">
+                            <p className="truncate text-sm font-medium text-ink">{row.name}</p>
+                            <p className="text-[12px] text-ink-faint">
+                              {row.lastPracticed
+                                ? `Last practiced ${relativeTime(row.lastPracticed)}`
+                                : "Has not practiced yet"}
+                            </p>
+                          </div>
+                        </div>
+                        <dl className="flex shrink-0 flex-wrap gap-x-6 gap-y-1 text-[13px]">
+                          <div>
+                            <dt className="text-[11px] uppercase tracking-wide text-ink-faint">Tests</dt>
+                            <dd className="tabular-nums text-ink">
+                              {row.tests.firstPass < 2 ? (
+                                row.tests.attempts === 0 ? (
+                                  <span className="text-ink-faint">None yet</span>
+                                ) : (
+                                  <span className="text-ink-muted">Too few to read into</span>
+                                )
+                              ) : row.tests.latestFirstPass ? (
+                                `${row.tests.latestFirstPass.correct} of ${row.tests.latestFirstPass.total} latest first pass`
+                              ) : (
+                                `${row.tests.firstPass} first passes`
+                              )}
+                              {row.tests.attempts > row.tests.firstPass
+                                ? ` · ${row.tests.attempts - row.tests.firstPass} ${
+                                    row.tests.attempts - row.tests.firstPass === 1 ? "retry" : "retries"
+                                  }`
+                                : ""}
+                            </dd>
+                          </div>
+                          <div>
+                            <dt className="text-[11px] uppercase tracking-wide text-ink-faint">Flashcards</dt>
+                            <dd className="tabular-nums text-ink">
+                              {row.flashcards.runs === 0 ? (
+                                <span className="text-ink-faint">None yet</span>
+                              ) : row.flashcards.latest ? (
+                                `${row.flashcards.runs} ${row.flashcards.runs === 1 ? "round" : "rounds"} · latest ${row.flashcards.latest.known} known, ${row.flashcards.latest.learning} still learning`
+                              ) : (
+                                `${row.flashcards.runs} rounds`
+                              )}
+                            </dd>
+                          </div>
+                        </dl>
                       </CardSection>
                     </Card>
                   ))

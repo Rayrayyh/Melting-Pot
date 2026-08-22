@@ -7,6 +7,8 @@ import {
   type PracticeAction,
   type PracticeQuestion,
   type PracticeSession,
+  markLocally,
+  scoreFromMarking,
 } from "./practice-session";
 
 const questions: PracticeQuestion[] = [
@@ -188,5 +190,56 @@ describe("estimatedMinutes", () => {
   it("never says less than a minute", () => {
     expect(estimatedMinutes(1)).toBe(1);
     expect(estimatedMinutes(0)).toBe(1);
+  });
+});
+
+describe("markLocally", () => {
+  const questions = [
+    { prompt: "1+1", choices: ["1", "2", "3", "4"], answerIndex: 1, explanation: "Two.", sourceNoteTitle: "Math" },
+    { prompt: "2+2", choices: ["2", "3", "4", "5"], answerIndex: 2, explanation: "Four.", sourceNoteTitle: "Math" },
+  ];
+
+  it("marks answers against the keys the payload carries", () => {
+    const marking = markLocally(questions, [0, 1], { 0: 1, 1: 0 });
+    expect(marking.correct).toBe(1);
+    expect(marking.total).toBe(2);
+    expect(marking.marks[0]).toEqual({ choice: 1, correct: true, answerIndex: 1, explanation: "Two." });
+    expect(marking.marks[1].correct).toBe(false);
+  });
+
+  it("treats a blank as missed, never as correct", () => {
+    const marking = markLocally(questions, [0, 1], { 0: 1 });
+    expect(marking.correct).toBe(1);
+    expect(marking.marks[1]).toEqual({ choice: null, correct: false, answerIndex: 2, explanation: "Four." });
+  });
+
+  it("is never a first pass: local marking is unrecorded practice", () => {
+    expect(markLocally(questions, [0], {}).firstPass).toBe(false);
+  });
+});
+
+describe("scoreFromMarking", () => {
+  it("derives the results screen from the marking alone", () => {
+    const score = scoreFromMarking([0, 1, 2], {
+      firstPass: true,
+      correct: 1,
+      total: 3,
+      marks: {
+        0: { choice: 1, correct: true, answerIndex: 1, explanation: null },
+        1: { choice: 0, correct: false, answerIndex: 2, explanation: null },
+        2: { choice: null, correct: false, answerIndex: 0, explanation: null },
+      },
+    });
+    expect(score).toMatchObject({ total: 3, answered: 2, unanswered: 1, correct: 1, incorrect: 1 });
+    expect(score.missed).toEqual([1, 2]);
+    expect(score.percentage).toBe(33);
+  });
+
+  it("questions without a stored mark stay missed rather than invented", () => {
+    const score = scoreFromMarking([0, 1], { firstPass: false, correct: 1, total: 2, marks: {
+      0: { choice: 1, correct: true, answerIndex: 1, explanation: null },
+    } });
+    expect(score.answered).toBe(1);
+    expect(score.correct).toBe(1);
   });
 });

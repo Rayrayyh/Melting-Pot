@@ -8,10 +8,82 @@
 export type PracticeQuestion = {
   prompt: string;
   choices: string[];
-  answerIndex: number;
-  explanation: string;
+  /**
+   * Absent on a secured test: the answer lives on the server and arrives only
+   * with the marking. Present on sets built before the answer-key boundary,
+   * which stay client-marked practice.
+   */
+  answerIndex?: number;
+  explanation?: string;
   sourceNoteTitle: string;
 };
+
+/** One question's verdict, as it comes back from whichever marker ran. */
+export type PracticeMark = {
+  choice: number | null;
+  correct: boolean;
+  answerIndex: number | null;
+  explanation: string | null;
+};
+
+/** A handed-in test, marked. The same shape whether the server or the page did it. */
+export type PracticeMarking = {
+  firstPass: boolean;
+  correct: number;
+  total: number;
+  marks: Record<number, PracticeMark>;
+};
+
+/**
+ * Marks a legacy test whose answers travel with it. Secured tests are marked
+ * by submit_practice_test instead, and nothing here ever sees their keys.
+ */
+export function markLocally(
+  questions: PracticeQuestion[],
+  order: number[],
+  answers: Record<number, number>,
+): PracticeMarking {
+  const marks: Record<number, PracticeMark> = {};
+  let correct = 0;
+  for (const index of order) {
+    const question = questions[index];
+    if (!question) continue;
+    const choice = answers[index] ?? null;
+    const right = choice !== null && choice === question.answerIndex;
+    if (right) correct += 1;
+    marks[index] = {
+      choice,
+      correct: right,
+      answerIndex: question.answerIndex ?? null,
+      explanation: question.explanation ?? null,
+    };
+  }
+  return { firstPass: false, correct, total: order.length, marks };
+}
+
+/** The results screen's numbers, derived from a marking rather than the keys. */
+export function scoreFromMarking(order: number[], marking: PracticeMarking): PracticeScore {
+  let answered = 0;
+  let correct = 0;
+  const missed: number[] = [];
+  for (const index of order) {
+    const mark = marking.marks[index];
+    if (!mark) continue;
+    if (mark.choice !== null) answered += 1;
+    if (mark.correct) correct += 1;
+    else missed.push(index);
+  }
+  const total = order.length;
+  return {
+    total,
+    answered,
+    unanswered: total - answered,
+    correct,
+    incorrect: answered - correct,
+    percentage: total === 0 ? 0 : Math.round((correct / total) * 100),
+    missed,
+  };
+}
 
 export type PracticePhase = "start" | "taking" | "review" | "results";
 
@@ -125,7 +197,7 @@ export function scorePractice(
       continue;
     }
     answered += 1;
-    if (choice === question.answerIndex) correct += 1;
+    if (question.answerIndex !== undefined && choice === question.answerIndex) correct += 1;
     else missed.push(index);
   }
   const total = state.order.length;

@@ -280,3 +280,75 @@ test.describe("Practice test", () => {
     await expect(page.getByText("Question 1 of 1")).toBeVisible();
   });
 });
+
+test.describe("secured practice tests", () => {
+  test("the server's marking is what the results show", async ({ page }) => {
+    await loginAs(page, "ava@meltingpot.dev");
+    const id = await potId(page);
+    // A secured set: the payload carries no answers, only questions.
+    const secured = {
+      title: TEST.title,
+      questions: TEST.questions.map(({ prompt, choices, sourceNoteTitle }) => ({
+        prompt,
+        choices,
+        sourceNoteTitle,
+      })),
+    };
+    await page.route("**/api/ai/study", async (route) => {
+      const body = route.request().postDataJSON() as { kind?: string };
+      if (body.kind !== "practice") return route.fallback();
+      await route.fulfill({
+        json: {
+          result: secured,
+          cached: true,
+          generatedAt: new Date().toISOString(),
+          studySetId: "00000000-0000-4000-8000-000000000042",
+          fingerprint: null,
+          model: "stub",
+          secured: true,
+        },
+      });
+    });
+
+    // The marking RPC is answered here, and deliberately disagrees with what
+    // a client would say: the server calls the first answer wrong. What the
+    // screen shows must be the server's verdict, because the page has no keys
+    // of its own to argue with.
+    let submitted: { order?: number[]; choices?: Record<string, number> } | null = null;
+    await page.route("**/rest/v1/rpc/submit_practice_test", async (route) => {
+      const body = route.request().postDataJSON() as { p_answers?: typeof submitted };
+      submitted = body.p_answers ?? null;
+      await route.fulfill({
+        json: {
+          firstPass: true,
+          correct: 1,
+          total: 2,
+          replayed: false,
+          marks: [
+            { index: 0, choice: 1, correct: false, answerIndex: 3, explanation: "The server says four." },
+            { index: 1, choice: 1, correct: true, answerIndex: 1, explanation: "Water follows solute." },
+          ],
+        },
+      });
+    });
+
+    await page.goto(`/p/${id}/study/practice`);
+    await page.getByRole("button", { name: "Open the saved test" }).click();
+    await expect(
+      page.getByText("Handed-in results are saved to this Pot", { exact: false }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Start the test" }).click();
+    await page.getByText("Two", { exact: true }).click();
+    await page.getByRole("button", { name: "Next", exact: true }).click();
+    await page.getByText("Toward higher solute", { exact: true }).click();
+    await page.getByRole("button", { name: "Review answers" }).click();
+    await page.getByRole("button", { name: "Hand it in" }).click();
+
+    // The score is the server's, not one the page computed.
+    await expect(page.getByText("50%")).toBeVisible();
+    await expect(page.getByText("The server says four.")).toBeVisible();
+    await expect(page.getByText("Recorded as your first pass on this test.")).toBeVisible();
+    // And the submission carried answers, never a score or a correct flag.
+    expect(submitted).toEqual({ order: [0, 1], choices: { "0": 1, "1": 1 } });
+  });
+});

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import {
   ArrowClockwise,
   ArrowLeft,
@@ -86,10 +86,13 @@ export function FlashcardSession({
   cards,
   onRegenerate,
   regenerating,
+  onFinished,
 }: {
   cards: StudyCard[];
   onRegenerate: () => void;
   regenerating: boolean;
+  /** Called once when a round ends, with how the cards were sorted. */
+  onFinished?: (known: number, learning: number) => void;
 }) {
   const [tag, setTag] = useState<string | null>(null);
   const [session, dispatch] = useReducer(
@@ -101,6 +104,16 @@ export function FlashcardSession({
 
   const tags = deckTags(cards);
   const progress = flashcardProgress(session);
+  const recordedRound = useRef(false);
+  useEffect(() => {
+    if (!session.finished) {
+      recordedRound.current = false;
+      return;
+    }
+    if (recordedRound.current) return;
+    recordedRound.current = true;
+    onFinished?.(progress.known, progress.learning);
+  }, [session.finished, progress.known, progress.learning, onFinished]);
   const current = cards[session.order[session.position]];
 
   useEffect(() => {

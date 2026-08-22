@@ -26,7 +26,12 @@ import type { Json } from "@/lib/database.types";
 import type { StudyKind } from "@/lib/mix/contracts";
 import type { SavedStudySet } from "@/lib/data/study";
 import type { StudyCard } from "@/lib/study/flashcard-session";
-import type { PracticeQuestion } from "@/lib/study/practice-session";
+import {
+  markLocally,
+  type PracticeMark,
+  type PracticeMarking,
+  type PracticeQuestion,
+} from "@/lib/study/practice-session";
 import {
   DEFAULT_PRACTICE_OPTIONS,
   describeOptions,
@@ -59,6 +64,12 @@ type Loaded = {
    */
   fingerprint: string | null;
   model: string | null;
+  /**
+   * True when this set's answers live on the server, so handing it in records
+   * a marked attempt. Sets from before the boundary carry their answers in the
+   * payload and stay client-marked practice.
+   */
+  secured: boolean;
 };
 
 /** How long a settings change waits before the store is asked about it. */
@@ -181,6 +192,7 @@ export function StudyWorkspace({
             studySetId?: string | null;
             fingerprint?: string | null;
             model?: string | null;
+            secured?: boolean;
             error?: string;
             detail?: string;
           }
@@ -196,6 +208,7 @@ export function StudyWorkspace({
           studySetId: payload.studySetId ?? null,
           fingerprint: payload.fingerprint ?? null,
           model: payload.model ?? null,
+          secured: payload.secured === true,
         } satisfies Loaded,
       };
     },
@@ -289,7 +302,7 @@ export function StudyWorkspace({
     setError(null);
     const { data } = await supabaseBrowser()
       .from("study_sets")
-      .select("id, payload, created_at, options")
+      .select("id, payload, created_at, options, secured")
       .eq("id", set.id)
       .is("removed_at", null)
       .maybeSingle();
@@ -305,6 +318,7 @@ export function StudyWorkspace({
       studySetId: data.id,
       fingerprint: null,
       model: null,
+      secured: data.secured === true,
     });
     // The settings move to the ones this test was written for, so the line
     // above it describes the test on screen rather than the last thing chosen.
@@ -356,6 +370,64 @@ export function StudyWorkspace({
     if (kind === "practice") setSettingUp(true);
     router.refresh();
   }
+
+  const markTest = useCallback(
+    async (order: number[], answers: Record<number, number>): Promise<PracticeMarking> => {
+      const questions = (opened?.result as PracticeResult | undefined)?.questions ?? [];
+      if (!opened?.secured || !opened.studySetId) {
+        return markLocally(questions, order, answers);
+      }
+      const { data, error: rpcError } = await supabaseBrowser().rpc("submit_practice_test", {
+        p_attempt_id: crypto.randomUUID(),
+        p_set_id: opened.studySetId,
+        p_answers: { order, choices: answers } as unknown as Json,
+      });
+      if (rpcError || !data) throw new Error("submit_failed");
+      const returned = data as {
+        firstPass?: boolean;
+        correct?: number;
+        total?: number;
+        marks?: Array<{
+          index: number;
+          choice: number | null;
+          correct: boolean;
+          answerIndex: number | null;
+          explanation: string | null;
+        }>;
+      };
+      const marks: Record<number, PracticeMark> = {};
+      for (const mark of returned.marks ?? []) {
+        marks[mark.index] = {
+          choice: mark.choice,
+          correct: mark.correct === true,
+          answerIndex: mark.answerIndex,
+          explanation: mark.explanation,
+        };
+      }
+      return {
+        firstPass: returned.firstPass === true,
+        correct: returned.correct ?? 0,
+        total: returned.total ?? order.length,
+        marks,
+      };
+    },
+    [opened],
+  );
+
+  const recordRun = useCallback(
+    (known: number, learning: number) => {
+      if (!opened?.studySetId) return;
+      // Best effort on purpose: the round is over and the summary is on
+      // screen; a dropped record must not take either away.
+      void supabaseBrowser().rpc("record_flashcard_run", {
+        p_attempt_id: crypto.randomUUID(),
+        p_set_id: opened.studySetId,
+        p_known: known,
+        p_learning: learning,
+      });
+    },
+    [opened],
+  );
 
   const regenerating = busy && opened !== null;
   const showTabs = kind === "practice" && savedSets.length > 0;
@@ -469,6 +541,13 @@ export function StudyWorkspace({
                 ? `Built ${relativeTime(opened.generatedAt)} from the notes as they were then. Everyone in the Pot sees this one.`
                 : "Built just now from the notes as they are now."}
               {kind === "practice" ? ` ${describeOptions(options, sectionTitles)}.` : ""}
+              {kind === "practice" && opened.secured && opened.studySetId
+                ? " Handed-in results are saved to this Pot, where you and this Pot's maintainers can see them."
+                : kind === "practice"
+                  ? " This test carries its own answers, so it stays practice and nothing is recorded."
+                  : kind === "flashcards" && opened.studySetId
+                    ? " Finished rounds are saved to this Pot, where you and this Pot's maintainers can see them."
+                    : ""}
             </p>
             <div className="flex items-center gap-1.5">
               <Button
@@ -514,6 +593,7 @@ export function StudyWorkspace({
               cards={(opened.result as FlashcardResult).cards}
               onRegenerate={() => void generate(true)}
               regenerating={busy}
+              onFinished={recordRun}
             />
           ) : null}
           {kind === "practice" ? (
@@ -523,6 +603,8 @@ export function StudyWorkspace({
               questions={(opened.result as PracticeResult).questions}
               onRegenerate={() => setSettingUp(true)}
               regenerating={busy}
+              mark={markTest}
+              recorded={opened.secured && Boolean(opened.studySetId)}
             />
           ) : null}
         </div>

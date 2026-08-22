@@ -91,7 +91,7 @@ export async function POST(request: Request) {
   if (!force) {
     const { data: stored } = await supabase
       .from("study_sets")
-      .select("id, payload, model, created_at")
+      .select("id, payload, model, created_at, secured")
       .eq("pot_id", potId)
       .eq("kind", kind)
       .eq("source_fingerprint", fingerprint)
@@ -106,6 +106,7 @@ export async function POST(request: Request) {
           cached: true,
           generatedAt: stored.created_at,
           studySetId: stored.id,
+          secured: stored.secured === true,
         },
         { headers: NO_STORE },
       );
@@ -187,27 +188,66 @@ export async function POST(request: Request) {
       schema: studySchemas[kind],
     });
     const result = normalizeStudyResult(kind, generated, options.questionCount);
-    // Storing is best effort: a failure here must not lose work the person
-    // already waited for.
+
+    // A practice test is split before anything leaves this function. The
+    // member payload keeps questions and choices; the answers and their
+    // explanations go to study_set_keys, which no member can read, so the
+    // browser cannot know the key before the test is handed in.
+    let memberPayload = result;
+    let keys: Json | null = null;
+    if (kind === "practice") {
+      const full = result as {
+        title: string;
+        questions: Array<{
+          prompt: string;
+          choices: string[];
+          answerIndex: number;
+          explanation: string;
+          sourceNoteTitle: string;
+        }>;
+      };
+      keys = full.questions.map((question) => ({
+        answerIndex: question.answerIndex,
+        explanation: question.explanation,
+      })) as unknown as Json;
+      memberPayload = {
+        title: full.title,
+        questions: full.questions.map((question) => ({
+          prompt: question.prompt,
+          choices: question.choices,
+          sourceNoteTitle: question.sourceNoteTitle,
+        })),
+      };
+    }
+
+    // Storing is best effort for a summary or a deck: a failure must not lose
+    // work the person already waited for, and the browser can save those
+    // itself. A practice test is different: its keys can only be stored here,
+    // so when the save fails it degrades to what it would have been before the
+    // boundary existed, a client-marked practice test whose answers travel
+    // with it and whose results are not recorded.
     const saved = await supabase.rpc("save_study_set", {
       p_pot_id: potId,
       p_kind: kind,
       p_fingerprint: fingerprint,
-      p_payload: result as Json,
+      p_payload: (kind === "practice" ? memberPayload : result) as Json,
       p_model: model,
       p_options: kind === "practice" ? (options as unknown as Json) : null,
+      p_keys: keys,
     });
+    const stored = Boolean(saved.data);
     return NextResponse.json(
       {
-        result,
+        result: kind === "practice" && stored ? memberPayload : result,
         model,
         cached: false,
         generatedAt: new Date().toISOString(),
         studySetId: saved.data ?? null,
-        // Returned so the browser can save this set itself when the line
-        // above failed. Storing is best effort and must not lose the work
-        // somebody already waited for.
-        fingerprint,
+        secured: kind === "practice" && stored,
+        // Returned so the browser can save this set itself when the server
+        // save failed. For a practice test that fallback stores the full
+        // payload unsecured, which is exactly what the degraded set is.
+        fingerprint: stored ? null : fingerprint,
       },
       { headers: NO_STORE },
     );

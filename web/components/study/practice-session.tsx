@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducer } from "react";
+import { useReducer, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -17,8 +17,10 @@ import { cn } from "@/lib/cn";
 import {
   estimatedMinutes,
   practiceReducer,
+  scoreFromMarking,
   scorePractice,
   startPractice,
+  type PracticeMarking,
   type PracticeQuestion,
 } from "@/lib/study/practice-session";
 
@@ -54,18 +56,48 @@ export function PracticeSession({
   questions,
   onRegenerate,
   regenerating,
+  mark,
+  recorded,
 }: {
   title: string;
   questions: PracticeQuestion[];
   /** Back to the setup, where the length, difficulty, and focus are chosen. */
   onRegenerate: () => void;
   regenerating: boolean;
+  /**
+   * Marks a handed-in test. On a secured set this submits to the server, which
+   * holds the answers and writes the attempt down; on a legacy set the page
+   * marks itself and nothing is recorded.
+   */
+  mark: (order: number[], answers: Record<number, number>) => Promise<PracticeMarking>;
+  /** Whether handing this test in leaves a record on the Pot. */
+  recorded: boolean;
 }) {
   const [session, dispatch] = useReducer(
     practiceReducer,
     questions.map((_, index) => index),
     startPractice,
   );
+  const [marking, setMarking] = useState<PracticeMarking | null>(null);
+  const [handingIn, setHandingIn] = useState(false);
+  const [handInError, setHandInError] = useState<string | null>(null);
+
+  async function handIn() {
+    if (handingIn) return;
+    setHandingIn(true);
+    setHandInError(null);
+    // The finally matters: mark() reaches the network on a secured set, and a
+    // dropped connection must land back on the review screen, not a dead one.
+    try {
+      const marked = await mark(session.order, session.answers);
+      setMarking(marked);
+      dispatch({ type: "submit" });
+    } catch {
+      setHandInError("This test could not be handed in. Check your connection and try again; your answers are still here.");
+    } finally {
+      setHandingIn(false);
+    }
+  }
 
   const score = scorePractice(questions, session);
   const questionIndex = session.order[session.position];
@@ -109,17 +141,23 @@ export function PracticeSession({
     );
   }
 
-  if (session.phase === "results") {
+  if (session.phase === "results" && marking) {
+    const marked = scoreFromMarking(session.order, marking);
     return (
       <PracticeResults
         questions={questions}
         order={session.order}
-        answers={session.answers}
-        score={score}
-        onRetryIncorrect={() => dispatch({ type: "retryIncorrect", incorrect: score.missed })}
-        onRestart={() =>
-          dispatch({ type: "restart", order: questions.map((_, index) => index) })
-        }
+        marking={marking}
+        score={marked}
+        recorded={recorded}
+        onRetryIncorrect={() => {
+          setMarking(null);
+          dispatch({ type: "retryIncorrect", incorrect: marked.missed });
+        }}
+        onRestart={() => {
+          setMarking(null);
+          dispatch({ type: "restart", order: questions.map((_, index) => index) });
+        }}
         onRegenerate={onRegenerate}
         regenerating={regenerating}
       />
@@ -179,14 +217,22 @@ export function PracticeSession({
                 );
               })}
             </ol>
+            {handInError ? (
+              <p role="alert" className="text-[13px] text-danger">
+                {handInError}
+              </p>
+            ) : null}
             <div className="flex flex-wrap justify-end gap-2.5">
               <Button
                 variant="secondary"
                 onClick={() => dispatch({ type: "backToQuestions" })}
+                disabled={handingIn}
               >
                 Keep answering
               </Button>
-              <Button onClick={() => dispatch({ type: "submit" })}>Hand it in</Button>
+              <Button onClick={() => void handIn()} disabled={handingIn}>
+                {handingIn ? "Marking" : "Hand it in"}
+              </Button>
             </div>
           </CardSection>
         </Card>
@@ -324,8 +370,9 @@ export function PracticeSession({
 function PracticeResults({
   questions,
   order,
-  answers,
+  marking,
   score,
+  recorded,
   onRetryIncorrect,
   onRestart,
   onRegenerate,
@@ -333,8 +380,9 @@ function PracticeResults({
 }: {
   questions: PracticeQuestion[];
   order: number[];
-  answers: Record<number, number>;
+  marking: PracticeMarking;
   score: ReturnType<typeof scorePractice>;
+  recorded: boolean;
   onRetryIncorrect: () => void;
   onRestart: () => void;
   onRegenerate: () => void;
@@ -356,6 +404,17 @@ function PracticeResults({
                 ? "Every question. Nothing left to go back to."
                 : "Everything you missed is below, with the answer and where it came from."}
             </p>
+            {recorded ? (
+              <p className="text-[12px] text-ink-faint">
+                {marking.firstPass
+                  ? "Recorded as your first pass on this test."
+                  : "Recorded as a retry. Your first pass stands."}
+              </p>
+            ) : (
+              <p className="text-[12px] text-ink-faint">
+                Practice only: this test carries its own answers, so nothing is recorded.
+              </p>
+            )}
           </div>
           <dl className="mx-auto grid max-w-md grid-cols-3 gap-3">
             <div className="rounded-(--radius-control) bg-success-soft px-3 py-3">
@@ -397,9 +456,10 @@ function PracticeResults({
       <ol className="space-y-3">
         {order.map((index, position) => {
           const question = questions[index];
-          if (!question) return null;
-          const chosen = answers[index];
-          const right = chosen === question.answerIndex;
+          const mark = marking.marks[index];
+          if (!question || !mark) return null;
+          const chosen = mark.choice ?? undefined;
+          const right = mark.correct;
           return (
             <li key={index}>
               <Card>
@@ -424,16 +484,16 @@ function PracticeResults({
                           : question.choices[chosen]}
                       </dd>
                     </div>
-                    {!right ? (
+                    {!right && mark.answerIndex !== null ? (
                       <div className="flex gap-2">
                         <dt className="shrink-0 text-ink-muted">Correct answer</dt>
-                        <dd className="text-success">{question.choices[question.answerIndex]}</dd>
+                        <dd className="text-success">{question.choices[mark.answerIndex]}</dd>
                       </div>
                     ) : null}
                   </dl>
                   <div className="ml-7 rounded-(--radius-control) bg-sunken px-3.5 py-3">
                     <p className="text-[13px] leading-relaxed text-ink-muted">
-                      {question.explanation}
+                      {mark.explanation ?? question.explanation}
                     </p>
                     <p className="mt-1.5 text-[11px] text-ink-faint">
                       From {question.sourceNoteTitle || "this Pot"}

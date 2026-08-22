@@ -517,6 +517,43 @@ export type Database = {
           },
         ];
       };
+      study_attempts: {
+        Row: {
+          id: string;
+          pot_id: string;
+          set_id: string;
+          user_id: string;
+          kind: "practice" | "flashcards";
+          first_pass: boolean;
+          correct: number | null;
+          total: number | null;
+          known: number | null;
+          learning: number | null;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "study_attempts_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      study_responses: {
+        Row: {
+          attempt_id: string;
+          question_index: number;
+          choice: number | null;
+          correct: boolean;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       study_sets: {
         Row: {
           id: string;
@@ -527,6 +564,7 @@ export type Database = {
           model: string | null;
           options: Json | null;
           generated_by: string;
+          secured: boolean;
           created_at: string;
           removed_at: string | null;
           removed_by: string | null;
@@ -541,6 +579,7 @@ export type Database = {
           model?: string | null;
           options?: Json | null;
           generated_by: string;
+          secured?: boolean;
           removed_at?: string | null;
           removed_by?: string | null;
           removed_reason?: string | null;
@@ -706,9 +745,24 @@ export type Database = {
           /** text, and nullable: study_sets.model is nullable and left(null, n) is null. */
           p_model: string | null;
           p_options?: Json | null;
+          p_keys?: Json | null;
         };
         Returns: string;
       };
+      submit_practice_test: {
+        Args: { p_attempt_id: string; p_set_id: string; p_answers: Json };
+        Returns: Json;
+      };
+      record_flashcard_run: {
+        Args: {
+          p_attempt_id: string;
+          p_set_id: string;
+          p_known: number;
+          p_learning: number;
+        };
+        Returns: undefined;
+      };
+      admin_study_overview: { Args: { p_pot_id: string }; Returns: Json };
       delete_study_set: { Args: { p_study_set_id: string }; Returns: undefined };
       add_note_flashcard: {
         Args: {
