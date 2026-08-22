@@ -50,7 +50,32 @@ export default async function globalSetup() {
     },
     body: "{}",
   });
+  // Reseeding over the anon endpoint is no longer allowed: dev_reseed guarded
+  // on the caller's email ending in @meltingpot.dev, and nothing proves an
+  // address belongs to whoever typed it, so a stranger could reseed the live
+  // database (migration 0034). Only service_role may reseed now, which is what
+  // an operator does over SQL before a run.
+  //
+  // So a refusal here is expected rather than fatal. What must not be silent
+  // is running the suite against a database with no seed in it, because every
+  // spec would then fail on missing fixtures with no hint why. Check for the
+  // seed and say plainly which of the two situations this is.
   if (!reseedResponse.ok) {
-    throw new Error(`e2e reseed failed: ${reseedResponse.status} ${await reseedResponse.text()}`);
+    const seeded = await fetch(
+      `${origin}/rest/v1/rpc/lookup_pot_by_code`,
+      {
+        method: "POST",
+        headers: { apikey: anonKey, "Content-Type": "application/json" },
+        body: JSON.stringify({ p_code: "BIO101" }),
+      },
+    );
+    const found = seeded.ok && (await seeded.text()).trim() !== "null";
+    if (!found) {
+      throw new Error(
+        `e2e reseed refused (${reseedResponse.status}) and the seed is absent. ` +
+          "Run select public.dev_seed(); as service_role before the suite.",
+      );
+    }
+    console.log("e2e: reseed refused, seed already present, continuing");
   }
 }
