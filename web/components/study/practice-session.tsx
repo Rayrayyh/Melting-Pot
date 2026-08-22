@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducer, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -388,11 +388,20 @@ function PracticeResults({
   onRegenerate: () => void;
   regenerating: boolean;
 }) {
+  const verdictRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    verdictRef.current?.focus();
+  }, []);
   return (
     <div className="space-y-4">
       <Card>
         <CardSection className="space-y-6 py-10 text-center">
-          <div className="space-y-3">
+          <div
+            ref={verdictRef}
+            tabIndex={-1}
+            className="space-y-3 outline-none"
+            aria-label={`Marked: ${score.correct} of ${score.total} correct.`}
+          >
             <Eyebrow>Marked</Eyebrow>
             <ScoreFlourish
               percentage={score.percentage}
