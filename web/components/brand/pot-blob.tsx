@@ -1,110 +1,140 @@
 /**
- * The landing hero pot, redrawn from the owner's supplied illustration: a
- * round-bellied cauldron with ear handles, a pale rim gap, the lowercase m
- * knocked out of the belly, and a soft column of steam rising off the mouth
- * with one pale cloud broken free above it and a flung drop to the right.
+ * The landing hero pot, traced from the owner's supplied illustration: a squat
+ * cauldron with ear handles and a pale rim band, the lowercase m knocked out
+ * of the belly with its legs running into the pot's lower edge, one winding
+ * ribbon of steam that pales as it rises into a notched crown, and a fat
+ * teardrop flung to the right trailing a bead.
  *
- * Vector rather than the sent raster for the same reason as the 404 pot: it
- * stays sharp at any size, weighs nothing, and the knockouts are real holes,
- * so it sits on any surface in both themes. The gradients are the sanctioned
+ * Vector rather than the sent raster so it stays sharp at any size, weighs
+ * nothing, and the knockouts are real holes that sit on any surface in both
+ * themes. Drawn in the reference's own 1250 square space so the proportions
+ * can be compared against it directly. The gradients are the sanctioned
  * brand-mark use.
  */
 export function PotHeroBlob({ className }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 680 872"
+      viewBox="0 0 1250 1250"
       preserveAspectRatio="xMaxYMax meet"
       className={className}
       aria-hidden
     >
       <defs>
-        {/* The pot deepens toward its base. */}
         <linearGradient id="mp-blob-pot" x1="0.5" y1="0" x2="0.5" y2="1">
-          <stop offset="0" stopColor="#F5983C" />
-          <stop offset="0.5" stopColor="#EA741A" />
-          <stop offset="1" stopColor="#D9560A" />
+          <stop offset="0" stopColor="#F2913B" />
+          <stop offset="0.55" stopColor="#E9711A" />
+          <stop offset="1" stopColor="#DE5C0E" />
         </linearGradient>
-        {/* The steam cools as it rises, so it pales upward. */}
-        <linearGradient id="mp-blob-steam" x1="0.35" y1="1" x2="0.6" y2="0">
-          <stop offset="0" stopColor="#EE7D14" />
-          <stop offset="0.55" stopColor="#F29D3B" />
-          <stop offset="1" stopColor="#F7C46E" />
+        {/* One ribbon of steam, deep at the mouth and palest at the crown. */}
+        <linearGradient id="mp-blob-steam" x1="0.42" y1="1" x2="0.5" y2="0">
+          <stop offset="0" stopColor="#ED7B12" />
+          <stop offset="0.45" stopColor="#F09A38" />
+          <stop offset="0.75" stopColor="#F6BE6A" />
+          <stop offset="1" stopColor="#FBE0A8" />
         </linearGradient>
-        {/* The cloud that broke free is the palest thing in the scene. */}
-        <linearGradient id="mp-blob-cloud" x1="0.2" y1="1" x2="0.8" y2="0">
-          <stop offset="0" stopColor="#F5B95F" />
-          <stop offset="1" stopColor="#FBE3AC" />
+        <linearGradient id="mp-blob-crown" x1="0.2" y1="1" x2="0.7" y2="0">
+          <stop offset="0" stopColor="#F6BE6A" />
+          <stop offset="1" stopColor="#FBE4B0" />
         </linearGradient>
-        <linearGradient id="mp-blob-drop" x1="0.1" y1="1" x2="0.9" y2="0">
-          <stop offset="0" stopColor="#E97B12" />
-          <stop offset="1" stopColor="#F5A93F" />
+        <linearGradient id="mp-blob-drop" x1="0.15" y1="0.85" x2="0.85" y2="0.15">
+          <stop offset="0" stopColor="#EC7511" />
+          <stop offset="1" stopColor="#F49A36" />
         </linearGradient>
-        {/* Holes, not paint: the rim gap and the m show whatever the pot
+        {/* Holes, not paint: the rim band and the m show whatever the pot
             sits on, exactly like the small mark. */}
         <mask id="mp-blob-body">
-          <rect width="680" height="872" fill="#fff" />
+          <rect width="1250" height="1250" fill="#fff" />
           <path
-            d="M106 562C174 590 254 598 340 598C426 598 506 590 574 562"
+            d="M272 800C362 846 470 862 595 862C720 862 828 846 918 800"
             fill="none"
             stroke="#000"
-            strokeWidth="11"
+            strokeWidth="17"
           />
           <path
-            d="M252 820V730c0-52 88-52 88 0v90M340 730c0-52 88-52 88 0v90"
+            d="M405 1215V990c0-86 190-86 190 0v225M595 990c0-86 190-86 190 0v225"
             fill="none"
             stroke="#000"
-            strokeWidth="48"
+            strokeWidth="64"
             strokeLinecap="round"
           />
         </mask>
       </defs>
 
-      {/* Steam first: the pot's front rim paints over its base. */}
+      {/* Steam first: the pot's front rim paints over its base. The ribbon
+          waists above the mouth, bulges left, necks up into the pale crown
+          with its torn V notch and short right arm, and carries a concave
+          bay on its right edge where the drop's tail points in. */}
       <path
-        d="M172 600C158 528 190 484 214 444C170 422 140 362 158 310C176 260 234 248 262 282C272 240 302 210 344 210C388 210 418 240 424 284C446 300 456 330 448 358C438 388 414 400 400 416C386 432 390 462 398 496C406 532 420 570 426 600Z"
+        d="M345 810
+           C330 720 342 650 378 592
+           C346 542 332 478 354 418
+           C376 360 430 330 478 338
+           C504 292 534 260 576 246
+           C618 233 662 240 684 268
+           C702 291 708 324 706 360
+           C715 428 720 468 712 515
+           C695 558 638 572 614 618
+           C597 662 624 704 654 744
+           C678 776 702 795 722 810 Z"
         fill="url(#mp-blob-steam)"
       />
 
-      {/* The cloud that broke free, notched where it tore away. */}
+      {/* The crown: palest, torn open at the V, its right finger rounded. */}
       <path
-        d="M318 172C290 172 268 152 268 122C268 90 294 70 324 74C330 44 356 24 388 28C422 32 442 60 438 90C462 92 478 110 476 134C474 160 452 174 428 170C416 168 410 160 400 160C390 160 384 168 374 172C356 178 336 178 318 172Z"
-        fill="url(#mp-blob-cloud)"
+        d="M400 232
+           C374 150 434 82 520 84
+           C572 86 620 106 648 140
+           C655 160 657 182 654 202
+           C668 168 688 132 714 112
+           C740 92 774 86 803 98
+           C838 114 852 150 842 182
+           C833 210 806 226 776 226
+           C746 228 725 212 707 222
+           C668 246 618 270 568 280
+           C503 290 430 278 400 232 Z"
+        fill="url(#mp-blob-crown)"
       />
 
-      {/* The flung drop: a round head trailing back toward the pot, and the
-          bead it shed behind it. */}
+      {/* The flung drop: a fat teardrop head trailing a tapered tail back
+          toward the steam's bay, and the bead it shed beneath the tip. */}
       <g fill="url(#mp-blob-drop)">
-        <ellipse cx="540" cy="292" rx="92" ry="84" transform="rotate(-14 540 292)" />
-        <path d="M518 348C496 390 470 424 452 442C438 456 424 450 428 434C432 418 448 406 462 386C478 364 492 340 500 318Z" />
-        <circle cx="438" cy="478" r="13" />
+        <path d="M973 250C1077 246 1153 318 1155 420C1157 516 1093 588 997 594C945 596 901 580 869 550C826 589 771 633 726 656C698 670 680 650 693 628C716 594 769 560 812 520C837 497 854 468 864 437C870 380 903 288 973 250Z" />
+        <circle cx="672" cy="706" r="25" />
       </g>
 
-      {/* Handles, tilted out so they read as rings rather than blobs. */}
+      {/* Handles: small ears at the rim's shoulders. */}
       <ellipse
-        cx="80"
-        cy="586"
-        rx="24"
-        ry="26"
+        cx="222"
+        cy="858"
+        rx="42"
+        ry="50"
         fill="none"
         stroke="url(#mp-blob-pot)"
-        strokeWidth="17"
-        transform="rotate(-22 80 586)"
+        strokeWidth="30"
+        transform="rotate(-20 222 858)"
       />
       <ellipse
-        cx="600"
-        cy="586"
-        rx="24"
-        ry="26"
+        cx="968"
+        cy="858"
+        rx="42"
+        ry="50"
         fill="none"
         stroke="url(#mp-blob-pot)"
-        strokeWidth="17"
-        transform="rotate(22 600 586)"
+        strokeWidth="30"
+        transform="rotate(20 968 858)"
       />
 
       {/* The bowl. Its top edge is the front rim; the sliver above the masked
-          gap reads as the back rim behind the steam. */}
+          band reads as the back rim behind the steam, and the m's legs run
+          into the pot's lower edge just as they do in the reference. */}
       <path
-        d="M100 552C170 580 252 588 340 588C428 588 510 580 580 552C584 646 558 756 498 812C454 852 402 866 340 866C278 866 226 852 182 812C122 756 96 646 100 552Z"
+        d="M262 782
+           C355 824 465 840 595 840
+           C725 840 835 824 928 782
+           C946 915 910 1075 810 1155
+           C748 1206 675 1228 595 1228
+           C515 1228 442 1206 380 1155
+           C280 1075 244 915 262 782 Z"
         fill="url(#mp-blob-pot)"
         mask="url(#mp-blob-body)"
       />
