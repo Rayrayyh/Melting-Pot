@@ -190,10 +190,15 @@ export async function POST(request: Request) {
         "You are not a transcriber. If a claim looks factually wrong, out of date, or stated far more confidently than the evidence in the note supports, put it in checks with the claim quoted and a short, specific reason. Say what is actually the case where you are confident of it.",
         "Do not correct the body. Never rewrite a claim to what you think it should say, and never delete one. The blocks carry what the student wrote; checks carry what you doubt about it.",
         "Raise a check only where you would defend it. An empty checks list is the right answer for a note with nothing wrong in it, and padding it with vague hedges makes the real ones easy to miss.",
-        "Use only the supplied section IDs, or null. Keep titles and summaries concise.",
-        `Available sections:\n${sectionContext || "None"}`,
+        "Use only the section IDs listed under AVAILABLE SECTIONS below, or null. Keep titles and summaries concise.",
+        // The section list is named here and carried as data below. Its titles
+        // are written by people, so they belong beside the note rather than
+        // inside this instruction.
       ].join("\n\n"),
-      parts: [{ type: "text", text: `STUDENT NOTE\n${rawText}\n\nATTACHMENT ANALYSIS\n${attachmentContext || "None"}` }],
+      parts: [{
+        type: "text",
+        text: `AVAILABLE SECTIONS\n${sectionContext || "None"}\n\nSTUDENT NOTE\n${rawText}\n\nATTACHMENT ANALYSIS\n${attachmentContext || "None"}`,
+      }],
       schema: organizedNoteSchema,
     });
     const result = normalizeOrganizedNote(generated, new Set(sectionOptions.map((section) => section.id)));
