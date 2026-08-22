@@ -97,17 +97,27 @@ export function difficultyBrief(difficulty: PracticeDifficulty): string {
 export function describeOptions(
   options: PracticeOptions,
   sectionTitles: Map<string, string> = new Map(),
+  kind: "practice" | "summary" | "flashcards" = "practice",
 ): string {
   const difficulty = DIFFICULTIES.find((entry) => entry.key === options.difficulty);
   const sections = options.sectionIds
     .map((id) => sectionTitles.get(id))
     .filter((title): title is string => Boolean(title));
-  return [
-    `${options.questionCount} questions`,
-    difficulty ? difficulty.label.toLowerCase() : options.difficulty,
-    sections.length > 0 ? `from ${sections.join(", ")}` : null,
-    options.emphasis ? `focused on ${options.emphasis}` : null,
-  ]
+  // Only a test has a length and a difficulty to report; saying "10
+  // questions, standard" above a study guide or a deck would be untrue.
+  return (
+    kind !== "practice"
+      ? [
+          sections.length > 0 ? `From ${sections.join(", ")}` : "From the whole Pot",
+          options.emphasis ? `focused on ${options.emphasis}` : null,
+        ]
+      : [
+          `${options.questionCount} questions`,
+          difficulty ? difficulty.label.toLowerCase() : options.difficulty,
+          sections.length > 0 ? `from ${sections.join(", ")}` : null,
+          options.emphasis ? `focused on ${options.emphasis}` : null,
+        ]
+  )
     .filter(Boolean)
     .join(", ");
 }

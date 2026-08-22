@@ -1,8 +1,8 @@
 import { getVerifiedSecondFactorId } from "@/lib/auth/server";
 import { UserShell } from "@/components/shell/user-shell";
+import { ProfilePanel } from "@/components/settings/profile-panel";
 import { ThemeChoice } from "@/components/settings/theme-choice";
 import { TwoFactorPanel } from "@/components/settings/two-factor-panel";
-import { Avatar } from "@/components/ui/avatar";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { requireUser, runsAnyPot } from "@/lib/data/user";
 
@@ -25,15 +25,12 @@ export default async function AccountSettingsPage() {
           </p>
         </header>
 
-        <Card>
-          <CardSection className="flex items-center gap-4">
-            <Avatar name={user.displayName} size="lg" />
-            <div className="min-w-0">
-              <p className="font-medium text-ink truncate">{user.displayName}</p>
-              <p className="text-sm text-ink-muted truncate">{user.email}</p>
-            </div>
-          </CardSection>
-        </Card>
+        <ProfilePanel
+          userId={user.id}
+          email={user.email}
+          initialName={user.displayName}
+          initialAvatarPath={user.avatarPath}
+        />
 
         <Card>
           <CardSection className="space-y-4">

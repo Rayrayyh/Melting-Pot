@@ -23,6 +23,45 @@ const TABS = [
 ] as const;
 type Tab = (typeof TABS)[number]["key"];
 
+/**
+ * The ways a list here can be ordered. Kept as one list so every tab offers
+ * the same vocabulary and a link can round-trip through the URL.
+ */
+const SORTS = {
+  recent: "Newest first",
+  oldest: "Oldest first",
+  name: "Name A to Z",
+  title: "Title A to Z",
+} as const;
+type Sort = keyof typeof SORTS;
+
+function asSort(value: string | string[] | undefined, allowed: readonly Sort[]): Sort {
+  const wanted = Array.isArray(value) ? value[0] : value;
+  return allowed.includes(wanted as Sort) ? (wanted as Sort) : "recent";
+}
+
+/** The sort control: every option visible, the current one marked. */
+function SortBar({
+  options,
+  current,
+  href,
+}: {
+  options: readonly Sort[];
+  current: Sort;
+  href: (next: { sort?: string }) => string;
+}) {
+  return (
+    <div className="ml-auto flex items-center gap-1.5">
+      <span className="text-[12px] text-ink-faint">Sort</span>
+      {options.map((option) => (
+        <Link key={option} href={href({ sort: option })} aria-current={current === option ? "true" : undefined}>
+          <SectionPill active={current === option}>{SORTS[option]}</SectionPill>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
 const statusTone = {
   pending: "pending",
   accepted: "success",
@@ -79,7 +118,7 @@ export default async function AdminPage({
   const { potId } = await params;
   const query = await searchParams;
   const tab = asTab(query.tab);
-  const sort = (Array.isArray(query.sort) ? query.sort[0] : query.sort) === "oldest" ? "oldest" : "recent";
+  const sort = asSort(query.sort, ["recent", "oldest", "name", "title"]);
   const who = Array.isArray(query.who) ? query.who[0] : query.who;
 
   const supabase = await supabaseServer();
@@ -115,18 +154,21 @@ export default async function AdminPage({
           );
 
         const authors = [...new Set(record.contributions.map((c) => c.authorName))].sort();
+        const byTime = (a: string, b: string) =>
+          sort === "oldest"
+            ? new Date(a).getTime() - new Date(b).getTime()
+            : new Date(b).getTime() - new Date(a).getTime();
         const contributions = record.contributions
           .filter((c) => !who || c.authorName === who)
-          .sort((a, b) =>
-            sort === "oldest"
-              ? new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
-              : new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-          );
-        const edits = [...record.edits].sort((a, b) =>
-          sort === "oldest"
-            ? new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-            : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-        );
+          .sort((a, b) => {
+            if (sort === "name") return a.authorName.localeCompare(b.authorName);
+            if (sort === "title") return a.title.localeCompare(b.title);
+            return byTime(a.updatedAt, b.updatedAt);
+          });
+        const edits = [...record.edits].sort((a, b) => {
+          if (sort === "title") return a.title.localeCompare(b.title);
+          return byTime(a.createdAt, b.createdAt);
+        });
         const removedCount =
           record.removedNotes.length + record.removedSets.length + record.removedCards.length;
 
@@ -240,12 +282,11 @@ export default async function AdminPage({
                       </Link>
                     ))}
                   </nav>
-                  <Link
-                    href={href({ sort: sort === "recent" ? "oldest" : "recent" })}
-                    className="ml-auto text-[13px] text-ink-muted hover:text-ink transition-colors"
-                  >
-                    {sort === "recent" ? "Newest first" : "Oldest first"}
-                  </Link>
+                  <SortBar
+                    options={["recent", "oldest", "name", "title"]}
+                    current={sort}
+                    href={href}
+                  />
                 </div>
                 {contributions.length === 0 ? (
                   <Card>
@@ -291,12 +332,7 @@ export default async function AdminPage({
                   <p className="text-[13px] text-ink-muted">
                     Every version this Pot has published, newest first.
                   </p>
-                  <Link
-                    href={href({ sort: sort === "recent" ? "oldest" : "recent" })}
-                    className="ml-auto text-[13px] text-ink-muted hover:text-ink transition-colors"
-                  >
-                    {sort === "recent" ? "Newest first" : "Oldest first"}
-                  </Link>
+                  <SortBar options={["recent", "oldest", "title"]} current={sort} href={href} />
                 </div>
                 {edits.length === 0 ? (
                   <Card>

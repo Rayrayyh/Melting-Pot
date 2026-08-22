@@ -52,7 +52,7 @@ export const PRINCIPLES: { icon: Icon; title: string; body: string }[] = [
   },
 ];
 
-/** The three people behind the app, credited in the footer. */
+/** The people behind the app, credited in the footer. */
 export const MAKERS: { name: string; avatar: string; href: string }[] = [
   {
     name: "Rayrayyh",
@@ -68,5 +68,10 @@ export const MAKERS: { name: string; avatar: string; href: string }[] = [
     name: "cozbrozdevarc",
     avatar: "/credits/cozbrozdevarc.jpg",
     href: "https://github.com/cozbrozdevarc",
+  },
+  {
+    name: "AnonymousDev",
+    avatar: "/credits/anonymousdev.png",
+    href: "https://github.com/AnonymousDev",
   },
 ];

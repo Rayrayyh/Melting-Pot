@@ -27,7 +27,7 @@ export const supabaseServerAuth: ServerAuthProvider = {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("display_name")
+      .select("display_name, avatar_url")
       .eq("id", user.id)
       .single();
 
@@ -35,6 +35,7 @@ export const supabaseServerAuth: ServerAuthProvider = {
       id: user.id,
       email: user.email ?? "",
       displayName: profile?.display_name ?? "Student",
+      avatarPath: profile?.avatar_url ?? null,
     };
   },
 

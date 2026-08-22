@@ -14,18 +14,20 @@ import { TopBar } from "@/components/shell/top-bar";
 export function AppShell({
   displayName,
   email,
+  avatarSrc,
   nav,
   searchScope,
   children,
 }: {
   displayName: string;
   email: string;
+  avatarSrc?: string | null;
   nav: ReactNode;
   searchScope?: { potId: string; potTitle: string };
   children: ReactNode;
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const profile = <NavProfile displayName={displayName} email={email} />;
+  const profile = <NavProfile displayName={displayName} email={email} avatarSrc={avatarSrc} />;
   return (
     <div className="flex min-h-dvh flex-col">
       <TopBar searchScope={searchScope} />

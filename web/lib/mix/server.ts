@@ -42,7 +42,19 @@ export const MAX_ATTEMPTS = 4;
  * here happens before the set is stored, so a run that runs out of time leaves
  * nothing behind and says so honestly.
  */
-const TOTAL_BUDGET_MS = 22_000;
+const TOTAL_BUDGET_MS = 24_000;
+
+/**
+ * How long one call needs before it is worth starting at all.
+ *
+ * A practice test goes to the reasoning model and routinely takes fifteen
+ * seconds or more. Starting one with four seconds left does not produce a
+ * faster answer, it produces a guaranteed abort that spends the rest of the
+ * budget and reports a timeout. Below this floor the code gives up on the
+ * remaining attempts and returns whatever the last real error was, so the
+ * caller can fall back instead of waiting for an abort it cannot use.
+ */
+const MIN_ATTEMPT_MS = 6_000;
 
 /**
  * Worth another go, or worth giving up on.
@@ -113,7 +125,11 @@ export async function generateStructured<T>({
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     const remaining = deadline - Date.now();
+    // A first attempt always runs: without it a slow start would return the
+    // placeholder error having called nothing at all. Later attempts need
+    // enough left to actually finish.
     if (remaining <= 0) break;
+    if (attempt > 1 && remaining < MIN_ATTEMPT_MS) break;
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), remaining);

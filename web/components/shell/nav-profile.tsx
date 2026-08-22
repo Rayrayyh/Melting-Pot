@@ -11,7 +11,15 @@ import { Avatar } from "@/components/ui/avatar";
  * where the person's own things live, leaving the top bar to the Pot they are
  * reading.
  */
-export function NavProfile({ displayName, email }: { displayName: string; email: string }) {
+export function NavProfile({
+  displayName,
+  email,
+  avatarSrc,
+}: {
+  displayName: string;
+  email: string;
+  avatarSrc?: string | null;
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
@@ -62,7 +70,7 @@ export function NavProfile({ displayName, email }: { displayName: string; email:
         aria-expanded={open}
         className="flex w-full items-center gap-2.5 rounded-(--radius-control) p-1.5 text-left transition-colors hover:bg-sunken"
       >
-        <Avatar name={displayName} />
+        <Avatar name={displayName} src={avatarSrc} />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-medium text-ink">{displayName}</span>
           <span className="block truncate text-[12px] text-ink-muted">{email}</span>

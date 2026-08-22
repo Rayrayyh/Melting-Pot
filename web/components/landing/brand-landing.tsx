@@ -72,7 +72,7 @@ export function BrandLanding({
               alt=""
               width={1254}
               height={1254}
-              className="w-full max-w-145 lg:max-w-170 h-auto mb-2.5 -translate-x-5 -translate-y-[78px] scale-110 origin-bottom"
+              className="w-full max-w-140 lg:max-w-163 h-auto mb-2.5 -translate-x-5 -translate-y-[46px] scale-105 origin-bottom"
             />
           </div>
         </div>
@@ -196,7 +196,7 @@ export function BrandLanding({
       <section className="px-6 sm:px-10 pt-24 sm:pt-32 pb-28 sm:pb-36">
         <Reveal className="mx-auto w-full max-w-4xl bg-primary rounded-(--radius-card) px-8 py-16 sm:px-16 sm:py-20 text-center space-y-6">
           <h2 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-on-primary">
-            Start your class&apos;s Pot tonight.
+            Start your Pot tonight.
           </h2>
           <p className="text-sm sm:text-base text-on-primary/80 max-w-md mx-auto leading-relaxed">
             Create it in ten seconds, share one code, and watch the vault fill

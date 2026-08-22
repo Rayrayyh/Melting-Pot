@@ -12,6 +12,8 @@ export type SessionUser = {
   id: string;
   email: string;
   displayName: string;
+  /** Path inside the avatars bucket, or null for the tinted icon. */
+  avatarPath: string | null;
 };
 
 /** The signed-in user, or a redirect to login. Use in protected pages. */

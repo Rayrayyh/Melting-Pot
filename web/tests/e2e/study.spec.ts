@@ -132,6 +132,7 @@ test.describe("Flashcards", () => {
     const id = await potId(page);
     await serveStudy(page, DECK, { storedOnPeek: true });
     await page.goto(`/p/${id}/study/flashcards`);
+    await page.getByRole("button", { name: "Open the saved deck" }).click();
 
     // The card is one object with two faces, so both are mounted and the one
     // turned away is the one taken out of the accessibility tree. Asserting on
@@ -182,6 +183,7 @@ test.describe("Flashcards", () => {
     const id = await potId(page);
     await serveStudy(page, DECK, { storedOnPeek: true });
     await page.goto(`/p/${id}/study/flashcards`);
+    await page.getByRole("button", { name: "Open the saved deck" }).click();
 
     await page.getByRole("button", { name: /^division/ }).click();
     await expect(page.getByText("1 / 1")).toBeVisible();

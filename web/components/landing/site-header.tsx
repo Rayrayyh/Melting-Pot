@@ -49,7 +49,7 @@ export function SiteHeader({
           {signedIn ? (
             <Link
               href="/home"
-              className="group/roll inline-flex h-11 shrink-0 items-center whitespace-nowrap rounded-full bg-ink px-4 sm:px-6 text-[14px] sm:text-[15px] font-medium text-paper transition-opacity hover:opacity-90"
+              className="group/roll inline-flex h-11 shrink-0 items-center whitespace-nowrap rounded-full bg-primary px-4 sm:px-6 text-[14px] sm:text-[15px] font-medium text-on-primary transition-opacity hover:opacity-90"
             >
               <RollText>Go to dashboard</RollText>
             </Link>

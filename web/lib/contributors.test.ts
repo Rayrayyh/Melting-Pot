@@ -8,6 +8,7 @@ function note(contributorName: string, sharedAt: string): FeedNote {
     title: "A note",
     summary: "A summary",
     contributorName,
+    contributorAvatar: null,
     sectionId: null,
     sectionTitle: null,
     sharedAt,

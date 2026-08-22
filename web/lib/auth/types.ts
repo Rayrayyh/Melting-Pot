@@ -17,6 +17,8 @@ export type AuthUser = {
   id: string;
   email: string;
   displayName: string;
+  /** Path inside the avatars bucket, or null for the tinted icon. */
+  avatarPath: string | null;
 };
 
 /** What a fresh second-factor setup hands the person so they can scan it. */

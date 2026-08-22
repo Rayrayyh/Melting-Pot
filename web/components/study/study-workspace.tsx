@@ -104,9 +104,31 @@ const copy = {
  * because that names a button and this narrates a wait already under way.
  */
 const waiting = {
-  summary: ["Writing your summary", "Reading what the class shared", "Pulling out what matters"],
-  flashcards: ["Building your deck", "Reading what the class shared", "Picking what is worth remembering"],
-  practice: ["Writing your test", "Reading what the class shared", "Choosing what to ask"],
+  summary: [
+    "Writing your summary",
+    "Reading what the class shared",
+    "Pulling out what matters",
+    "Grouping the topics",
+    "Noting what is still unsettled",
+    "Tidying the last of it",
+  ],
+  flashcards: [
+    "Building your deck",
+    "Reading what the class shared",
+    "Picking what is worth remembering",
+    "Writing the fronts",
+    "Checking each answer against the notes",
+    "Shuffling them into order",
+  ],
+  practice: [
+    "Writing your test",
+    "Reading what the class shared",
+    "Choosing what to ask",
+    "Drafting the questions",
+    "Writing plausible wrong answers",
+    "Checking each answer against the notes",
+    "Putting them in order",
+  ],
 } as const;
 
 function message(error: string | undefined, detail: string | undefined): string {
@@ -116,6 +138,11 @@ function message(error: string | undefined, detail: string | undefined): string 
   if (error === "no_notes") return "Share at least one note before building study material.";
   if (error === "no_notes_in_sections") {
     return "Nothing has been shared in the parts you picked. Choose another part, or the whole Pot.";
+  }
+  // A timeout is the one failure with a next step the reader can actually
+  // take, so it says what that is rather than naming the machinery.
+  if (detail?.includes("timed out")) {
+    return "That took longer than the server allows. A shorter test, or one drawn from fewer sections, usually gets through.";
   }
   if (error === "rate_limited") {
     return "You have built several study sets recently. Wait a little and try again.";
@@ -167,7 +194,9 @@ export function StudyWorkspace({
   const [options, setOptions] = useState<PracticeOptions>(DEFAULT_PRACTICE_OPTIONS);
   // A test is set up before it is written, so the settings are a screen of
   // their own that the reader can come back to.
-  const [settingUp, setSettingUp] = useState(kind === "practice");
+  // Every kind is set up before it is built, so all three open on the setup
+  // screen rather than only the test.
+  const [settingUp, setSettingUp] = useState(true);
   const [tab, setTab] = useState<"new" | "previous">("new");
   const firstLook = useRef(true);
 
@@ -230,7 +259,6 @@ export function StudyWorkspace({
           setPeeked(outcome.loaded ?? null);
           // A summary and a deck have nothing to configure, so whatever the Pot
           // holds is simply what the page shows.
-          if (kind !== "practice") setOpened(outcome.loaded ?? null);
           setLookedUpKey(optionsKey);
         });
       },
@@ -342,7 +370,7 @@ export function StudyWorkspace({
       p_fingerprint: opened.fingerprint,
       p_payload: opened.result as unknown as Json,
       p_model: opened.model,
-      p_options: kind === "practice" ? (options as unknown as Json) : null,
+      p_options: options as unknown as Json,
     });
     setSaving(false);
     if (rpcError || !data) {
@@ -367,7 +395,7 @@ export function StudyWorkspace({
     }
     setOpened(null);
     setPeeked(null);
-    if (kind === "practice") setSettingUp(true);
+    setSettingUp(true);
     router.refresh();
   }
 
@@ -429,8 +457,7 @@ export function StudyWorkspace({
     [opened],
   );
 
-  const regenerating = busy && opened !== null;
-  const showTabs = kind === "practice" && savedSets.length > 0;
+  const showTabs = savedSets.length > 0;
   const checking = lookedUpKey !== optionsKey;
   const settled = lookedUpKey !== null;
 
@@ -456,8 +483,18 @@ export function StudyWorkspace({
         <nav aria-label="Practice tests" className="flex gap-1.5 border-b border-edge">
           {(
             [
-              ["new", settingUp || !opened ? "Set up a test" : "This test"],
-              ["previous", `Previous tests (${savedSets.length})`],
+              [
+                "new",
+                settingUp || !opened
+                  ? `Set up a ${kind === "summary" ? "summary" : kind === "flashcards" ? "deck" : "test"}`
+                  : `This ${kind === "summary" ? "summary" : kind === "flashcards" ? "deck" : "test"}`,
+              ],
+              [
+                "previous",
+                `${
+                  kind === "summary" ? "Previous summaries" : kind === "flashcards" ? "Previous decks" : "Previous tests"
+                } (${savedSets.length})`,
+              ],
             ] as const
           ).map(([key, label]) => (
             <button
@@ -478,7 +515,7 @@ export function StudyWorkspace({
         </nav>
       ) : null}
 
-      {kind === "practice" && tab === "previous" ? (
+      {tab === "previous" ? (
         <PreviousSets
           sets={savedSets}
           sectionTitles={sectionTitles}
@@ -486,8 +523,9 @@ export function StudyWorkspace({
           openedId={opened?.studySetId ?? null}
           onOpen={(set) => void openSaved(set)}
         />
-      ) : kind === "practice" && (settingUp || !opened) ? (
+      ) : settingUp || !opened ? (
         <PracticeSetup
+          kind={kind}
           options={options}
           onChange={setOptions}
           sections={sections}
@@ -540,7 +578,7 @@ export function StudyWorkspace({
               {opened.cached && opened.generatedAt
                 ? `Built ${relativeTime(opened.generatedAt)} from the notes as they were then. Everyone in the Pot sees this one.`
                 : "Built just now from the notes as they are now."}
-              {kind === "practice" ? ` ${describeOptions(options, sectionTitles)}.` : ""}
+              {` ${describeOptions(options, sectionTitles, kind)}.`}
               {kind === "practice" && opened.secured && opened.studySetId
                 ? " Handed-in results are saved to this Pot, where you and this Pot's maintainers can see them."
                 : kind === "practice"
@@ -553,11 +591,15 @@ export function StudyWorkspace({
               <Button
                 variant="quiet"
                 size="sm"
-                onClick={() => (kind === "practice" ? setSettingUp(true) : void generate(true))}
+                onClick={() => setSettingUp(true)}
                 disabled={busy}
               >
                 <Sparkle className="size-4" />
-                {kind === "practice" ? "Change the test" : regenerating ? "Mixing" : mode.rebuild}
+                {kind === "practice"
+                  ? "Change the test"
+                  : kind === "summary"
+                    ? "Change the summary"
+                    : "Change the deck"}
               </Button>
               {opened.studySetId ? (
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-3 h-8 text-[13px] font-medium text-success">

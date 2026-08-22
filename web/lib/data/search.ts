@@ -3,7 +3,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 
 export type SearchKind = "note" | "summary" | "flashcard" | "section";
 export type SearchType = "all" | SearchKind;
-export type SearchSort = "recent" | "contributed";
+export type SearchSort = "recent" | "oldest" | "contributed" | "title" | "title-desc";
 
 export type SearchPot = { id: string; title: string };
 
@@ -53,7 +53,12 @@ export function parseSearchType(value: unknown): SearchType {
 }
 
 export function parseSearchSort(value: unknown): SearchSort {
-  return value === "contributed" ? "contributed" : "recent";
+  return value === "contributed" ||
+    value === "oldest" ||
+    value === "title" ||
+    value === "title-desc"
+    ? value
+    : "recent";
 }
 
 function emptyCounts(): SearchCounts {
@@ -371,6 +376,11 @@ export async function searchAcrossPots({
   const ranked = filtered.sort((a, b) => {
     if (sort === "contributed" && a.contributionCount !== b.contributionCount) {
       return b.contributionCount - a.contributionCount;
+    }
+    if (sort === "title") return a.title.localeCompare(b.title);
+    if (sort === "title-desc") return b.title.localeCompare(a.title);
+    if (sort === "oldest") {
+      return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
     }
     return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
   });

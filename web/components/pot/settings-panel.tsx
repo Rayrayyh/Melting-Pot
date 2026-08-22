@@ -3,7 +3,7 @@
 import { getClientAuth } from "@/lib/auth/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowSquareOut, GraduationCap, Plugs } from "@phosphor-icons/react";
+import { ArrowSquareOut } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -37,6 +37,11 @@ export function SettingsPanel({
   const [joinOpen, setJoinOpen] = useState(pot.joinOpen);
   const [studyGeneration, setStudyGeneration] = useState(pot.studyGeneration);
   const [ruleBusy, setRuleBusy] = useState(false);
+  // Deleting a Pot is the one action here with nothing behind it: no soft
+  // remove, no restore, no version to roll back to. So it asks for the title
+  // to be typed, which is hard to do by accident and impossible to do while
+  // thinking about something else.
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
 
   const supabase = supabaseBrowser();
 
@@ -260,13 +265,13 @@ export function SettingsPanel({
         <CardSection className="space-y-5">
           <Eyebrow>How this Pot runs</Eyebrow>
 
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-0">
+          <div className="flex flex-col sm:flex-row sm:flex-nowrap items-start sm:items-center justify-between gap-3">
+            <div className="min-w-0 sm:flex-1">
               <p className="text-sm font-medium text-ink">Joining</p>
               <p className="text-[13px] text-ink-muted">
                 {joinOpen
                   ? "Anyone with the code can join."
-                  : "Closed. The code still works for people already in, so invites you have sent stay valid for whenever you reopen it."}
+                  : "Closed. Nobody new can join; people already in are unaffected."}
               </p>
             </div>
             <div className="flex gap-1.5 shrink-0">
@@ -298,13 +303,13 @@ export function SettingsPanel({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-start justify-between gap-3 border-t border-edge pt-5">
-            <div className="min-w-0">
+          <div className="flex flex-col sm:flex-row sm:flex-nowrap items-start sm:items-center justify-between gap-3 border-t border-edge pt-5">
+            <div className="min-w-0 sm:flex-1">
               <p className="text-sm font-medium text-ink">Building study material</p>
               <p className="text-[13px] text-ink-muted">
                 {studyGeneration === "members"
                   ? "Anyone in the Pot can build a summary, a deck, or a test."
-                  : "Only maintainers build new material. Everyone can still open anything the class has already built."}
+                  : "Only maintainers build new material; everyone can still open it."}
               </p>
             </div>
             <div className="flex gap-1.5 shrink-0">
@@ -339,26 +344,6 @@ export function SettingsPanel({
       </Card>
 
       {sectionsSlot}
-
-      <Card>
-        <CardSection className="space-y-3">
-          <Eyebrow>Integrations</Eyebrow>
-          <p className="text-[13px] text-ink-muted">
-            Import from your class tools. Not available yet; the hooks are here
-            for a later release.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" size="sm" disabled>
-              <GraduationCap className="size-4" />
-              Connect Google Classroom
-            </Button>
-            <Button variant="secondary" size="sm" disabled>
-              <Plugs className="size-4" />
-              Connect Canvas
-            </Button>
-          </div>
-        </CardSection>
-      </Card>
 
       <Card className={isOwner ? "border-danger/25" : undefined}>
         <CardSection className={cn("space-y-3", isOwner && "text-danger")}>
@@ -443,11 +428,31 @@ export function SettingsPanel({
         confirmLabel="Delete Pot permanently"
         tone="danger"
         busy={busy}
+        confirmDisabled={deleteConfirmation.trim() !== pot.title.trim()}
         onConfirm={() => void deletePot()}
-        onCancel={() => setDialog(null)}
+        onCancel={() => {
+          setDialog(null);
+          setDeleteConfirmation("");
+        }}
       >
-        Every note, version, and proposal in {pot.title} is permanently
-        deleted. This cannot be undone.
+        <span className="block space-y-3">
+          <span className="block">
+            Every note, version, and proposal in {pot.title} is permanently
+            deleted. This cannot be undone, and members lose it too.
+          </span>
+          <span className="block">
+            <Field label={`Type ${pot.title} to confirm`}>
+              {(props) => (
+                <Input
+                  {...props}
+                  value={deleteConfirmation}
+                  autoComplete="off"
+                  onChange={(event) => setDeleteConfirmation(event.target.value)}
+                />
+              )}
+            </Field>
+          </span>
+        </span>
       </ConfirmDialog>
       <ConfirmDialog
         open={dialog === "leave"}

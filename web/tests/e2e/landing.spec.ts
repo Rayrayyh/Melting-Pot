@@ -60,7 +60,7 @@ test.describe("brand landing", () => {
     // Past the pin, the page continues to the steps section.
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     await page.waitForTimeout(400);
-    await expect(page.getByText("Start your class's Pot tonight.")).toBeVisible();
+    await expect(page.getByText("Start your Pot tonight.")).toBeVisible();
   });
 
   // The header once collided with itself on a phone: the wordmark and the nav

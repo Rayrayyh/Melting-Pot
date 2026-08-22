@@ -2,6 +2,7 @@ import { getAuthUser } from "@/lib/auth/server";
 import { redirect } from "next/navigation";
 import { CheckCircle, Users, Notebook, Clock } from "@phosphor-icons/react/dist/ssr";
 import { joinPotAction } from "@/app/join/[code]/actions";
+import { JoinSubmit } from "@/components/landing/join-submit";
 import { PendingJoinSetter } from "@/components/landing/pending-join-setter";
 import { Wordmark } from "@/components/shell/wordmark";
 import { Button } from "@/components/ui/button";
@@ -91,9 +92,7 @@ export default async function JoinConfirmPage({ params }: PageProps<"/join/[code
                   This Pot is already in your vault, so nothing gets duplicated.
                 </p>
                 <form action={joinWithCode}>
-                  <Button type="submit" size="lg" className="w-full">
-                    Open Pot
-                  </Button>
+                  <JoinSubmit label="Open Pot" busyLabel="Opening" />
                 </form>
               </div>
             ) : (
@@ -102,9 +101,7 @@ export default async function JoinConfirmPage({ params }: PageProps<"/join/[code
                   Membership is saved instantly. No extra setup required.
                 </p>
                 <form action={joinWithCode}>
-                  <Button type="submit" size="lg" className="w-full">
-                    Open Pot
-                  </Button>
+                  <JoinSubmit label="Open Pot" busyLabel="Opening" />
                 </form>
               </div>
             )

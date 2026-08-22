@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { AppShell } from "@/components/shell/app-shell";
 import { UserNav } from "@/components/shell/left-nav";
 import { getUserPots, requireUser } from "@/lib/data/user";
+import { avatarSrc } from "@/lib/avatar-url";
 
 /** Signed-in shell at the user level: top bar plus the user nav. */
 export async function UserShell({ children }: { children: ReactNode }) {
@@ -10,6 +11,7 @@ export async function UserShell({ children }: { children: ReactNode }) {
   return (
     <AppShell
       displayName={user.displayName}
+      avatarSrc={avatarSrc(user.avatarPath)}
       email={user.email}
       nav={<UserNav pots={pots.map((p) => ({ id: p.id, title: p.title }))} />}
     >

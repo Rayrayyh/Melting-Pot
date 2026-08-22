@@ -89,6 +89,7 @@ export type FeedNote = {
   title: string;
   summary: string;
   contributorName: string;
+  contributorAvatar: string | null;
   sectionId: string | null;
   sectionTitle: string | null;
   sharedAt: string;
@@ -103,7 +104,7 @@ export async function getFeed(potId: string, sectionId?: string): Promise<FeedNo
     .select(
       `id, shared_at, section_id, contribution_id,
        current:note_versions!shared_notes_current_version_fk (title, summary, version_number),
-       contributor:profiles!shared_notes_contributor_id_fkey (display_name),
+       contributor:profiles!shared_notes_contributor_id_fkey (display_name, avatar_url),
        section:sections!shared_notes_section_id_fkey (title)`,
     )
     .eq("pot_id", potId)
@@ -139,6 +140,7 @@ export async function getFeed(potId: string, sectionId?: string): Promise<FeedNo
       title: n.current!.title,
       summary: n.current!.summary,
       contributorName: n.contributor?.display_name ?? "Unknown",
+      contributorAvatar: n.contributor?.avatar_url ?? null,
       sectionId: n.section_id,
       sectionTitle: n.section?.title ?? null,
       sharedAt: n.shared_at,
@@ -209,7 +211,7 @@ export async function getNoteDetail(potId: string, noteId: string): Promise<Note
          title, summary, body, body_text, takeaways, version_number,
          correction_contributor:profiles!note_versions_correction_contributor_id_fkey (display_name)
        ),
-       contributor:profiles!shared_notes_contributor_id_fkey (display_name),
+       contributor:profiles!shared_notes_contributor_id_fkey (display_name, avatar_url),
        section:sections!shared_notes_section_id_fkey (title),
        contribution:contributions!shared_notes_contribution_id_fkey (raw_text)`,
     )
@@ -314,7 +316,7 @@ export async function getRemovedNotes(potId: string): Promise<RemovedNote[]> {
     .from("shared_notes")
     .select(
       `id, removed_at, removed_reason,
-       contributor:profiles!shared_notes_contributor_id_fkey (display_name),
+       contributor:profiles!shared_notes_contributor_id_fkey (display_name, avatar_url),
        remover:profiles!shared_notes_removed_by_fkey (display_name),
        current:note_versions!shared_notes_current_version_fk (title)`,
     )

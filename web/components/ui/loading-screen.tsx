@@ -27,8 +27,14 @@ import { StirPot, STIR_LOOP } from "@/components/brand/stir-pot";
  * pot a thousand pixels below the fold. The portal is what makes "full screen"
  * mean the screen.
  */
-/** How long each phrase holds before the next one takes over. */
-const PHRASE_SECONDS = 2.6;
+/**
+ * How long each phrase holds before the next one takes over.
+ *
+ * Slow enough to be read rather than skimmed. A wait of twenty seconds gets
+ * five phrases at this pace, which is enough variety to show the screen is
+ * alive without the text flickering.
+ */
+const PHRASE_SECONDS = 4;
 
 /**
  * The default rotation. Kitchen language, because the product is a pot and a
@@ -39,6 +45,10 @@ export const STIR_PHRASES = [
   "Folding everything in",
   "Letting it simmer",
   "Tasting as we go",
+  "Reading what the class shared",
+  "Finding what matters",
+  "Checking the seasoning",
+  "Almost ready",
 ];
 
 export function LoadingScreen({

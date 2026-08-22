@@ -24,6 +24,7 @@ const CHOICE =
  * own, so a class can keep a short warm-up and a long exam rehearsal at once.
  */
 export function PracticeSetup({
+  kind = "practice",
   options,
   onChange,
   sections,
@@ -34,6 +35,13 @@ export function PracticeSetup({
   onBuild,
   onOpenSaved,
 }: {
+  /**
+   * All three are set up on this one screen. A summary and a deck hide the
+   * length and difficulty, which only mean something for questions, and keep
+   * the two choices that matter everywhere: what to build from, and what to
+   * lean on.
+   */
+  kind?: "practice" | "summary" | "flashcards";
   options: PracticeOptions;
   onChange: (next: PracticeOptions) => void;
   sections: Array<{ id: string; title: string }>;
@@ -57,14 +65,15 @@ export function PracticeSetup({
     <Card>
       <CardSection className="space-y-6 py-8">
         <div className="space-y-1.5 text-center">
-          <Eyebrow>Set up the test</Eyebrow>
+          <Eyebrow>Set up the {kind === "summary" ? "summary" : kind === "flashcards" ? "deck" : "test"}</Eyebrow>
           <p className="mx-auto max-w-md text-sm leading-relaxed text-ink-muted">
-            Every question comes from notes this class shared. Nothing outside the
-            Pot goes in.
+            {kind === "practice"
+              ? "Every question comes from notes this class shared. Nothing outside the Pot goes in."
+              : "Everything in it comes from notes this class shared. Nothing outside the Pot goes in."}
           </p>
         </div>
 
-        <fieldset className="space-y-2">
+        <fieldset className={cn("space-y-2", kind !== "practice" && "hidden")}>
           <legend className="text-[13px] font-medium text-ink">How many questions</legend>
           <div className="flex flex-wrap gap-2">
             {QUESTION_COUNTS.map((count) => (
@@ -90,7 +99,7 @@ export function PracticeSetup({
           </div>
         </fieldset>
 
-        <fieldset className="space-y-2">
+        <fieldset className={cn("space-y-2", kind !== "practice" && "hidden")}>
           <legend className="text-[13px] font-medium text-ink">Difficulty level</legend>
           <div className="flex flex-wrap gap-2">
             {DIFFICULTIES.map((entry) => (
@@ -160,7 +169,9 @@ export function PracticeSetup({
 
         <Field
           label="Anything to concentrate on"
-          hint="Optional. Name a topic and the test leans that way."
+          hint={`Optional. Name a topic and the ${
+            kind === "summary" ? "summary" : kind === "flashcards" ? "deck" : "test"
+          } leans that way.`}
         >
           {(props) => (
             <Input
@@ -183,15 +194,17 @@ export function PracticeSetup({
           <div className="flex flex-wrap items-center justify-center gap-2.5">
             {hasSaved ? (
               <>
-                <Button onClick={onOpenSaved}>Open the saved test</Button>
+                <Button onClick={onOpenSaved}>
+                  Open the saved {kind === "summary" ? "summary" : kind === "flashcards" ? "deck" : "test"}
+                </Button>
                 <Button variant="secondary" onClick={onBuild} disabled={busy}>
                   {busy ? (
                     <>
                       <Stir size={16} />
-                      Writing
+                      {kind === "practice" ? "Writing" : "Building"}
                     </>
                   ) : (
-                    "Write a new one"
+                    kind === "practice" ? "Write a new one" : "Build a new one"
                   )}
                 </Button>
               </>
@@ -200,10 +213,10 @@ export function PracticeSetup({
                 {busy ? (
                   <>
                     <Stir size={16} tone="on-primary" />
-                    Writing the test
+                    {kind === "practice" ? "Writing the test" : "Building the " + (kind === "summary" ? "summary" : "deck")}
                   </>
                 ) : (
-                  "Write the test"
+                  kind === "practice" ? "Write the test" : kind === "summary" ? "Build the summary" : "Build the deck"
                 )}
               </Button>
             )}

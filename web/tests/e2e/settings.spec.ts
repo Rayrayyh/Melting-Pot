@@ -43,11 +43,6 @@ test.describe("search and settings", () => {
     await expect(page.getByRole("button", { name: "Delete Pot" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Leave this Pot" })).toBeVisible();
 
-    // Integrations exist as quiet, disabled hooks only.
-    await expect(
-      page.getByRole("button", { name: "Connect Google Classroom" }),
-    ).toBeDisabled();
-
     // Members manage nobody.
     await page.getByRole("link", { name: "Members", exact: true }).click();
     await expect(page).toHaveURL(/\/members/, { timeout: 15_000 });
@@ -200,7 +195,11 @@ test.describe("search and settings", () => {
     await expect(page.getByText("This Pot is archived")).toHaveCount(0, { timeout: 15_000 });
     await expect(page.getByRole("link", { name: "Add contribution" }).first()).toBeVisible();
     await page.getByRole("button", { name: "Delete Pot" }).click();
-    await page.getByRole("dialog").getByRole("button", { name: "Delete Pot permanently" }).click();
+    // Deleting asks for the Pot's name, because nothing brings one back.
+    const confirm = page.getByRole("dialog").getByRole("button", { name: "Delete Pot permanently" });
+    await expect(confirm).toBeDisabled();
+    await page.getByLabel("Type Archive lifecycle check to confirm").fill("Archive lifecycle check");
+    await confirm.click();
     await expect(page).toHaveURL(/\/home/, { timeout: 15_000 });
   });
 });

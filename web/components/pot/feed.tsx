@@ -63,7 +63,7 @@ export function PotFeed({
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <StudyTile href="#raw-notes" title="Raw Notes" description="Shared notes from everyone." icon={<FileText />} />
-              <StudyTile href={`/p/${pot.id}/study/summary`} title="Summary" description="Build a fresh study guide." icon={<Sparkle />} featured />
+              <StudyTile href={`/p/${pot.id}/study/summary`} title="Summary" description="Build a fresh study guide." icon={<Sparkle />} />
               <StudyTile href={`/p/${pot.id}/study/flashcards`} title="Flashcards" description="Generate recall cards from the Pot." icon={<Cards />} />
               <StudyTile href={`/p/${pot.id}/study/practice`} title="Practice" description="Set the length and difficulty, then sit it." icon={<Brain />} />
             </div>
@@ -155,21 +155,19 @@ export function PotFeed({
   );
 }
 
-function StudyTile({ href, title, description, icon, featured = false }: {
+function StudyTile({ href, title, description, icon }: {
   href: string;
   title: string;
   description: string;
   icon: React.ReactNode;
-  featured?: boolean;
 }) {
   return (
+    // Every tile reads the same. Summary used to carry a highlight, which
+    // suggested the class should reach for it first; they are four equal ways
+    // into the same notes.
     <Link
       href={href}
-      className={`mp-lift group block rounded-(--radius-card) border p-5 ${
-        featured
-          ? "border-primary/30 bg-primary-soft hover:border-primary/60"
-          : "border-edge bg-surface hover:border-edge-strong"
-      }`}
+      className="mp-lift group block rounded-(--radius-card) border border-edge bg-surface p-5 hover:border-edge-strong"
     >
       <span className="mb-5 inline-flex size-9 items-center justify-center rounded-lg bg-sunken text-primary [&>svg]:size-4">
         {icon}

@@ -304,11 +304,13 @@ export type Database = {
         Row: {
           created_at: string;
           display_name: string;
+          avatar_url: string | null;
           id: string;
         };
         Insert: {
           created_at?: string;
           display_name: string;
+          avatar_url?: string | null;
           id: string;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
@@ -763,6 +765,10 @@ export type Database = {
         Returns: undefined;
       };
       admin_study_overview: { Args: { p_pot_id: string }; Returns: Json };
+      update_my_profile: {
+        Args: { p_display_name: string; p_avatar_url?: string | null };
+        Returns: undefined;
+      };
       delete_study_set: { Args: { p_study_set_id: string }; Returns: undefined };
       add_note_flashcard: {
         Args: {

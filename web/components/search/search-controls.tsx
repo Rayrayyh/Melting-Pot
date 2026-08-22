@@ -18,11 +18,14 @@ const TYPES: Array<{ key: SearchType; label: string }> = [
 
 const SORTS: Array<{ key: SearchSort; label: string; hint: string }> = [
   { key: "recent", label: "Most recent", hint: "Newest first." },
+  { key: "oldest", label: "Oldest first", hint: "The earliest thing the class shared, first." },
   {
     key: "contributed",
     label: "Most contributed",
     hint: "Notes the class has corrected the most come first, then everything else by date.",
   },
+  { key: "title", label: "Title A to Z", hint: "Alphabetical by title." },
+  { key: "title-desc", label: "Title Z to A", hint: "Reverse alphabetical by title." },
 ];
 
 const SELECT =
