@@ -20,10 +20,17 @@ export async function MyStudyRecord({
   if (kind === "summary") return null;
   const attemptKind = kind === "practice" ? "practice" : "flashcards";
   const supabase = await supabaseServer();
+  // Scoped to the reader explicitly rather than left to row level security.
+  // The policy lets a maintainer read every attempt in their Pot, which is
+  // what the admin page is for; without this filter a maintainer's own study
+  // page listed the whole class's attempts under "Your record".
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
   const { data } = await supabase
     .from("study_attempts")
     .select("id, kind, first_pass, correct, total, known, learning, created_at")
     .eq("pot_id", potId)
+    .eq("user_id", user.id)
     .eq("kind", attemptKind)
     .order("created_at", { ascending: false })
     .limit(12);
