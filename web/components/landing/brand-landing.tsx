@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowDown, ArrowRight } from "@phosphor-icons/react/dist/ssr";
-import { PotHeroBlob } from "@/components/brand/pot-blob";
 import { JoinCard } from "@/components/landing/join-card";
 import { NamesOnTheNote } from "@/components/landing/names-on-the-note";
 import { ScrollStopper } from "@/components/landing/scroll-stopper";
@@ -65,7 +64,16 @@ export function BrandLanding({
             </div>
           </div>
           <div className="relative h-full min-h-[320px] lg:min-h-[calc(100svh-6rem)] flex items-end justify-center lg:justify-end">
-            <PotHeroBlob className="w-full max-w-120 lg:max-w-150 max-h-[calc(100dvh-8.5rem)] mb-2.5 -translate-x-3 -translate-y-4 lg:-translate-x-[27px]" />
+            {/* The owner's illustration, used verbatim. It ships its own
+                transparency, so it sits on both themes. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/pot-hero.png"
+              alt=""
+              width={1254}
+              height={1254}
+              className="w-full max-w-130 lg:max-w-155 h-auto mb-2.5 -translate-y-2"
+            />
           </div>
         </div>
       </section>
