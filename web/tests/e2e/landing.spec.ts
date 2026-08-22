@@ -18,7 +18,7 @@ test.describe("brand landing", () => {
     // that silently failed would still pass every other assertion here.
     await expect(page.locator("html")).toHaveClass(/(^|\s)lenis(\s|$)/);
     await expect(
-      page.getByRole("heading", { name: "Many ideas. One shared knowledge base." }),
+      page.getByRole("heading", { name: "Everyone takes notes. Meltingpot brings them together." }),
     ).toBeVisible();
     // The nav offers both paths: sign in and the dark get-started pill.
     await expect(page.getByRole("link", { name: "Get started" }).first()).toBeVisible();
@@ -96,17 +96,20 @@ test.describe("brand landing", () => {
   test("anchors scroll to their sections, including back up past the pin", async ({ page }) => {
     await page.goto("/");
 
-    // A bare <a> in the header.
-    await page.getByRole("link", { name: "Spaces" }).click();
-    await settleScroll(page);
+    // The nav now navigates to real pages; the landing's own join anchor
+    // hangs off the hero call to action instead.
+    await page.getByRole("link", { name: "Classes" }).click();
+    await page.waitForURL("**/classes");
     await expect(
-      page.getByRole("heading", { name: "Everything your class knows, in one Pot." }),
-    ).toBeInViewport();
+      page.getByRole("heading", { name: "Classes", exact: true }),
+    ).toBeVisible();
+    await page.goBack();
+    await page.waitForURL("**/");
 
-    // The hero call to action is a next/link, not an <a>. Same behaviour.
+    // The hero call to action scrolls to the join card.
     await page.evaluate(() => window.scrollTo(0, 0));
     await settleScroll(page);
-    await page.getByRole("link", { name: "Get started" }).last().click();
+    await page.getByRole("link", { name: "Join a class" }).first().click();
     await settleScroll(page);
     await expect(page.getByLabel("Enter class code")).toBeInViewport();
 

@@ -1,64 +1,15 @@
 import Link from "next/link";
-import {
-  ArrowDown,
-  ArrowRight,
-  GithubLogo,
-  HandPalm,
-  LockSimpleOpen,
-  PencilSimple,
-  ShieldCheck,
-  SignIn,
-  UsersThree,
-} from "@phosphor-icons/react/dist/ssr";
-import { PotHeroArt } from "@/components/brand/pot-mark";
+import { ArrowDown, ArrowRight } from "@phosphor-icons/react/dist/ssr";
+import { PotHeroBlob } from "@/components/brand/pot-blob";
 import { JoinCard } from "@/components/landing/join-card";
 import { NamesOnTheNote } from "@/components/landing/names-on-the-note";
 import { ScrollStopper } from "@/components/landing/scroll-stopper";
-import { Wordmark } from "@/components/shell/wordmark";
+import { SiteFooter } from "@/components/landing/site-footer";
+import { SiteHeader } from "@/components/landing/site-header";
+import { PRINCIPLES, STEPS } from "@/components/landing/site-content";
 import { Button } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
 import { RollText } from "@/components/ui/roll-text";
-
-const STEPS = [
-  {
-    number: "1",
-    icon: SignIn,
-    title: "Join your class",
-    body: "One code from a classmate puts the whole vault in front of you. No forms, no setup, no login wall.",
-  },
-  {
-    number: "2",
-    icon: PencilSimple,
-    title: "Write it rough",
-    body: "Type what you remember between classes. Typos, fragments, half-ideas: all welcome. Formatting is not your job.",
-  },
-  {
-    number: "3",
-    icon: UsersThree,
-    title: "Approve and share",
-    body: "Review the organized version next to your original, change anything, then share it with the class.",
-  },
-];
-
-const REPO_URL = "https://github.com/Rayrayyh/Meltingpot";
-
-const PRINCIPLES = [
-  {
-    icon: LockSimpleOpen,
-    title: "Originals are sacred",
-    body: "Every submission is kept exactly as written and stays one tap away, in every version, forever.",
-  },
-  {
-    icon: HandPalm,
-    title: "You hold the pen",
-    body: "The organizer suggests titles, structure, and placement. It never publishes. Only you can share your notes.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "People decide corrections",
-    body: "Suggested fixes travel with reasons and sources to a maintainer who decides. Nothing changes silently.",
-  },
-];
 
 /**
  * The public landing: brand hero up top, the join and create paths one scroll
@@ -77,68 +28,29 @@ export function BrandLanding({
 }) {
   return (
     <div className="flex flex-col">
-      <header className="w-full">
-        <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-12 h-20 sm:h-24 flex items-center justify-between gap-3">
-          <Wordmark size="lg" className="min-w-0 shrink" />
-          {/* Every label here is nowrap: the pill has a fixed height, so a
-              wrapped label spills out of it rather than growing the button. */}
-          <nav className="flex shrink-0 items-center gap-4 sm:gap-6 lg:gap-10 text-[14px] sm:text-[15px]">
-            <a href="#top" className="hidden md:block text-ink hover:text-primary transition-colors">
-              Home
-            </a>
-            <a href="#spaces" className="hidden md:block text-ink hover:text-primary transition-colors">
-              Spaces
-            </a>
-            <a href="#explore" className="hidden md:block text-ink hover:text-primary transition-colors">
-              Explore
-            </a>
-            {signedIn ? (
-              <Link
-                href="/home"
-                className="group/roll inline-flex h-11 shrink-0 items-center whitespace-nowrap rounded-full bg-ink px-4 sm:px-6 text-[14px] sm:text-[15px] font-medium text-paper transition-opacity hover:opacity-90"
-              >
-                <RollText>Go to dashboard</RollText>
-              </Link>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="whitespace-nowrap text-ink hover:text-primary transition-colors"
-                >
-                  Sign in
-                </Link>
-                <a
-                  href="#spaces"
-                  className="group/roll inline-flex h-11 shrink-0 items-center whitespace-nowrap rounded-full bg-ink px-4 sm:px-6 text-[14px] sm:text-[15px] font-medium text-paper transition-opacity hover:opacity-90"
-                >
-                  <RollText>Get started</RollText>
-                </a>
-              </>
-            )}
-          </nav>
-        </div>
-      </header>
+      <SiteHeader signedIn={signedIn} getStartedHref="#spaces" />
 
       <section id="top" className="relative overflow-hidden">
         <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-12 grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] items-center gap-x-8 gap-y-12 min-h-[calc(100svh-5rem)] sm:min-h-[calc(100svh-6rem)] pt-10 lg:pt-0">
           <div className="space-y-8 lg:pb-24">
-            {/* Fluid so the three forced lines never become four: a fourth
-                line pushes the pot below the fold on shorter screens. */}
-            <h1 className="font-display text-[40px] sm:text-[clamp(2.5rem,4.6vw,4.625rem)] font-semibold leading-[1.05] tracking-tight text-ink">
-              Many ideas.
+            {/* Fluid so the three forced lines never become four or five: a
+                wrapped line pushes the pot below the fold on shorter screens.
+                These lines run longer than the old ones, so the ramp tops out
+                lower. */}
+            <h1 className="font-display text-[32px] sm:text-[clamp(2.1rem,3.4vw,3.4rem)] font-semibold leading-[1.08] tracking-tight text-ink">
+              Everyone takes notes.
               <br />
-              One shared
+              Meltingpot brings
               <br />
-              knowledge base.
+              them together.
             </h1>
             <p className="text-lg sm:text-xl text-ink-muted leading-relaxed max-w-md">
-              Write your notes however they come out. MeltingPot shapes them
-              into something the whole class can read, and nothing leaves your
-              hands until you say so.
+              Turn scattered notes, resources, and explanations into one
+              shared course space your whole class can explore.
             </p>
             <div className="flex flex-wrap items-center gap-8 pt-2">
               <Button href={signedIn ? "/home" : "#spaces"} size="lg" roll>
-                {signedIn ? "Go to dashboard" : "Get started"}
+                {signedIn ? "Go to dashboard" : "Join a class"}
               </Button>
               <a
                 href="#explore"
@@ -153,7 +65,7 @@ export function BrandLanding({
             </div>
           </div>
           <div className="relative h-full min-h-[320px] lg:min-h-[calc(100svh-6rem)] flex items-end justify-center lg:justify-end">
-            <PotHeroArt className="w-full max-w-120 lg:max-w-150 max-h-[calc(100dvh-8.5rem)] mb-2.5 -translate-x-3 -translate-y-4 lg:-translate-x-[27px]" />
+            <PotHeroBlob className="w-full max-w-120 lg:max-w-150 max-h-[calc(100dvh-8.5rem)] mb-2.5 -translate-x-3 -translate-y-4 lg:-translate-x-[27px]" />
           </div>
         </div>
       </section>
@@ -301,77 +213,7 @@ export function BrandLanding({
         </Reveal>
       </section>
 
-      <footer className="px-6 sm:px-10 py-12 border-t border-edge">
-        <div className="mx-auto w-full max-w-5xl flex flex-col gap-10 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-3">
-            <Wordmark />
-            <p className="max-w-xs text-[13px] text-ink-muted">
-              Everything your class knows, in one Pot. Built in the open, MIT
-              licensed.
-            </p>
-          </div>
-          {/* Two credits, one mark each, sharing a baseline. The repository sits
-              beside the hackathon it was built for because both are the same
-              claim: this is a real thing you can go and look at. */}
-          <div className="flex flex-wrap items-end justify-center gap-x-10 gap-y-8 sm:justify-end">
-            <Credit
-              href={REPO_URL}
-              label="Open source on GitHub"
-              mark={
-                <GithubLogo
-                  className="size-7 text-ink transition-transform duration-300 group-hover:-translate-y-0.5"
-                  weight="fill"
-                  aria-hidden
-                />
-              }
-            />
-            <span aria-hidden className="hidden h-10 w-px bg-edge sm:block" />
-            <Credit
-              href="https://pixel-forge-ai-hackathon-08.devpost.com/"
-              label="Made for the Pixel Forge AI Hackathon"
-              mark={
-                /* The hackathon's own mark, kept at its own colors as a credit. */
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
-                  src="/pixel-forge-ai-hackathon.png"
-                  alt="Pixel Forge AI"
-                  width={932}
-                  height={103}
-                  className="h-7 w-auto transition-transform duration-300 group-hover:-translate-y-0.5"
-                />
-              }
-            />
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
-  );
-}
-
-/**
- * A mark above a line of text, linking somewhere a visitor can verify a claim.
- * Both footer credits share it so their baselines and their hover agree.
- */
-function Credit({
-  href,
-  label,
-  mark,
-}: {
-  href: string;
-  label: string;
-  mark: React.ReactNode;
-}) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer noopener"
-      className="group inline-flex flex-col items-center gap-2.5"
-    >
-      <span className="flex h-7 items-end">{mark}</span>
-      <span className="text-center text-sm font-semibold tracking-tight text-ink transition-colors group-hover:text-primary">
-        {label}
-      </span>
-    </a>
   );
 }

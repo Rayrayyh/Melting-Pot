@@ -84,7 +84,7 @@ test.describe("account and landing for signed-in people", () => {
 
     await page.goto("/");
     await expect(
-      page.getByRole("heading", { name: "Many ideas. One shared knowledge base." }),
+      page.getByRole("heading", { name: "Everyone takes notes. Meltingpot brings them together." }),
     ).toBeVisible();
 
     // No sign-in or sign-up prompts for someone already signed in.
