@@ -48,5 +48,7 @@ Cream paper background (#faf4e6), warm white surfaces, near-black ink, brand ora
 ## Working agreements
 
 - Follow `docs/PLAN.md` step order; each step ends with lint + typecheck + build green, a commit, and a push to `claude/meltingpot-mvp-build-57aw4u`.
+- All work stays on `claude/meltingpot-mvp-build-57aw4u` until the project is finished. Do not merge it into `main`, do not open follow-up pull requests to move it there, and do not ask again each round: the owner merges when they decide the project is done. `main` being behind is expected, not a problem to solve.
+- Do not schedule recurring pull request check-ins or any other self-firing routine. Report on a PR when the owner asks, or when a GitHub event actually needs a decision.
 - When something breaks, check `memory/lessons/` first, and record any new lesson worth keeping.
 - Log every architectural or scope decision in `memory/decisions/` at the moment it is made.
