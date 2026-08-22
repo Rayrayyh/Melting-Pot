@@ -72,7 +72,7 @@ export function BrandLanding({
               alt=""
               width={1254}
               height={1254}
-              className="w-full max-w-145 lg:max-w-170 h-auto mb-2.5 -translate-x-5 -translate-y-7"
+              className="w-full max-w-145 lg:max-w-170 h-auto mb-2.5 -translate-x-5 -translate-y-12"
             />
           </div>
         </div>
