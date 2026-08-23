@@ -63,7 +63,10 @@ export function BrandLanding({
               </a>
             </div>
           </div>
-          <div className="relative h-full min-h-[320px] lg:min-h-[calc(100svh-6rem)] flex items-end justify-center lg:justify-end">
+          {/* Centred rather than sat on the bottom edge, then nudged 10px down
+              from that centre. The nudge is margin, not a transform, so the
+              box the layout reserves is the box the pot occupies. */}
+          <div className="relative h-full min-h-[320px] lg:min-h-[calc(100svh-6rem)] flex items-center justify-center lg:justify-end">
             {/* The owner's illustration, used verbatim. It ships its own
                 transparency, so it sits on both themes.
 
@@ -72,15 +75,18 @@ export function BrandLanding({
                 about 836px pushed its top past this section, which is
                 overflow-hidden, and the steam got sliced off. Nudging the
                 offset only moved the height at which that started. max-h ties
-                it to the space actually available, and the transform is gone
-                because a post-layout scale can overflow a box that fits. */}
+                it to the space actually available: the section is 100svh minus
+                the header, and centring means the whole 6px of top margin
+                comes off the bottom clearance, so 7.5rem of headroom leaves
+                the pot clear at every height. Width is what grows; the height
+                clamp only ever catches short viewports. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/pot-hero.png"
               alt=""
               width={1254}
               height={1254}
-              className="w-full max-w-140 lg:max-w-[684px] max-h-[calc(100svh-10rem)] h-auto object-contain mb-2.5 -translate-x-5"
+              className="w-full max-w-140 lg:w-[110.25%] lg:max-w-none max-h-[calc(100svh-7.5rem)] h-auto object-contain mt-1.5 -translate-x-[23px]"
             />
           </div>
         </div>
