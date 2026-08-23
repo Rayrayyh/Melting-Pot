@@ -65,14 +65,22 @@ export function BrandLanding({
           </div>
           <div className="relative h-full min-h-[320px] lg:min-h-[calc(100svh-6rem)] flex items-end justify-center lg:justify-end">
             {/* The owner's illustration, used verbatim. It ships its own
-                transparency, so it sits on both themes. */}
+                transparency, so it sits on both themes.
+
+                Bound by height as well as width. Sized on max-w alone it was a
+                fixed 685px tall at every viewport, so anything shorter than
+                about 836px pushed its top past this section, which is
+                overflow-hidden, and the steam got sliced off. Nudging the
+                offset only moved the height at which that started. max-h ties
+                it to the space actually available, and the transform is gone
+                because a post-layout scale can overflow a box that fits. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/pot-hero.png"
               alt=""
               width={1254}
               height={1254}
-              className="w-full max-w-140 lg:max-w-163 h-auto mb-2.5 -translate-x-5 -translate-y-[46px] scale-105 origin-bottom"
+              className="w-full max-w-140 lg:max-w-[684px] max-h-[calc(100svh-10rem)] h-auto object-contain mb-2.5 -translate-x-5"
             />
           </div>
         </div>
