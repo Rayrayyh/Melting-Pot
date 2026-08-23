@@ -4,9 +4,11 @@
   MeltingPot design tokens.
   Light theme: cream paper, warm white surfaces, near-black ink, and the
   brand orange as primary. Dark theme is a derived warm charcoal variant.
-  Theme resolution: no data-theme attribute follows the system preference;
-  data-theme="light" | "dark" is an explicit user choice (persisted in
-  localStorage, applied before paint by the inline script in layout.tsx).
+  Theme resolution: data-theme="light" | "dark" is an explicit choice, and
+  light is also what a viewer who has never chosen gets, stamped before paint
+  by the inline script in layout.tsx. The attribute is absent only for the
+  stored "system" choice, which is what leaves the media query below in
+  charge. Choices persist in localStorage.
 */
 
 :root {

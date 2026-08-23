@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ThemeToggle } from "@/components/brand/theme-toggle";
 import { Wordmark } from "@/components/shell/wordmark";
 import { RollText } from "@/components/ui/roll-text";
 import { cn } from "@/lib/cn";
@@ -46,6 +47,10 @@ export function SiteHeader({
               {item.label}
             </Link>
           ))}
+          {/* Ahead of the account actions, so the row still ends on the one
+              pill that matters most. Settings holds the full picker; this is
+              the whole of it for anyone who has not signed in yet. */}
+          <ThemeToggle />
           {signedIn ? (
             <Link
               href="/home"

@@ -517,6 +517,7 @@ export function StudyWorkspace({
 
       {tab === "previous" ? (
         <PreviousSets
+          kind={kind}
           sets={savedSets}
           sectionTitles={sectionTitles}
           busy={busy}
@@ -671,29 +672,35 @@ export function StudyWorkspace({
 }
 
 /**
- * Every test this Pot has written, newest first. A test survives the notes
- * moving on, so this is where a class comes back to one they have sat before
- * rather than spending a generation writing it again.
+ * Every set this Pot has built, newest first. A set survives the notes moving
+ * on, so this is where a class comes back to one they have used before rather
+ * than spending a generation building it again. The copy follows the kind: a
+ * deck is not a test, and calling one the other reads as a mistake.
  */
 function PreviousSets({
+  kind,
   sets,
   sectionTitles,
   busy,
   openedId,
   onOpen,
 }: {
+  kind: StudyKind;
   sets: SavedStudySet[];
   sectionTitles: Map<string, string>;
   busy: boolean;
   openedId: string | null;
   onOpen: (set: SavedStudySet) => void;
 }) {
+  const noun = kind === "summary" ? "summary" : kind === "flashcards" ? "deck" : "test";
+  const plural = kind === "summary" ? "summaries" : `${noun}s`;
+  const open = kind === "summary" ? "Read this summary" : kind === "flashcards" ? "Practice this deck" : "Take this test";
   if (sets.length === 0) {
     return (
       <Card>
         <CardSection className="py-12 text-center">
           <p className="text-sm text-ink-muted">
-            No tests yet. The first one written is kept here for the whole class.
+            No {plural} yet. The first one built is kept here for the whole class.
           </p>
         </CardSection>
       </Card>
@@ -702,7 +709,7 @@ function PreviousSets({
   return (
     <div className="space-y-2.5">
       <p className="text-[12px] text-ink-faint">
-        Every test the class has written stays here. Opening one costs nothing.
+        Every {noun} the class has built stays here. Opening one costs nothing.
       </p>
       {sets.map((set) => (
         <Card key={set.id}>
@@ -711,8 +718,8 @@ function PreviousSets({
               <p className="truncate text-sm font-medium text-ink">{set.title}</p>
               <p className="text-[12px] text-ink-faint">
                 {set.options
-                  ? describeOptions(set.options, sectionTitles)
-                  : `${set.itemCount} questions`}
+                  ? describeOptions(set.options, sectionTitles, kind)
+                  : `${set.itemCount} ${kind === "flashcards" ? "cards" : "questions"}`}
                 {" · "}
                 built {relativeTime(set.createdAt)}
               </p>
@@ -724,7 +731,7 @@ function PreviousSets({
               disabled={busy}
             >
               <ClockCounterClockwise className="size-4" />
-              {set.id === openedId ? "Open again" : "Take this test"}
+              {set.id === openedId ? "Open again" : open}
             </Button>
           </CardSection>
         </Card>
