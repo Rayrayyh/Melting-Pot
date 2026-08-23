@@ -95,34 +95,61 @@ cp .env.example .env.local   # add Supabase values and a server-only model key
 pnpm dev
 ```
 
-Apply every migration in `supabase/migrations/` in filename order. For a development database with sample data, the dev seed lives in 0006, 0009, and 0010; call the `dev_reseed` function to reset it. 0013 is the production data cleanup and is only for a database going live, and it drops the seed functions, so a development database should stop before it.
+Apply every migration in `supabase/migrations/` in filename order. For a development database with sample data, run `select public.dev_seed();` as the service role. Migration 0034 revoked `dev_reseed` from ordinary signed-in users, because it guarded itself on an email suffix anyone could register, so seeding is a deliberate service-role action now rather than something the app can trigger. 0013 is the production data cleanup and is only for a database going live, and it drops the seed functions, so a development database should stop before it.
 
 Tests: `pnpm test:unit` (vitest) and `pnpm test:e2e` (Playwright, expects the dev seed).
 
 ## Configuring the model
 
-Three server-side variables, and it is all or nothing: `mixingConfigured()` in `lib/mix/server.ts` requires the key and both model names together. Leave any one of them empty and the deterministic organizer quietly carries every flow while the study tools report that mixing is unavailable. That fallback is deliberate, so a model outage never stops a class sharing anything, but it does mean a misconfiguration looks like the AI simply not being there.
+The AI runs on Google's Gemini API. To use your own key, grab one from
+[Google AI Studio](https://aistudio.google.com/apikey) and drop these three
+lines into `web/.env.local`:
 
 ```bash
-MODEL_API_KEY=        # server only, never prefixed with NEXT_PUBLIC_
-FAST_MODEL=           # organizing, reading images, summaries, decks
-REASONING_MODEL=      # practice tests
+MODEL_API_KEY=your-gemini-api-key-here
+FAST_MODEL=gemini-3.6-flash
+REASONING_MODEL=gemini-3.1-pro-preview
 ```
 
-**Where the key goes.** Locally, `web/.env.local`. On Netlify, Site configuration then Environment variables, scoped to *every* context you expect to use and marked secret. A key set only on the `production` context means deploy previews and branch deploys fall back to the deterministic organizer with nothing on screen saying why, which is a confusing way to demo. The key is read only on the server and never reaches the browser.
+Those are the two models the live site runs on, so they are a safe place to
+start. Restart `pnpm dev` afterwards, since Next only reads the environment when
+it boots.
 
-**Which provider.** The variable names are provider-neutral but the client is not. `lib/mix/server.ts` posts to Google's Gemini Interactions API at `generativelanguage.googleapis.com/v1beta/interactions`, sends the key as an `x-goog-api-key` header, and pins `Api-Revision: 2026-05-20`. So `MODEL_API_KEY` wants a Gemini API key from Google AI Studio. Pointing this at another provider takes an adapter, not just a different key.
+**All three or none.** `mixingConfigured()` in `lib/mix/server.ts` wants the key
+and both model names together. If any one of them is blank, the app quietly
+falls back to its deterministic organizer and the study tools say mixing is
+unavailable. That fallback is on purpose, so a model outage never stops a class
+sharing their notes. The catch is that a typo in one variable looks exactly like
+the AI not being set up at all, so check all three before hunting for a bug.
 
-**Which models.** Model identifiers belong to the provider and change on its schedule, so the app never names one in source: set both to whatever your provider currently publishes.
+**What each model does.**
 
-| Variable | What it drives | What it wants |
+| Variable | What it drives | Why that tier |
 | --- | --- | --- |
-| `FAST_MODEL` | organizing a note, reading image attachments, class summaries, flashcards | a fast, cheap model, a Flash tier. Most calls are this one |
-| `REASONING_MODEL` | writing practice tests | a stronger model. Question quality and answer keys are where the difference shows |
+| `FAST_MODEL` | organizing a note, reading image attachments, class summaries, flashcards | nearly every call goes here, so it wants something fast and cheap |
+| `REASONING_MODEL` | writing practice tests | question quality and the answer keys are where a stronger model earns its keep |
 
-A Flash-tier identifier such as `gemini-3.6-flash` is the shape `FAST_MODEL` expects.
+The code never hardcodes a model name, because provider identifiers change on
+their own schedule. The two above were current when this was written, so if
+Google retires one, just set whatever replaces it.
 
-Every request sets `store: false`, so prompts are not kept by the provider's stored-content path. Calls are bounded by a shared deadline that sits under the platform's function ceiling, and retry on capacity errors up to four attempts.
+**This client only speaks Gemini.** The variable names look provider-neutral,
+but the code is not. `lib/mix/server.ts` posts to
+`generativelanguage.googleapis.com/v1beta/interactions`, sends your key as an
+`x-goog-api-key` header, and pins `Api-Revision: 2026-05-20`. Swapping in
+another provider means writing an adapter, not just changing the key.
+
+**Cost and privacy.** The Google AI Studio free tier is enough to try every flow
+in the app. Every request sets `store: false`, so your prompts stay out of the
+provider's stored-content path. Calls share a deadline that sits under the
+hosting platform's function ceiling, and they retry up to four times when the
+provider is busy.
+
+**Deploying it.** On Netlify, go to Site configuration, then Environment
+variables. Add the key to every context you plan to use, and mark it secret. If
+you set it only on `production`, deploy previews and branch deploys fall back to
+the deterministic organizer without saying why, which makes for a confusing
+demo. The key is only ever read on the server and never reaches the browser.
 
 ## Repo map
 
