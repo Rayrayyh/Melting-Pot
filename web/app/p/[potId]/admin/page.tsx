@@ -380,10 +380,11 @@ export default async function AdminPage({
                 <div className="space-y-0.5">
                   <p className="text-[13px] font-medium text-ink-muted">Study record</p>
                   <p className="text-[12px] text-ink-faint">
-                    Practice, not grades. Tests count first passes only, retries
-                    show as coming back, and a couple of results is too few to
-                    read anything into. Members are told this page can see their
-                    results. Alphabetical, because a class is not a ranking.
+                    Practice, not grades. A score is the first pass at a test;
+                    retries show separately as coming back to it. One result is
+                    a result, not a trend. Members are told this page can see
+                    their results. Alphabetical, because a class is not a
+                    ranking.
                   </p>
                 </div>
                 {practicing === 0 ? (
@@ -413,16 +414,21 @@ export default async function AdminPage({
                           <div>
                             <dt className="text-[11px] uppercase tracking-wide text-ink-faint">Tests</dt>
                             <dd className="tabular-nums text-ink">
-                              {row.tests.firstPass < 2 ? (
-                                row.tests.attempts === 0 ? (
-                                  <span className="text-ink-faint">None yet</span>
-                                ) : (
-                                  <span className="text-ink-muted">Too few to read into</span>
-                                )
+                              {row.tests.attempts === 0 ? (
+                                <span className="text-ink-faint">None yet</span>
                               ) : row.tests.latestFirstPass ? (
-                                `${row.tests.latestFirstPass.correct} of ${row.tests.latestFirstPass.total} latest first pass`
+                                <>
+                                  {`${row.tests.latestFirstPass.correct} of ${row.tests.latestFirstPass.total}`}
+                                  {/* The number is shown, and what it is worth
+                                      is said beside it. Hiding the score until
+                                      a second test only left a maintainer
+                                      unable to see the thing they came for. */}
+                                  <span className="ml-1 text-[11px] text-ink-faint">
+                                    {row.tests.firstPass < 2 ? "one test so far" : `over ${row.tests.firstPass} tests`}
+                                  </span>
+                                </>
                               ) : (
-                                `${row.tests.firstPass} first passes`
+                                <span className="text-ink-muted">Retries only</span>
                               )}
                               {row.tests.attempts > row.tests.firstPass
                                 ? ` · ${row.tests.attempts - row.tests.firstPass} ${
