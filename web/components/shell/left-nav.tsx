@@ -7,8 +7,9 @@ import {
   ChatCircleText,
   GearSix,
   House,
-  ListChecks,
+  Notebook,
   Plus,
+  ShieldCheck,
   SignIn,
   Users,
 } from "@phosphor-icons/react";
@@ -42,9 +43,20 @@ function NavLink({
       {icon ? <span aria-hidden className="[&>svg]:size-[18px] shrink-0">{icon}</span> : null}
       <span className="truncate">{label}</span>
       {badge && badge > 0 ? (
-        <span className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-pending-soft px-1.5 text-[11px] font-semibold text-pending">
-          {badge}
-        </span>
+        <>
+          {/* The number alone made the link read as "Admin 1", which says
+              nothing about what the one is. The digit is decorative and the
+              sentence beside it is what a screen reader gets. */}
+          <span
+            aria-hidden
+            className="ml-auto inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-pending-soft px-1.5 text-[11px] font-semibold text-pending"
+          >
+            {badge}
+          </span>
+          <span className="sr-only">
+            , {badge} waiting on review
+          </span>
+        </>
       ) : null}
     </Link>
   );
@@ -58,6 +70,12 @@ export function UserNav({ pots }: { pots: UserNavPot[] }) {
   return (
     <nav aria-label="Main" className="flex flex-col gap-0.5 p-3">
       <NavLink href="/home" label="Home" icon={<House />} active={pathname === "/home"} />
+      <NavLink
+        href="/me/contributions"
+        label="Contributions"
+        icon={<Notebook />}
+        active={pathname.startsWith("/me/contributions")}
+      />
       {pots.length > 0 ? (
         <div className="mt-4">
           <p className="px-3 pb-1.5 text-[11px] font-semibold tracking-[0.08em] uppercase text-ink-faint">
@@ -153,10 +171,14 @@ export function PotNav({
       />
       {isMaintainer ? (
         <NavLink
-          href={`${base}/review`}
-          label="Review"
-          icon={<ListChecks />}
-          active={pathname.startsWith(`${base}/review`)}
+          href={`${base}/admin`}
+          label="Admin"
+          icon={<ShieldCheck />}
+          // The decision surface still lives under /review, so a maintainer
+          // reading one correction is still inside the section they came from.
+          active={
+            pathname.startsWith(`${base}/admin`) || pathname.startsWith(`${base}/review`)
+          }
           badge={openReviewCount}
         />
       ) : null}

@@ -25,7 +25,7 @@ export default async function SettingsPage({ params }: PageProps<"/p/[potId]/set
           <header className="space-y-1">
             <h1 className="text-2xl font-semibold tracking-tight">Pot settings</h1>
             <p className="text-sm text-ink-muted">
-              Identity, class code, sections, and membership.
+              Identity, class code, how the Pot runs, sections, and membership.
             </p>
           </header>
           <SettingsPanel
@@ -33,6 +33,9 @@ export default async function SettingsPage({ params }: PageProps<"/p/[potId]/set
             isOwner={pot?.owner_id === user.id}
             sectionsSlot={
               potContext.role !== "member" ? (
+                // Removed notes used to sit here too. They live on the admin
+                // page now, beside the removed sets and cards, so there is one
+                // place to look for anything taken out rather than two.
                 <SectionsPanel potId={potContext.id} sections={sectionRows ?? []} />
               ) : undefined
             }

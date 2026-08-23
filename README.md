@@ -20,17 +20,33 @@ A class space is called a Pot. A teacher creates one and gets a six character cl
 
 ## Where the AI lives
 
-Organization is the product, not a feature bolted onto it. The pipeline that turns raw text into a structured note runs behind a provider interface in `web/lib/organizer`: it derives a title, splits structure out of unbroken prose, detects definitions and lists, writes a summary, extracts takeaways, suggests which section the note belongs in, and preserves the author's uncertainty rather than resolving it.
+Organization is the product, not a feature bolted onto it. Rough text is mixed into a structured note, and image attachments are captioned or transcribed when that helps. Every model call runs through authenticated server routes, treats note and attachment contents as untrusted source material, and returns schema-constrained data for normalization before the student sees it. The student's original remains untouched and nothing is shared without approval.
 
-Two decisions shape the design. First, the engine in this build is a deterministic, rule based automation system rather than a live model call, which makes every trust promise provable: it restructures what you wrote and cannot invent content, so the approval gates around it are real guarantees instead of hopes. Second, the interface means swapping in the Claude provider is a configuration change, not a refactor; the review gate, the attribution trail, and the human approval flow are identical whichever engine runs. The product states its own boundary in the maintainer workspace: AI cannot publish this change. A maintainer must decide.
+The Pot home is also a study hub: raw notes, a class-wide summary, flashcards, and a practice test generated from shared material. A fast model handles organization, vision, summaries, and cards; a stronger one is reserved for writing practice tests. Both are named in configuration rather than in source. The deterministic organizer remains as a local fallback when neither is configured.
+
+Generated material is stored per Pot and keyed by a fingerprint of the notes it was built from, so a class shares one deck rather than each student spending a generation on the same thing. Share a note, accept a correction, or remove one, and the fingerprint changes and the next request rebuilds. Nothing generated is ever put in an HTTP cache: the database is the only cache, and it is one a maintainer can look at and delete.
+
+## Studying from what the class built
+
+Flashcards and the practice test are learning flows, not lists. Cards come one at a time, flip on a click or the space bar, move with the arrow keys, and get marked known or still learning; the round ends on a summary that offers the hard ones again. Cards carry tags, and the deck filters by them.
+
+A practice test is set up before it is written: five to twenty questions, three difficulties, the sections to draw from, and anything to concentrate on in your own words. It asks one question at a time with a navigator and answers you can change, reveals nothing until you hand it in, then marks with the correct answer, your answer, the explanation, and the note each question came from, and offers the ones you missed again. Nothing about how you are doing is written down anywhere.
+
+Reading a note is study too. Notes highlight the terms they define or emphasise, worked out from the note itself rather than asked of a model, and selecting any passage offers to turn it into a flashcard that belongs to whoever wrote it.
 
 ## What is in the product
 
 The dashboard is role aware. Students land on their own unfinished drafts and any corrections that came back asking for revision. Maintainers land on the queue of corrections waiting for their review across every Pot they maintain. Pot cards carry live member, note, and correction counts and a continue link back to the last note you read.
 
+Search reaches notes, sections, study summaries, and flashcards across every Pot you belong to, filtered by kind and by Pot and ordered by recency or by how many times a note has been corrected.
+
+Maintainers can take a note out of a Pot with a reason and put it back, delete a generated set, and delete cards. Removal is not deletion: the note leaves the feed, search, and study material, its page says who removed it and why, and every version and everyone credited stays on the record. Pot settings lists what is out with a way back. Deleting or archiving the Pot itself stays with the owner.
+
 Inside a Pot: a shared feed with section filters, full text search across titles, content, contributors, and attachments, file uploads (images including phone camera HEIC, PDFs, documents) and links that stay connected from draft through publication, version history with the complete attribution trail, and maintainer tools for sections, roles, class code regeneration, and archiving with a way back. Light and dark themes throughout, reduced motion respected, and a landing page whose scroll sequence melts a messy note into an organized one.
 
 Account settings hold the theme (follow your device, or pick a side) and, for the people who run a Pot, two-step sign in with an authenticator app such as Google Authenticator. That one is enforced rather than advertised: turning it on adds a code step to every later sign in, and the test suite proves it by playing the authenticator itself.
+
+Sign in is an email and a password, behind a provider seam in `web/lib/auth`: everything the app needs from an identity provider is described in the product's own words, so moving to a hosted provider such as Clerk is an implementation behind that interface rather than a rewrite of every page. `docs/AUTH.md` explains the contract and what a swap actually costs.
 
 ## Screenshots
 
@@ -41,6 +57,14 @@ Role based dashboard with the maintainer review queue, Pot stats, and cross Pot 
 Review before sharing: the organized note beside the preserved original, with attachments and identity in view:
 
 ![Review before sharing](docs/screenshots/review-before-sharing.png)
+
+Flashcards, one card at a time, with the deck filtered by tag:
+
+![Flashcards](docs/screenshots/flashcards.png)
+
+A practice test marked, with the answer, the explanation, and the note each question came from:
+
+![Practice results](docs/screenshots/practice-results.png)
 
 Pot settings with maintainer section management, in the dark theme:
 
@@ -60,26 +84,52 @@ Built for the [Pixel Forge AI Hackathon](https://pixel-forge-ai-hackathon-08.dev
 
 Next.js 16 (App Router, TypeScript, Tailwind) in `web/`, on Supabase for Postgres, auth, and file storage, hosted on Netlify. Security is enforced in the database, not the client: row level security on every table, privileged transitions through security definer functions that re-validate the caller at time of use, database enforced rate limiting on every sensitive operation (sized so an entire class behind one school network can sign up together), and an API surface closed down to exactly what the app uses. Anonymous visitors can reach two functions: look up a class code and register. Shared notes and their versions can only be written through the reviewed publish paths.
 
-The build is covered by 34 unit tests and 40 Playwright end to end tests over every core flow, plus two adversarial review passes whose confirmed findings, from access control holes to a diff that could hang a browser tab, were all fixed and are documented in the build log.
+The build is covered by 186 unit tests and 53 Playwright end to end tests over every core flow, plus two adversarial review passes whose confirmed findings, from access control holes to a diff that could hang a browser tab, were all fixed and are documented in the build log. Both study sessions are written as reducers, so how a deck is walked and how a test is marked are unit tests rather than browser tests. A Checks workflow runs lint, types, unit tests, and a production build on every push and pull request.
 
 ## Running it locally
 
 ```bash
 cd web
 pnpm install
-cp .env.example .env.local   # your Supabase URL and anon key
+cp .env.example .env.local   # add Supabase values and a server-only model key
 pnpm dev
 ```
 
-Apply the migrations in `supabase/migrations/` to a Supabase project in order (0001 through 0018). For a development database with sample data, the dev seed lives in 0006, 0009, and 0010; call the `dev_reseed` function to reset it. 0013 is the production data cleanup and is only for a database going live.
+Apply every migration in `supabase/migrations/` in filename order. For a development database with sample data, the dev seed lives in 0006, 0009, and 0010; call the `dev_reseed` function to reset it. 0013 is the production data cleanup and is only for a database going live, and it drops the seed functions, so a development database should stop before it.
 
 Tests: `pnpm test:unit` (vitest) and `pnpm test:e2e` (Playwright, expects the dev seed).
+
+## Configuring the model
+
+Three server-side variables, and it is all or nothing: `mixingConfigured()` in `lib/mix/server.ts` requires the key and both model names together. Leave any one of them empty and the deterministic organizer quietly carries every flow while the study tools report that mixing is unavailable. That fallback is deliberate, so a model outage never stops a class sharing anything, but it does mean a misconfiguration looks like the AI simply not being there.
+
+```bash
+MODEL_API_KEY=        # server only, never prefixed with NEXT_PUBLIC_
+FAST_MODEL=           # organizing, reading images, summaries, decks
+REASONING_MODEL=      # practice tests
+```
+
+**Where the key goes.** Locally, `web/.env.local`. On Netlify, Site configuration then Environment variables, scoped to *every* context you expect to use and marked secret. A key set only on the `production` context means deploy previews and branch deploys fall back to the deterministic organizer with nothing on screen saying why, which is a confusing way to demo. The key is read only on the server and never reaches the browser.
+
+**Which provider.** The variable names are provider-neutral but the client is not. `lib/mix/server.ts` posts to Google's Gemini Interactions API at `generativelanguage.googleapis.com/v1beta/interactions`, sends the key as an `x-goog-api-key` header, and pins `Api-Revision: 2026-05-20`. So `MODEL_API_KEY` wants a Gemini API key from Google AI Studio. Pointing this at another provider takes an adapter, not just a different key.
+
+**Which models.** Model identifiers belong to the provider and change on its schedule, so the app never names one in source: set both to whatever your provider currently publishes.
+
+| Variable | What it drives | What it wants |
+| --- | --- | --- |
+| `FAST_MODEL` | organizing a note, reading image attachments, class summaries, flashcards | a fast, cheap model, a Flash tier. Most calls are this one |
+| `REASONING_MODEL` | writing practice tests | a stronger model. Question quality and answer keys are where the difference shows |
+
+A Flash-tier identifier such as `gemini-3.6-flash` is the shape `FAST_MODEL` expects.
+
+Every request sets `store: false`, so prompts are not kept by the provider's stored-content path. Calls are bounded by a shared deadline that sits under the platform's function ceiling, and retry on capacity errors up to four attempts.
 
 ## Repo map
 
 - `docs/SPEC.md`: the authoritative product spec
 - `docs/PLAN.md`: the execution plan with per step status
 - `docs/BUILDLOG.md`: what was built, found, and fixed, step by step
+- `docs/AUTH.md`: the authentication seam and how to swap the provider
 - `memory/`: decisions and lessons recorded as they happened
 - `supabase/migrations/`: the full schema, security, and function history
 - `web/`: the app

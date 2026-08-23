@@ -24,7 +24,8 @@ test.describe("search and settings", () => {
     ).toBeVisible();
 
     await page.goto("/search?q=Exam review");
-    await expect(page.getByText(/^Section · /).first()).toBeVisible();
+    await expect(page.getByText("Section", { exact: true }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: /Exam review/ }).first()).toBeVisible();
 
     await page.goto("/search?q=zzzznothing");
     await expect(page.getByText("No matches yet")).toBeVisible();
@@ -41,11 +42,6 @@ test.describe("search and settings", () => {
     await expect(page.getByRole("button", { name: "Regenerate code" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Delete Pot" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Leave this Pot" })).toBeVisible();
-
-    // Integrations exist as quiet, disabled hooks only.
-    await expect(
-      page.getByRole("button", { name: "Connect Google Classroom" }),
-    ).toBeDisabled();
 
     // Members manage nobody.
     await page.getByRole("link", { name: "Members", exact: true }).click();
@@ -126,9 +122,9 @@ test.describe("search and settings", () => {
       .click();
     await page.getByRole("link", { name: "Settings", exact: true }).click();
 
-    // Add. The section list is the only list on the page; section titles
-    // also appear in the left nav, so assertions stay scoped to list items.
-    const rows = page.getByRole("listitem");
+    // Section titles also appear in the left nav, and settings carries other
+    // lists, so every assertion below is scoped to the sections list itself.
+    const rows = page.getByRole("list", { name: "Sections" }).getByRole("listitem");
     await page.getByLabel("New section name").fill("Lab safety");
     await page.getByRole("button", { name: "Add section" }).click();
     await expect(rows.filter({ hasText: "Lab safety" })).toHaveCount(1, {
@@ -199,7 +195,11 @@ test.describe("search and settings", () => {
     await expect(page.getByText("This Pot is archived")).toHaveCount(0, { timeout: 15_000 });
     await expect(page.getByRole("link", { name: "Add contribution" }).first()).toBeVisible();
     await page.getByRole("button", { name: "Delete Pot" }).click();
-    await page.getByRole("dialog").getByRole("button", { name: "Delete Pot permanently" }).click();
+    // Deleting asks for the Pot's name, because nothing brings one back.
+    const confirm = page.getByRole("dialog").getByRole("button", { name: "Delete Pot permanently" });
+    await expect(confirm).toBeDisabled();
+    await page.getByLabel("Type Archive lifecycle check to confirm").fill("Archive lifecycle check");
+    await confirm.click();
     await expect(page).toHaveURL(/\/home/, { timeout: 15_000 });
   });
 });

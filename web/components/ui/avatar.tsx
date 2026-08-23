@@ -25,13 +25,31 @@ const SIZES = {
 
 export function Avatar({
   name,
+  src,
   size = "md",
   className,
 }: {
   name: string;
+  /** A picture the person uploaded. Falls back to the tinted icon without it. */
+  src?: string | null;
   size?: keyof typeof SIZES;
   className?: string;
 }) {
+  if (src) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={src}
+        alt=""
+        aria-hidden
+        className={cn(
+          "inline-block rounded-full shrink-0 object-cover bg-sunken",
+          SIZES[size].box,
+          className,
+        )}
+      />
+    );
+  }
   return (
     <span
       aria-hidden
@@ -50,18 +68,20 @@ export function Avatar({
 /** Avatar + name + meta line, the standard attribution row. */
 export function AttributionRow({
   name,
+  avatarUrl,
   meta,
   size = "md",
   className,
 }: {
   name: string;
+  avatarUrl?: string | null;
   meta?: string;
   size?: "sm" | "md";
   className?: string;
 }) {
   return (
     <div className={cn("flex items-center gap-2.5 min-w-0", className)}>
-      <Avatar name={name} size={size === "sm" ? "sm" : "md"} />
+      <Avatar name={name} src={avatarUrl} size={size === "sm" ? "sm" : "md"} />
       <div className="min-w-0">
         <p className={cn("font-medium text-ink truncate", size === "sm" ? "text-[13px]" : "text-sm")}>
           {name}

@@ -19,9 +19,14 @@ test.describe("Pot feed", () => {
     await openBiologyPot(page);
 
     // Vitals row.
-    await expect(page.getByText("Contributors")).toBeVisible();
+    await expect(page.getByText("Contributors", { exact: true })).toBeVisible();
     await expect(page.getByText("Shared notes", { exact: true })).toBeVisible();
     await expect(page.getByText("BIO101")).toBeVisible();
+
+    await expect(page.getByRole("link", { name: /Raw Notes/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Summary/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Flashcards/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Practice/ })).toBeVisible();
 
     // All six seeded notes, newest first.
     const cards = page.getByRole("link", { name: "Open", exact: true });
@@ -32,12 +37,24 @@ test.describe("Pot feed", () => {
     // The corrected note carries a version pill.
     await expect(page.getByText("v2", { exact: true }).first()).toBeVisible();
 
-    // Section filter narrows the feed.
+    // Contributor activity names everyone who has actually put something in.
+    // Counts and order are asserted in the unit tests instead: earlier specs
+    // in a full run share extra notes into this Pot.
+    await expect(page.getByRole("heading", { name: "Recent contributors" })).toBeVisible();
+    const chips = page.locator("section:has(#pot-contributors) li");
+    expect(await chips.count()).toBeGreaterThanOrEqual(4);
+    for (const name of ["Omar Haddad", "Ava Morgan", "Maya Chen", "Priya Patel"]) {
+      await expect(chips.filter({ hasText: name })).toHaveCount(1);
+    }
+    await expect(chips.first()).toContainText(/\d+ notes?/);
+
+    // Section filter narrows the feed, and drops the Pot-wide activity with it.
     await page.getByRole("link", { name: "Week 2: Cell structure" }).first().click();
     await expect(page).toHaveURL(/\/s\//);
     await expect(page.getByText("Osmosis and tonicity")).toBeVisible();
     await expect(page.getByText("Organelles and what they do")).toBeVisible();
     await expect(page.getByText("Mitosis vs meiosis")).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Recent contributors" })).toHaveCount(0);
   });
 
   test("note detail shows organized content with the original a tab away", async ({

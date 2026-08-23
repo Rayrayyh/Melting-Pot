@@ -1,0 +1,32 @@
+-- dev_reseed() was reachable by anyone willing to pick an email address.
+--
+-- The function is security definer and guards itself with
+--
+--   if not exists (select 1 from auth.users
+--                  where id = auth.uid() and email like '%@meltingpot.dev')
+--   then raise exception 'not_allowed'; end if;
+--
+-- which reads as "only the seed accounts may call this". It is not, because
+-- nothing in this product proves that an address belongs to the person who
+-- typed it. register_student is open to anonymous callers by design, it
+-- accepts any address, and the guard asks only what the address ends in. So
+-- the whole check is satisfied by registering `anything@meltingpot.dev` and
+-- signing in, which takes two requests and no privileges at all.
+--
+-- What that bought: dev_reseed deletes every Pot owned by the seed addresses
+-- and every `e2e.*@meltingpot.dev` account, then runs dev_seed, which creates
+-- four accounts whose password is written in the source. A stranger could fill
+-- the live database with a fake class and hold four working logins in it.
+--
+-- The grant is the thing that was wrong, so the grant is what changes. Only
+-- service_role may reseed now, which is how an operator does it anyway: over
+-- SQL, deliberately, before a test run. The email guard stays as a second
+-- line rather than the only one, and dev_seed was already service_role only.
+--
+-- tests/e2e/global-setup.ts asked for this over the anon endpoint as a signed
+-- in seed user. It now treats a refusal as "an operator seeded this already"
+-- and checks that the seed is actually present rather than failing outright.
+
+revoke execute on function public.dev_reseed() from authenticated, anon, public;
+
+-- Deliberately left with service_role only, matching dev_seed.

@@ -1,7 +1,8 @@
+import { getAuthUser } from "@/lib/auth/server";
 import { redirect } from "next/navigation";
 import { BrandLanding } from "@/components/landing/brand-landing";
+import { SmoothScroll } from "@/components/landing/smooth-scroll";
 import { INVALID_CODE_MESSAGE } from "@/components/landing/join-card";
-import { supabaseServer } from "@/lib/supabase/server";
 
 const LANDING_ERRORS: Record<string, string> = {
   notfound: INVALID_CODE_MESSAGE,
@@ -15,10 +16,7 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
   const errorKey = typeof params.error === "string" ? params.error : "";
   const message = LANDING_ERRORS[errorKey] ?? null;
 
-  const supabase = await supabaseServer();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
 
   // A signed-in user who followed a dead or failed invite link still needs the
   // failure; /home surfaces it next to its join field. Otherwise the landing
@@ -30,6 +28,11 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
   }
 
   return (
-    <BrandLanding initialCode={code} initialError={message} signedIn={Boolean(user)} />
+    <>
+      <BrandLanding initialCode={code} initialError={message} signedIn={Boolean(user)} />
+      {/* Smooth scrolling is the landing's alone. The signed-in shell has its
+          own scrolling panes and would fight it. */}
+      <SmoothScroll />
+    </>
   );
 }

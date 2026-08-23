@@ -1,15 +1,43 @@
+import { Fragment } from "react";
 import { Lightbulb } from "@phosphor-icons/react/dist/ssr";
 import type { NoteBlock } from "@/lib/data/pot";
 import { cn } from "@/lib/cn";
+import { collectVocabulary, highlightTerms } from "@/lib/vocabulary";
+
+/**
+ * Marks the key terms a note defined or emphasised. The terms come from the
+ * note itself, so nothing here needs a model and the same note always reads
+ * the same way.
+ */
+function Terms({ text, terms }: { text: string; terms: string[] }) {
+  if (terms.length === 0) return <>{text}</>;
+  return (
+    <>
+      {highlightTerms(text, terms).map((run, i) =>
+        run.term ? (
+          <mark key={i} className="rounded-[3px] bg-clay-soft/70 px-0.5 text-ink">
+            {run.text}
+          </mark>
+        ) : (
+          <Fragment key={i}>{run.text}</Fragment>
+        ),
+      )}
+    </>
+  );
+}
 
 /** Renders organized note blocks on the serif reading surface. */
 export function NoteBody({
   blocks,
   className,
+  vocabulary = true,
 }: {
   blocks: NoteBlock[];
   className?: string;
+  /** Highlighting off suits places where the words themselves are the subject. */
+  vocabulary?: boolean;
 }) {
+  const terms = vocabulary ? collectVocabulary(blocks) : [];
   return (
     <div className={cn("font-serif text-[17px] leading-relaxed text-ink space-y-4", className)}>
       {blocks.map((block, i) => {
@@ -21,12 +49,18 @@ export function NoteBody({
               </h3>
             );
           case "paragraph":
-            return <p key={i}>{block.text}</p>;
+            return (
+              <p key={i}>
+                <Terms text={block.text} terms={terms} />
+              </p>
+            );
           case "bullets":
             return (
               <ul key={i} className="space-y-1.5 pl-5 list-disc marker:text-ink-faint">
                 {block.items.map((item, j) => (
-                  <li key={j}>{item}</li>
+                  <li key={j}>
+                    <Terms text={item} terms={terms} />
+                  </li>
                 ))}
               </ul>
             );
@@ -40,7 +74,9 @@ export function NoteBody({
                   <span className="font-sans text-[13px] font-semibold uppercase tracking-wide text-primary block mb-1">
                     {block.term}
                   </span>
-                  {block.text}
+                  {/* The term is already the heading here, so the body is not
+                      marked up again with its own name. */}
+                  <Terms text={block.text} terms={terms.filter((term) => term !== block.term)} />
                 </p>
               </div>
             );
@@ -51,7 +87,7 @@ export function NoteBody({
                   <span className="font-sans text-[13px] font-semibold uppercase tracking-wide text-ink-faint block mb-1">
                     Example
                   </span>
-                  {block.text}
+                  <Terms text={block.text} terms={terms} />
                 </p>
               </div>
             );

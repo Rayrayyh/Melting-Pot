@@ -292,6 +292,10 @@ export const deterministicOrganizer: OrganizerProvider = {
       blocks,
       bodyText,
       takeaways,
+      // This organizer rearranges sentences and knows nothing about the world,
+      // so it never raises a doubt. Empty means nothing was raised, not that
+      // everything checks out.
+      checks: [],
       suggestedSectionId: section.id,
       sectionConfidence: section.confidence,
     };

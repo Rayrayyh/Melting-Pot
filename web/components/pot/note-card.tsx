@@ -3,12 +3,13 @@ import { ChatCircleText, Paperclip } from "@phosphor-icons/react/dist/ssr";
 import { Avatar } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { StatusPill } from "@/components/ui/pills";
+import { avatarSrc } from "@/lib/avatar-url";
 import type { FeedNote } from "@/lib/data/pot";
 import { relativeTime } from "@/lib/time";
 
 export function NoteCard({ potId, note }: { potId: string; note: FeedNote }) {
   return (
-    <Card className="hover:border-edge-strong transition-colors">
+    <Card className="mp-lift hover:border-edge-strong">
       <div className="p-5 space-y-3">
         <div className="flex items-start justify-between gap-3">
           <Link
@@ -28,7 +29,7 @@ export function NoteCard({ potId, note }: { potId: string; note: FeedNote }) {
         ) : null}
         <div className="flex items-center justify-between gap-3 pt-1">
           <div className="flex items-center gap-2 min-w-0 text-[12px] text-ink-muted">
-            <Avatar name={note.contributorName} size="sm" />
+            <Avatar name={note.contributorName} src={avatarSrc(note.contributorAvatar)} size="sm" />
             <span className="truncate">{note.contributorName}</span>
             <span aria-hidden className="text-ink-faint">&middot;</span>
             <span className="shrink-0">{relativeTime(note.sharedAt)}</span>

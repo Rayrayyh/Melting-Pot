@@ -8,9 +8,7 @@ import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Field, Input } from "@/components/ui/input";
-import { supabaseBrowser } from "@/lib/supabase/client";
-
-const FACTOR_NAME = "Authenticator app";
+import { getClientAuth } from "@/lib/auth/client";
 
 type Enrolling = { factorId: string; qr: string; secret: string };
 
@@ -32,26 +30,14 @@ export function TwoFactorPanel({ enrolledFactorId }: { enrolledFactorId: string 
   async function start() {
     setBusy(true);
     setError(null);
-    const supabase = supabaseBrowser();
-    // A previous attempt that was never confirmed still holds the name, so
-    // clear those out before asking for a fresh secret.
-    const { data: existing } = await supabase.auth.mfa.listFactors();
-    for (const factor of existing?.all ?? []) {
-      if (factor.status === "unverified") {
-        await supabase.auth.mfa.unenroll({ factorId: factor.id });
-      }
-    }
-    const { data, error: enrollError } = await supabase.auth.mfa.enroll({
-      factorType: "totp",
-      friendlyName: FACTOR_NAME,
-    });
-    setBusy(false);
-    if (enrollError || !data) {
+    try {
+      const setup = await getClientAuth().beginSecondFactorSetup();
+      setCode("");
+      setEnrolling({ factorId: setup.factorId, qr: setup.qrCode, secret: setup.secret });
+    } catch {
       setError("We could not start setup just now. Try again in a moment.");
-      return;
     }
-    setCode("");
-    setEnrolling({ factorId: data.id, qr: data.totp.qr_code, secret: data.totp.secret });
+    setBusy(false);
   }
 
   async function confirm(e: React.FormEvent) {
@@ -59,15 +45,17 @@ export function TwoFactorPanel({ enrolledFactorId }: { enrolledFactorId: string 
     if (!enrolling) return;
     setBusy(true);
     setError(null);
-    const { error: verifyError } = await supabaseBrowser().auth.mfa.challengeAndVerify({
-      factorId: enrolling.factorId,
-      code: code.trim(),
-    });
-    setBusy(false);
-    if (verifyError) {
+    try {
+      await getClientAuth().completeSecondFactorSetup({
+        factorId: enrolling.factorId,
+        code: code.trim(),
+      });
+    } catch {
       setError("That code did not match. Codes change every 30 seconds, so try the current one.");
+      setBusy(false);
       return;
     }
+    setBusy(false);
     setEnrolling(null);
     setCode("");
     setFactorId(enrolling.factorId);
@@ -76,7 +64,7 @@ export function TwoFactorPanel({ enrolledFactorId }: { enrolledFactorId: string 
 
   async function cancel() {
     if (!enrolling) return;
-    await supabaseBrowser().auth.mfa.unenroll({ factorId: enrolling.factorId });
+    await getClientAuth().cancelSecondFactorSetup({ factorId: enrolling.factorId });
     setEnrolling(null);
     setCode("");
     setError(null);
@@ -86,13 +74,16 @@ export function TwoFactorPanel({ enrolledFactorId }: { enrolledFactorId: string 
     if (!factorId) return;
     setBusy(true);
     setError(null);
-    const { error: offError } = await supabaseBrowser().auth.mfa.unenroll({ factorId });
-    setBusy(false);
-    setConfirmOff(false);
-    if (offError) {
+    try {
+      await getClientAuth().removeSecondFactor({ factorId });
+    } catch {
+      setBusy(false);
+      setConfirmOff(false);
       setError("We could not turn it off. Sign out, sign back in with a code, and try again.");
       return;
     }
+    setBusy(false);
+    setConfirmOff(false);
     setFactorId(null);
     router.refresh();
   }

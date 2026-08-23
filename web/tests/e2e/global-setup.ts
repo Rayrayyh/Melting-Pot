@@ -50,7 +50,95 @@ export default async function globalSetup() {
     },
     body: "{}",
   });
+  // Reseeding over the anon endpoint is no longer allowed: dev_reseed guarded
+  // on the caller's email ending in @meltingpot.dev, and nothing proves an
+  // address belongs to whoever typed it, so a stranger could reseed the live
+  // database (migration 0034). Only service_role may reseed now, which is what
+  // an operator does over SQL before a run.
+  //
+  // So a refusal here is expected rather than fatal. What must not be silent
+  // is running the suite against a database with no seed in it, because every
+  // spec would then fail on missing fixtures with no hint why. Check for the
+  // seed and say plainly which of the two situations this is.
   if (!reseedResponse.ok) {
-    throw new Error(`e2e reseed failed: ${reseedResponse.status} ${await reseedResponse.text()}`);
+    // The seed has to be pristine, not merely present. A run that is killed
+    // partway leaves the fixtures it was midway through changing: a note
+    // removed and never restored, a proposal decided. The next suite then
+    // fails somewhere unrelated to whatever broke it, which costs far more
+    // time than reseeding would have.
+    const potId = await lookupSeedPot(origin, anonKey);
+    if (!potId) {
+      throw new Error(
+        `e2e reseed refused (${reseedResponse.status}) and the seed is absent. ` +
+          "Run select public.dev_seed(); as service_role, then run the suite.",
+      );
+    }
+    const dirty = await seedLooksUsed(origin, anonKey, access_token, potId);
+    if (dirty) {
+      throw new Error(
+        `e2e reseed refused (${reseedResponse.status}) and the seed is dirty (${dirty}). ` +
+          "An earlier run left state behind. Run select public.dev_seed(); as " +
+          "service_role to reset, then run the suite.",
+      );
+    }
+    console.log("e2e: reseed refused, seed is present and pristine, continuing");
   }
+}
+
+/** The seeded Pot's id, or null when the seed is not there at all. */
+async function lookupSeedPot(
+  origin: string,
+  anonKey: string,
+): Promise<string | null> {
+  const response = await fetch(`${origin}/rest/v1/rpc/lookup_pot_by_code`, {
+    method: "POST",
+    headers: { apikey: anonKey, "Content-Type": "application/json" },
+    body: JSON.stringify({ p_code: "BIO101" }),
+  });
+  if (!response.ok) return null;
+  const body = (await response.text()).trim();
+  if (body === "null" || body === "") return null;
+  try {
+    const pot = JSON.parse(body) as { id?: string } | null;
+    return pot?.id ?? "present";
+  } catch {
+    return "present";
+  }
+}
+
+/**
+ * Names what an earlier run left behind, or null when the seed is untouched.
+ * Deliberately cheap: a couple of reads that catch the states the specs
+ * actually mutate.
+ */
+async function seedLooksUsed(
+  origin: string,
+  anonKey: string,
+  token: string,
+  potId: string,
+): Promise<string | null> {
+  if (potId === "present") return null;
+  const headers = {
+    apikey: anonKey,
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+  const removed = await fetch(
+    `${origin}/rest/v1/shared_notes?select=id&pot_id=eq.${potId}&removed_at=not.is.null`,
+    { headers },
+  );
+  if (removed.ok) {
+    const rows = (await removed.json()) as unknown[];
+    if (rows.length > 0) return `${rows.length} note(s) left removed`;
+  }
+  const decided = await fetch(
+    `${origin}/rest/v1/revision_proposals?select=id&pot_id=eq.${potId}&status=neq.pending`,
+    { headers },
+  );
+  if (decided.ok) {
+    const rows = (await decided.json()) as unknown[];
+    // The seed itself ships exactly one accepted proposal.
+    if (rows.length > 1) return `${rows.length} proposal(s) already decided`;
+  }
+  return null;
 }

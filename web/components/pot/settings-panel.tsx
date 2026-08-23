@@ -1,16 +1,19 @@
 "use client";
 
+import { getClientAuth } from "@/lib/auth/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ArrowSquareOut, GraduationCap, Plugs } from "@phosphor-icons/react";
+import { ArrowSquareOut } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { NoticeBanner } from "@/components/ui/notice-banner";
 import { CopyButton } from "@/components/ui/copy-button";
 import { Field, Input, TextArea } from "@/components/ui/input";
+import type { PotStudyGeneration } from "@/lib/database.types";
 import type { PotContext } from "@/lib/data/pot";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { cn } from "@/lib/cn";
 
 export function SettingsPanel({
   pot,
@@ -29,8 +32,47 @@ export function SettingsPanel({
   const [dialog, setDialog] = useState<"regenerate" | "archive" | "delete" | "leave" | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // How the Pot is run, as opposed to what it is called. Kept in state so the
+  // toggle answers immediately rather than waiting on a refresh.
+  const [joinOpen, setJoinOpen] = useState(pot.joinOpen);
+  const [studyGeneration, setStudyGeneration] = useState(pot.studyGeneration);
+  const [ruleBusy, setRuleBusy] = useState(false);
+  // Deleting a Pot is the one action here with nothing behind it: no soft
+  // remove, no restore, no version to roll back to. So it asks for the title
+  // to be typed, which is hard to do by accident and impossible to do while
+  // thinking about something else.
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
 
   const supabase = supabaseBrowser();
+
+  /**
+   * Both of these are enforced in Postgres, not here: joining goes through
+   * join_pot_with_code, which refuses a closed Pot, and generating goes
+   * through the study route, which refuses a member when the Pot says
+   * maintainers only. This writes the setting; it does not police it.
+   */
+  async function saveRule(next: { joinOpen?: boolean; studyGeneration?: PotStudyGeneration }) {
+    if (ruleBusy) return;
+    setRuleBusy(true);
+    setError(null);
+    const { error: updateError } = await supabase
+      .from("pots")
+      .update({
+        ...(next.joinOpen === undefined ? {} : { join_open: next.joinOpen }),
+        ...(next.studyGeneration === undefined ? {} : { study_generation: next.studyGeneration }),
+      })
+      .eq("id", pot.id);
+    setRuleBusy(false);
+    if (updateError) {
+      setError("That setting could not be saved. Try again.");
+      // Put the control back where the Pot actually is.
+      setJoinOpen(pot.joinOpen);
+      setStudyGeneration(pot.studyGeneration);
+      return;
+    }
+    setSavedNote("Saved");
+    router.refresh();
+  }
 
   async function saveIdentity() {
     if (busy || !title.trim()) return;
@@ -113,10 +155,8 @@ export function SettingsPanel({
 
   async function leave() {
     setBusy(true);
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
+    const userId = await getClientAuth().getUserId();
+    if (!userId) {
       setDialog(null);
       setBusy(false);
       setError("You're signed out. Sign in again to leave this Pot.");
@@ -126,7 +166,7 @@ export function SettingsPanel({
       .from("memberships")
       .delete()
       .eq("pot_id", pot.id)
-      .eq("user_id", user.id);
+      .eq("user_id", userId);
     setDialog(null);
     setBusy(false);
     if (!leaveError) {
@@ -169,6 +209,7 @@ export function SettingsPanel({
                   <TextArea
                     {...props}
                     rows={2}
+                    autoGrow
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     maxLength={2000}
@@ -206,7 +247,9 @@ export function SettingsPanel({
             <CopyButton value={classCode} label="Copy code" />
           </div>
           <p className="text-[13px] text-ink-muted">
-            Anyone with the code can join this Pot.
+            {joinOpen
+              ? "Anyone with the code can join this Pot."
+              : "Joining is closed, so this code admits nobody new until it is reopened below."}
           </p>
           {isOwner ? (
             <div>
@@ -218,31 +261,97 @@ export function SettingsPanel({
         </CardSection>
       </Card>
 
-      {sectionsSlot}
-
       <Card>
-        <CardSection className="space-y-3">
-          <Eyebrow>Integrations</Eyebrow>
-          <p className="text-[13px] text-ink-muted">
-            Import from your class tools. Not available yet; the hooks are here
-            for a later release.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" size="sm" disabled>
-              <GraduationCap className="size-4" />
-              Connect Google Classroom
-            </Button>
-            <Button variant="secondary" size="sm" disabled>
-              <Plugs className="size-4" />
-              Connect Canvas
-            </Button>
+        <CardSection className="space-y-5">
+          <Eyebrow>How this Pot runs</Eyebrow>
+
+          <div className="flex flex-col sm:flex-row sm:flex-nowrap items-start sm:items-center justify-between gap-3">
+            <div className="min-w-0 sm:flex-1">
+              <p className="text-sm font-medium text-ink">Joining</p>
+              <p className="text-[13px] text-ink-muted">
+                {joinOpen
+                  ? "Anyone with the code can join."
+                  : "Closed. Nobody new can join; people already in are unaffected."}
+              </p>
+            </div>
+            <div className="flex gap-1.5 shrink-0">
+              {(
+                [
+                  [true, "Open"],
+                  [false, "Closed"],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={label}
+                  type="button"
+                  aria-pressed={joinOpen === value}
+                  disabled={ruleBusy}
+                  onClick={() => {
+                    setJoinOpen(value);
+                    void saveRule({ joinOpen: value });
+                  }}
+                  className={cn(
+                    "h-8 px-3.5 rounded-full border text-[13px] font-medium transition-colors disabled:opacity-50",
+                    joinOpen === value
+                      ? "bg-primary-soft border-primary/30 text-primary"
+                      : "bg-surface border-edge-strong text-ink-muted hover:text-ink",
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:flex-nowrap items-start sm:items-center justify-between gap-3 border-t border-edge pt-5">
+            <div className="min-w-0 sm:flex-1">
+              <p className="text-sm font-medium text-ink">Building study material</p>
+              <p className="text-[13px] text-ink-muted">
+                {studyGeneration === "members"
+                  ? "Anyone in the Pot can build a summary, a deck, or a test."
+                  : "Only maintainers build new material; everyone can still open it."}
+              </p>
+            </div>
+            <div className="flex gap-1.5 shrink-0">
+              {(
+                [
+                  ["members", "Anyone"],
+                  ["maintainers", "Maintainers"],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={studyGeneration === value}
+                  disabled={ruleBusy}
+                  onClick={() => {
+                    setStudyGeneration(value);
+                    void saveRule({ studyGeneration: value });
+                  }}
+                  className={cn(
+                    "h-8 px-3.5 rounded-full border text-[13px] font-medium transition-colors disabled:opacity-50",
+                    studyGeneration === value
+                      ? "bg-primary-soft border-primary/30 text-primary"
+                      : "bg-surface border-edge-strong text-ink-muted hover:text-ink",
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
         </CardSection>
       </Card>
 
+      {sectionsSlot}
+
       <Card className={isOwner ? "border-danger/25" : undefined}>
-        <CardSection className="space-y-3">
-          <Eyebrow>{isOwner ? "Careful actions" : "Membership"}</Eyebrow>
+        <CardSection className={cn("space-y-3", isOwner && "text-danger")}>
+          {/* cn joins rather than merges, so the override carries `!` to beat
+              the colour each component bakes into its own base classes. */}
+          <Eyebrow className={isOwner ? "text-danger!" : undefined}>
+            {isOwner ? "Danger zone" : "Membership"}
+          </Eyebrow>
           {error ? (
             <p role="alert" className="text-[13px] text-danger">
               {error}
@@ -254,13 +363,19 @@ export function SettingsPanel({
                 <Button
                   variant="secondary"
                   size="sm"
+                  className="border-danger/40 text-danger!"
                   onClick={() => void unarchive()}
                   disabled={busy}
                 >
                   Unarchive Pot
                 </Button>
               ) : (
-                <Button variant="secondary" size="sm" onClick={() => setDialog("archive")}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="border-danger/40 text-danger!"
+                  onClick={() => setDialog("archive")}
+                >
                   Archive Pot
                 </Button>
               )}
@@ -313,11 +428,31 @@ export function SettingsPanel({
         confirmLabel="Delete Pot permanently"
         tone="danger"
         busy={busy}
+        confirmDisabled={deleteConfirmation.trim() !== pot.title.trim()}
         onConfirm={() => void deletePot()}
-        onCancel={() => setDialog(null)}
+        onCancel={() => {
+          setDialog(null);
+          setDeleteConfirmation("");
+        }}
       >
-        Every note, version, and proposal in {pot.title} is permanently
-        deleted. This cannot be undone.
+        <span className="block space-y-3">
+          <span className="block">
+            Every note, version, and proposal in {pot.title} is permanently
+            deleted. This cannot be undone, and members lose it too.
+          </span>
+          <span className="block">
+            <Field label={`Type ${pot.title} to confirm`}>
+              {(props) => (
+                <Input
+                  {...props}
+                  value={deleteConfirmation}
+                  autoComplete="off"
+                  onChange={(event) => setDeleteConfirmation(event.target.value)}
+                />
+              )}
+            </Field>
+          </span>
+        </span>
       </ConfirmDialog>
       <ConfirmDialog
         open={dialog === "leave"}

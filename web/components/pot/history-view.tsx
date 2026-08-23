@@ -102,6 +102,20 @@ export function HistoryView({ history }: { history: NoteHistory }) {
               {selected.changeSummary ? (
                 <p className="text-[13px] text-ink-muted">{selected.changeSummary}</p>
               ) : null}
+              {/* Why the note changed, in the corrector's own words, carried
+                  onto the version so a reader does not need permission to see
+                  the correction behind it. */}
+              {selected.reason ? (
+                <p className="text-[13px] text-ink-muted">Reason: {selected.reason}</p>
+              ) : null}
+              {selected.explanation ? (
+                <p className="text-[13px] text-ink-muted">
+                  {selected.correctionContributorName
+                    ? `${selected.correctionContributorName.split(" ")[0]}'s explanation: `
+                    : "Explanation: "}
+                  {selected.explanation}
+                </p>
+              ) : null}
               <div className="overflow-x-auto">
                 <DiffText before={previous.bodyText} after={selected.bodyText} />
               </div>

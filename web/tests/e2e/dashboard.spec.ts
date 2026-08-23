@@ -78,11 +78,16 @@ test.describe("role-based dashboard", () => {
     await expect(page).toHaveURL(/\/p\//);
     const potId = page.url().split("/p/")[1].split("/")[0];
 
-    // The nav offers no Review entry to members.
-    await expect(page.getByRole("link", { name: "Review", exact: true })).toHaveCount(0);
+    // The nav offers no Admin entry to members. Matched loosely on purpose:
+    // the link carries a waiting count, so an exact name would pass even if
+    // the entry came back.
+    await expect(page.getByRole("link", { name: /^Admin/ })).toHaveCount(0);
 
-    // And direct navigation is a 404, not a hidden page.
-    const response = await page.goto(`/p/${potId}/review`);
+    // And direct navigation is a 404, not a hidden page. The old review URL
+    // redirects into the admin page, which is where the 404 comes from now.
+    const response = await page.goto(`/p/${potId}/admin`);
     expect(response?.status()).toBe(404);
+    const legacy = await page.goto(`/p/${potId}/review`);
+    expect(legacy?.status()).toBe(404);
   });
 });

@@ -20,6 +20,7 @@ export type ReviewQueueItem = {
   noteId: string;
   noteTitle: string;
   proposerName: string;
+  reason: string | null;
   createdAt: string;
 };
 
@@ -111,7 +112,8 @@ export async function getDashboard(userId: string): Promise<Dashboard> {
         supabase
           .from("shared_notes")
           .select("id", { count: "exact", head: true })
-          .eq("pot_id", potId),
+          .eq("pot_id", potId)
+          .is("removed_at", null),
         // Pot-wide via security-definer so the card matches the feed vitals
         // regardless of role (RLS would show a member only their own).
         supabase.rpc("open_correction_count", { p_pot_id: potId }),
@@ -119,6 +121,7 @@ export async function getDashboard(userId: string): Promise<Dashboard> {
           .from("shared_notes")
           .select("shared_at")
           .eq("pot_id", potId)
+          .is("removed_at", null)
           .order("shared_at", { ascending: false })
           .limit(1)
           .maybeSingle(),
@@ -140,7 +143,7 @@ export async function getDashboard(userId: string): Promise<Dashboard> {
       ? supabase
           .from("revision_proposals")
           .select(
-            `id, pot_id, created_at, note_id,
+            `id, pot_id, created_at, note_id, reason,
              pot:pots!revision_proposals_pot_id_fkey(title),
              proposer:profiles!revision_proposals_proposer_id_fkey(display_name),
              note:shared_notes!revision_proposals_note_id_fkey(
@@ -149,6 +152,8 @@ export async function getDashboard(userId: string): Promise<Dashboard> {
           )
           .in("pot_id", maintainedPotIds)
           .eq("status", "pending")
+          // Oldest first: a queue sorted by recency leaves the longest-waiting
+          // member last, and the module only shows the first few rows.
           .order("created_at", { ascending: true })
       : Promise.resolve({ data: [] as never[] }),
     supabase
@@ -183,6 +188,7 @@ export async function getDashboard(userId: string): Promise<Dashboard> {
          contributor:profiles!shared_notes_contributor_id_fkey(display_name)`,
       )
       .in("pot_id", potIds)
+      .is("removed_at", null)
       .order("shared_at", { ascending: false })
       .limit(8),
     supabase
@@ -235,6 +241,7 @@ export async function getDashboard(userId: string): Promise<Dashboard> {
       noteId: row.note_id,
       noteTitle: row.note?.current?.title ?? "Shared note",
       proposerName: row.proposer?.display_name ?? "A member",
+      reason: row.reason,
       createdAt: row.created_at,
     })),
     revisionRequested: (revisionRows.data ?? []).map((row) => ({

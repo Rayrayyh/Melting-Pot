@@ -37,8 +37,11 @@ test.describe("contribution loop", () => {
     await page.getByRole("button", { name: /Not sure where it belongs/ }).click();
     await page.getByRole("button", { name: "Continue", exact: true }).click();
 
-    // Honest in-place progress, never a chatbot.
-    await expect(page.getByRole("heading", { name: "Organizing your note" })).toBeVisible();
+    // Honest progress, never a chatbot. The wait is a live region rather than a
+    // heading: it covers the screen for a few seconds and then goes, and an
+    // h1 that appears and disappears over a page that already has one reads
+    // worse to a screen reader than a status does.
+    await expect(page.getByRole("status")).toContainText("Organizing your note");
     await expect(
       page.getByText("Your original is saved. Nothing has been shared yet."),
     ).toBeVisible();

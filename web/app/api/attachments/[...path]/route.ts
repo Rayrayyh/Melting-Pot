@@ -1,4 +1,10 @@
 import { supabaseServer } from "@/lib/supabase/server";
+import {
+  claimIsHonest,
+  looksExecutable,
+  safeFileName,
+  sniffMime,
+} from "@/lib/attachments/serve";
 
 // Serves uploaded attachment files from the private storage bucket. The
 // download runs with the viewer's own session, so storage RLS (Pot
@@ -30,13 +36,30 @@ export async function GET(
     .eq("storage_path", storagePath)
     .maybeSingle();
   const baseName = storagePath.split("/").pop() ?? "attachment";
-  const fileName = row?.name ?? baseName.replace(/^\d+-/, "");
+  const fileName = safeFileName(row?.name, baseName.replace(/^\d+-/, "") || "attachment");
+
+  // The bucket only ever checked the type the uploader declared, and the row's
+  // name is caller-controlled, so a file could claim to be a PDF, be named
+  // .exe, and be neither. Read the leading bytes and refuse to pass on a claim
+  // they do not support. This is not a malware scan: a genuine PDF that is
+  // also malicious still downloads as a PDF.
+  const head = new Uint8Array(await data.slice(0, 64).arrayBuffer());
+  const sniffed = sniffMime(head);
+  const declared = data.type || null;
+  const disguised = looksExecutable(head) || !claimIsHonest(declared, sniffed);
 
   return new Response(data, {
     headers: {
-      "Content-Type": data.type || "application/octet-stream",
-      "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`,
-      "Cache-Control": "private, max-age=0, must-revalidate",
+      "Content-Type": disguised ? "application/octet-stream" : declared || "application/octet-stream",
+      "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(
+        disguised ? `${fileName}.bin` : fileName,
+      )}`,
+      // Never let a browser second-guess the type we just settled on.
+      "X-Content-Type-Options": "nosniff",
+      // Stored objects never change under their key, so the browser may keep
+      // one for a few minutes. Private, so no shared cache ever holds a class
+      // file, and short, so losing access to a Pot takes effect quickly.
+      "Cache-Control": "private, max-age=300",
     },
   });
 }

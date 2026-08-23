@@ -1,6 +1,28 @@
 import { supabaseServer } from "@/lib/supabase/server";
 import { parseBlocks, type NoteBlock } from "@/lib/data/pot";
-import type { ProposalEventKind, ProposalStatus } from "@/lib/database.types";
+import type { Json, ProposalEventKind, ProposalStatus } from "@/lib/database.types";
+import type { ProposedNote } from "@/lib/organizer/types";
+
+/**
+ * A whole-note correction stores the organized note it was sent as, so the
+ * maintainer publishes the note they read rather than a fresh generation.
+ * Returns null for a sentence correction, and for the whole-note proposals
+ * written before the column existed: those still organize on accept.
+ */
+export function parseProposedNote(value: Json | null): ProposedNote | null {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
+  const record = value as Record<string, Json | undefined>;
+  const blocks = parseBlocks(record.blocks ?? null);
+  if (blocks.length === 0) return null;
+  return {
+    title: typeof record.title === "string" ? record.title : "",
+    summary: typeof record.summary === "string" ? record.summary : "",
+    blocks,
+    takeaways: Array.isArray(record.takeaways)
+      ? record.takeaways.filter((item): item is string => typeof item === "string")
+      : [],
+  };
+}
 
 export type ProposalDetail = {
   id: string;
@@ -17,6 +39,7 @@ export type ProposalDetail = {
   status: ProposalStatus;
   selectedText: string;
   proposedText: string;
+  proposedOrganized: ProposedNote | null;
   reason: string | null;
   explanation: string | null;
   source: string | null;
@@ -44,7 +67,7 @@ export async function getProposalDetail(
   const { data: proposal } = await supabase
     .from("revision_proposals")
     .select(
-      `id, pot_id, note_id, status, selected_text, proposed_text, reason,
+      `id, pot_id, note_id, status, selected_text, proposed_text, proposed_organized, reason,
        explanation, source, diff_summary, proposer_id, decision_note,
        decided_at, created_at,
        proposer:profiles!revision_proposals_proposer_id_fkey(display_name),
@@ -84,6 +107,7 @@ export async function getProposalDetail(
     status: proposal.status,
     selectedText: proposal.selected_text,
     proposedText: proposal.proposed_text,
+    proposedOrganized: parseProposedNote(proposal.proposed_organized),
     reason: proposal.reason,
     explanation: proposal.explanation,
     source: proposal.source,

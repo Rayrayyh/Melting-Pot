@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Eye, Lightbulb, Tray } from "@phosphor-icons/react";
 import { AppShell } from "@/components/shell/app-shell";
 import { PotNav, UserNav } from "@/components/shell/left-nav";
 import { AttributionRow, Avatar } from "@/components/ui/avatar";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
+import { Stir } from "@/components/brand/stir";
+import { StirPot } from "@/components/brand/stir-pot";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { ClassCodeInput } from "@/components/ui/class-code-input";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -24,10 +27,22 @@ const demoSections = [
   { id: "s3", title: "Exam review" },
 ];
 
+/** Times chosen to show distinct moments: rest, mid-orbit, and the burst. */
+const STIR_FRAMES = [0, 0.4, 3.4, 4.2];
+
 export default function StyleguidePage() {
   const [code, setCode] = useState("D2Z7");
   const [badCode, setBadCode] = useState("ABC123");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [loadingOpen, setLoadingOpen] = useState(false);
+
+  // The real loader closes when its work finishes. Nothing is working here,
+  // so the preview gives itself one loop and then lets go.
+  useEffect(() => {
+    if (!loadingOpen) return;
+    const id = setTimeout(() => setLoadingOpen(false), 8000);
+    return () => clearTimeout(id);
+  }, [loadingOpen]);
   const [navMode, setNavMode] = useState<"user" | "pot">("pot");
 
   return (
@@ -86,6 +101,49 @@ export default function StyleguidePage() {
             <Button size="sm" variant="secondary">Copy code</Button>
             <Button size="lg">Join Pot</Button>
           </div>
+        </section>
+
+        <section className="space-y-4">
+          <Eyebrow>The stir</Eyebrow>
+          <Card>
+            <CardSection className="flex flex-wrap items-center gap-8">
+              {[96, 56, 24, 14].map((size) => (
+                <div key={size} className="flex flex-col items-center gap-2">
+                  <Stir size={size} />
+                  <span className="text-[12px] text-ink-faint">{size}</span>
+                </div>
+              ))}
+              <Button disabled>
+                <Stir size={16} tone="on-primary" />
+                Mixing
+              </Button>
+              <Button variant="secondary" disabled>
+                <Stir size={16} />
+                Writing
+              </Button>
+            </CardSection>
+          </Card>
+        </section>
+
+        <section className="space-y-4">
+          <Eyebrow>The stir, full screen</Eyebrow>
+          <Card>
+            <CardSection className="flex flex-wrap items-end gap-10">
+              {STIR_FRAMES.map((t) => (
+                <div key={t} className="flex flex-col items-center gap-2">
+                  <StirPot t={t} size={150} />
+                  <span className="text-[12px] text-ink-faint">t = {t}s</span>
+                </div>
+              ))}
+              <div className="flex flex-col items-center gap-2">
+                <StirPot t={0.6} size={150} variant="reduced" />
+                <span className="text-[12px] text-ink-faint">reduced</span>
+              </div>
+            </CardSection>
+          </Card>
+          <Button variant="secondary" onClick={() => setLoadingOpen(true)}>
+            Open the full-screen wait
+          </Button>
         </section>
 
         <section className="space-y-4">
@@ -226,6 +284,7 @@ export default function StyleguidePage() {
           <Button variant="secondary" onClick={() => setDialogOpen(true)}>
             Open confirm dialog
           </Button>
+          <LoadingScreen open={loadingOpen} />
           <ConfirmDialog
             open={dialogOpen}
             title="Regenerate class code?"

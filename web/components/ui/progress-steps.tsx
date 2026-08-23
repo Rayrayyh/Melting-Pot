@@ -1,4 +1,5 @@
-import { Check, CircleNotch } from "@phosphor-icons/react/dist/ssr";
+import { Check } from "@phosphor-icons/react/dist/ssr";
+import { Stir } from "@/components/brand/stir";
 import { cn } from "@/lib/cn";
 
 /** Compact "1 of 3 · Write" style flow indicator with a track. */
@@ -56,7 +57,7 @@ export function StageChecklist({
             {stage.state === "done" ? (
               <Check weight="bold" className="size-3" />
             ) : stage.state === "active" ? (
-              <CircleNotch weight="bold" className="size-3 animate-spin" />
+              <Stir size={14} />
             ) : null}
           </span>
           <div className="min-w-0">

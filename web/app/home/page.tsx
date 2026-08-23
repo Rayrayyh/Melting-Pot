@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { Archive, Plus } from "@phosphor-icons/react/dist/ssr";
 import { ActivityList } from "@/components/home/activity-list";
 import {
@@ -6,6 +7,7 @@ import {
   ReviewQueueModule,
   RevisionRequestedModule,
 } from "@/components/home/attention-modules";
+import { ContributionStreak } from "@/components/home/contribution-streak";
 import { HomeJoinCard } from "@/components/home/home-join-card";
 import { PotStatCard } from "@/components/home/pot-stat-card";
 import { UserShell } from "@/components/shell/user-shell";
@@ -68,6 +70,12 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
               </Card>
             </Link>
           ))}
+          <Link
+            href="/pots"
+            className="inline-block pt-1 text-[12px] text-ink-muted hover:text-ink transition-colors"
+          >
+            Manage every Pot
+          </Link>
         </div>
       </details>
     ) : null;
@@ -122,7 +130,18 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
               ) : null}
 
               <section className="space-y-3">
-                <Eyebrow>Your Pots</Eyebrow>
+                <div className="flex items-center justify-between gap-3">
+                  <Eyebrow>Your Pots</Eyebrow>
+                  {/* One path to every Pot, archived ones included, and to the
+                      archive and delete controls that otherwise sit inside each
+                      Pot's own settings. */}
+                  <Link
+                    href="/pots"
+                    className="text-[12px] text-ink-muted hover:text-ink transition-colors"
+                  >
+                    Manage Pots
+                  </Link>
+                </div>
                 <div className="grid sm:grid-cols-2 gap-4">
                   {dashboard.pots.map((pot) => (
                     <PotStatCard key={pot.id} pot={pot} />
@@ -157,6 +176,14 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
                   <ActivityList items={dashboard.activity} />
                 </>
               )}
+              {/* Personal recognition sits last and streams on its own, so its
+                  query never delays what needs the reader's attention. */}
+              <Suspense fallback={null}>
+                <ContributionStreak
+                  userId={user.id}
+                  contributeHref={`/p/${dashboard.pots[0].id}/contribute`}
+                />
+              </Suspense>
             </aside>
           </div>
         )}

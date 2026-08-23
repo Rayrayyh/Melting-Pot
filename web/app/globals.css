@@ -19,9 +19,15 @@
   --ink-faint: #756f5e;
   --edge: #ede3cc;
   --edge-strong: #dbcfaf;
-  --primary: #e0761a;
-  --primary-hover: #cd6812;
-  --primary-active: #ba5b0d;
+  /* Light mode's brand orange had to darken. At #e0761a it was 2.83:1 as text
+     on paper and 2.94:1 behind on-primary, so every primary button label and
+     every orange link failed the contrast floor. This is the same hue and the
+     same saturation, taken down in lightness until all three roles clear 4.5:1:
+     text on paper 4.55, text on surface 4.91, on-primary on it 4.74. Dark mode
+     was already fine and is untouched. */
+  --primary: #ab5a14;
+  --primary-hover: #964f11;
+  --primary-active: #84460f;
   --primary-soft: #fbead3;
   --on-primary: #fff8ee;
   --clay: #c36514;
@@ -60,6 +66,28 @@
   --avatar-5-soft: #d9ebe8;
   --avatar-6: #9c4557;
   --avatar-6-soft: #f7dee3;
+  /* The stir: the loading mark's own palette. Separate from the functional
+     tokens on purpose. --primary was darkened for text contrast, which would
+     make the pot body muddy, and the pot is a brand object rather than a
+     control, so it keeps the brand orange in both themes. The body ramp is
+     deliberately identical light and dark: the pot is the same pot. */
+  --stir-ramp-0: #f0982f;
+  --stir-ramp-1: #e0761a;
+  --stir-ramp-2: #be530e;
+  --stir-liquid-a: #f0982f;
+  --stir-liquid-b: #e8862a;
+  --stir-paddle: #c36514;
+  --stir-glint: #fff8ee;
+  --stir-rim: #fffdf6;
+  --stir-mouth: #a34a0c;
+  --stir-wisp-a: #f2a94f;
+  --stir-wisp-b: #fbe0ad;
+  --stir-wood-light: #c69a63;
+  --stir-wood-dark: #8a5a32;
+  --stir-spice-0: #be530e;
+  --stir-spice-1: #24222c;
+  --stir-spice-2: #e0761a;
+  --stir-spice-3: #c36514;
   color-scheme: light;
 }
 
@@ -109,6 +137,23 @@
   --avatar-5-soft: #1c3230;
   --avatar-6: #dd8d9d;
   --avatar-6-soft: #3a1f26;
+  --stir-ramp-0: #f0982f;
+  --stir-ramp-1: #e0761a;
+  --stir-ramp-2: #be530e;
+  --stir-liquid-a: #e9a85d;
+  --stir-liquid-b: #d99441;
+  --stir-paddle: #9a4c0c;
+  --stir-glint: #fff8ee;
+  --stir-rim: #fff6e8;
+  --stir-mouth: #7c3c08;
+  --stir-wisp-a: #f19a44;
+  --stir-wisp-b: #e9a85d;
+  --stir-wood-light: #c69a63;
+  --stir-wood-dark: #7d5029;
+  --stir-spice-0: #f19a44;
+  --stir-spice-1: #e9a85d;
+  --stir-spice-2: #fff8ee;
+  --stir-spice-3: #f0982f;
   color-scheme: dark;
 }
 
@@ -159,6 +204,23 @@
     --avatar-5-soft: #1c3230;
     --avatar-6: #dd8d9d;
     --avatar-6-soft: #3a1f26;
+    --stir-ramp-0: #f0982f;
+    --stir-ramp-1: #e0761a;
+    --stir-ramp-2: #be530e;
+    --stir-liquid-a: #e9a85d;
+    --stir-liquid-b: #d99441;
+    --stir-paddle: #9a4c0c;
+    --stir-glint: #fff8ee;
+    --stir-rim: #fff6e8;
+    --stir-mouth: #7c3c08;
+    --stir-wisp-a: #f19a44;
+    --stir-wisp-b: #e9a85d;
+    --stir-wood-light: #c69a63;
+    --stir-wood-dark: #7d5029;
+    --stir-spice-0: #f19a44;
+    --stir-spice-1: #e9a85d;
+    --stir-spice-2: #fff8ee;
+    --stir-spice-3: #f0982f;
     color-scheme: dark;
   }
 }
@@ -248,6 +310,41 @@ blockquote {
   border-radius: 4px;
 }
 
+/*
+ * The entrance every signed-in page makes. It is deliberately almost nothing:
+ * a short lift as the content lands, so moving between pages reads as movement
+ * rather than a flash. Pure CSS, so it costs no JavaScript and the global
+ * reduced-motion rule below switches it off.
+ */
+@keyframes mp-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.mp-enter {
+  animation: mp-enter 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* A card that answers the pointer. Paired with a border change at the call
+   site, so the lift is never the only thing that says it is interactive. */
+.mp-lift {
+  transition:
+    transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.18s ease;
+}
+
+.mp-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-raised);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -256,5 +353,119 @@ blockquote {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  .mp-lift:hover {
+    transform: none;
+  }
+}
+
+/* The stir, the loading mark. The angle steps evenly and the ellipse is the
+   projection of a circle seen from a low angle, so the paddle comes out faster
+   across the front and slower across the back on its own. Do not add easing:
+   that is the projection doing the work, and easing would fight it. Generated
+   at 36 stops; regenerate rather than hand-editing. */
+@keyframes mp-stir {
+  0% { transform: translate(82.00px, 32.00px) scale(0.880); }
+  2.7778% { transform: translate(81.51px, 33.04px) scale(0.901); }
+  5.5556% { transform: translate(80.07px, 34.05px) scale(0.921); }
+  8.3333% { transform: translate(77.71px, 35.00px) scale(0.940); }
+  11.1111% { transform: translate(74.51px, 35.86px) scale(0.957); }
+  13.8889% { transform: translate(70.57px, 36.60px) scale(0.972); }
+  16.6667% { transform: translate(66.00px, 37.20px) scale(0.984); }
+  19.4444% { transform: translate(60.94px, 37.64px) scale(0.993); }
+  22.2222% { transform: translate(55.56px, 37.91px) scale(0.998); }
+  25% { transform: translate(50.00px, 38.00px) scale(1.000); }
+  27.7778% { transform: translate(44.44px, 37.91px) scale(0.998); }
+  30.5556% { transform: translate(39.06px, 37.64px) scale(0.993); }
+  33.3333% { transform: translate(34.00px, 37.20px) scale(0.984); }
+  36.1111% { transform: translate(29.43px, 36.60px) scale(0.972); }
+  38.8889% { transform: translate(25.49px, 35.86px) scale(0.957); }
+  41.6667% { transform: translate(22.29px, 35.00px) scale(0.940); }
+  44.4444% { transform: translate(19.93px, 34.05px) scale(0.921); }
+  47.2222% { transform: translate(18.49px, 33.04px) scale(0.901); }
+  50% { transform: translate(18.00px, 32.00px) scale(0.880); }
+  52.7778% { transform: translate(18.49px, 30.96px) scale(0.859); }
+  55.5556% { transform: translate(19.93px, 29.95px) scale(0.839); }
+  58.3333% { transform: translate(22.29px, 29.00px) scale(0.820); }
+  61.1111% { transform: translate(25.49px, 28.14px) scale(0.803); }
+  63.8889% { transform: translate(29.43px, 27.40px) scale(0.788); }
+  66.6667% { transform: translate(34.00px, 26.80px) scale(0.776); }
+  69.4444% { transform: translate(39.06px, 26.36px) scale(0.767); }
+  72.2222% { transform: translate(44.44px, 26.09px) scale(0.762); }
+  75% { transform: translate(50.00px, 26.00px) scale(0.760); }
+  77.7778% { transform: translate(55.56px, 26.09px) scale(0.762); }
+  80.5556% { transform: translate(60.94px, 26.36px) scale(0.767); }
+  83.3333% { transform: translate(66.00px, 26.80px) scale(0.776); }
+  86.1111% { transform: translate(70.57px, 27.40px) scale(0.788); }
+  88.8889% { transform: translate(74.51px, 28.14px) scale(0.803); }
+  91.6667% { transform: translate(77.71px, 29.00px) scale(0.820); }
+  94.4444% { transform: translate(80.07px, 29.95px) scale(0.839); }
+  97.2222% { transform: translate(81.51px, 30.96px) scale(0.859); }
+  100% { transform: translate(82.00px, 32.00px) scale(0.880); }
+}
+
+.mp-stir-orbit {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  animation: mp-stir 1.2s linear infinite;
+}
+
+/* The still counterpart, swapped in below rather than shown by default. */
+.mp-stir-still {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Nothing travels. The rule above this file's reduced-motion block already
+     flattens every animation to nothing, which would leave the six paddles
+     stacked on one spot, so the moving group is removed outright and a still
+     surface takes its place. The word beside the mark carries the meaning. */
+  .mp-stir-motion {
+    display: none;
+  }
+
+  .mp-stir-still {
+    display: block;
+  }
+}
+
+/* The 404's drifting accents. Ten blobs behind the content, each an ellipse
+   pulled out of round by a lopsided border-radius, on long slow loops at
+   different periods so they never fall into step. Decorative only: the page
+   reads exactly the same without them, which is why reduced motion removes
+   them outright rather than freezing ten shapes mid-drift. */
+@keyframes mp-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(6px, -14px, 0) rotate(8deg); }
+}
+
+@keyframes mp-drift-2 {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(-8px, -11px, 0) rotate(-7deg); }
+}
+
+@keyframes mp-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.18); opacity: 0.6; }
+}
+
+.mp-blob {
+  animation: mp-drift 7s ease-in-out infinite;
+}
+
+.mp-blob-alt {
+  animation: mp-drift-2 8s ease-in-out infinite;
+}
+
+.mp-dot {
+  animation: mp-pulse 5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-blob,
+  .mp-blob-alt,
+  .mp-dot {
+    display: none;
   }
 }

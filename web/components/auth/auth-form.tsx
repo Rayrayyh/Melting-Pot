@@ -6,26 +6,28 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardSection } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/input";
+import { LoadingScreen } from "@/components/ui/loading-screen";
+import { AuthError, getClientAuth } from "@/lib/auth/client";
+import { safeNextPath } from "@/lib/auth/next-path";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { clearPendingJoin, takePendingJoin } from "@/lib/pending-join";
 
-function friendlyError(message: string): string {
-  if (message.includes("email_taken")) {
-    return "That email already has an account. Sign in instead.";
-  }
-  if (message.includes("weak_password")) {
-    return "Use a password with at least 8 characters.";
-  }
-  if (message.includes("invalid_email")) {
-    return "That email address doesn't look right.";
-  }
-  if (message.includes("Invalid login credentials")) {
-    return "That email and password don't match. Check them and try again.";
-  }
-  if (message.includes("rate_limited")) {
-    return "Too many attempts from this network. Wait a few minutes and try again.";
-  }
-  return "Something went wrong. Try again.";
+/** One sentence per failure the seam can report. */
+const MESSAGES: Record<string, string> = {
+  email_taken: "That email already has an account. Sign in instead.",
+  weak_password: "Use a password with at least 8 characters.",
+  invalid_email: "That email address doesn't look right.",
+  invalid_display_name: "Enter a display name of 80 characters or fewer.",
+  invalid_credentials: "That email and password don't match. Check them and try again.",
+  rate_limited: "Too many attempts from this network. Wait a few minutes and try again.",
+  invalid_code:
+    "That code did not match. Codes change every 30 seconds, so try the current one.",
+  not_configured: "Sign in is not available in this build.",
+};
+
+function friendlyError(error: unknown): string {
+  const code = error instanceof AuthError ? error.code : "unknown";
+  return MESSAGES[code] ?? "Something went wrong. Try again.";
 }
 
 export function AuthForm({
@@ -75,7 +77,7 @@ export function AuthForm({
         return;
       }
     }
-    router.push(next && next.startsWith("/") ? next : "/home");
+    router.push(safeNextPath(next) ?? "/home");
     router.refresh();
   }
 
@@ -84,45 +86,38 @@ export function AuthForm({
     if (busy) return;
     setBusy(true);
     setError(null);
-    const supabase = supabaseBrowser();
+    const auth = getClientAuth();
 
-    if (mode === "signup") {
-      const { error: registerError } = await supabase.rpc("register_student", {
-        p_email: email.trim(),
-        p_password: password,
-        p_display_name: displayName.trim(),
-      });
-      if (registerError) {
-        setError(friendlyError(registerError.message));
-        setBusy(false);
-        return;
+    try {
+      if (mode === "signup") {
+        await auth.register({
+          email: email.trim(),
+          password,
+          displayName: displayName.trim(),
+        });
       }
-    }
-
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    });
-    if (signInError) {
-      setError(friendlyError(signInError.message));
-      setBusy(false);
-      return;
-    }
-
-    // Accounts with two-step sign in are only half way in at this point.
-    const { data: levels } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (levels?.currentLevel === "aal1" && levels.nextLevel === "aal2") {
-      const { data: factors } = await supabase.auth.mfa.listFactors();
-      const factor = factors?.totp.find((f) => f.status === "verified");
-      if (factor) {
-        setSecondStepFactorId(factor.id);
+      const outcome = await auth.signIn({ email: email.trim(), password });
+      if (outcome.status === "second-factor-required") {
+        setSecondStepFactorId(outcome.factorId);
         setSecondStepCode("");
         setBusy(false);
         return;
       }
+    } catch (err) {
+      setError(friendlyError(err));
+      setBusy(false);
+      return;
     }
 
-    await finalize();
+    try {
+      await finalize();
+    } catch {
+      // finalize ends in a redirect, so busy is meant to stay true through it.
+      // It only clears here, where the round trip failed and there will be no
+      // navigation: otherwise the full-screen cover would have no way down.
+      setError("The connection dropped. Check your network and try again.");
+      setBusy(false);
+    }
   }
 
   async function submitSecondStep(e: React.FormEvent) {
@@ -130,16 +125,25 @@ export function AuthForm({
     if (busy || !secondStepFactorId) return;
     setBusy(true);
     setError(null);
-    const { error: verifyError } = await supabaseBrowser().auth.mfa.challengeAndVerify({
-      factorId: secondStepFactorId,
-      code: secondStepCode.trim(),
-    });
-    if (verifyError) {
-      setError("That code did not match. Codes change every 30 seconds, so try the current one.");
+    try {
+      await getClientAuth().verifySecondFactor({
+        factorId: secondStepFactorId,
+        code: secondStepCode.trim(),
+      });
+    } catch (err) {
+      setError(friendlyError(err));
       setBusy(false);
       return;
     }
-    await finalize();
+    try {
+      await finalize();
+    } catch {
+      // finalize ends in a redirect, so busy is meant to stay true through it.
+      // It only clears here, where the round trip failed and there will be no
+      // navigation: otherwise the full-screen cover would have no way down.
+      setError("The connection dropped. Check your network and try again.");
+      setBusy(false);
+    }
   }
 
   const heading =
@@ -161,16 +165,27 @@ export function AuthForm({
 
   const codeParam = code ? `?code=${encodeURIComponent(code)}` : "";
 
+
+  // Signing in is a round trip and then a redirect, so it is one of the waits
+  // the full-screen pot is for. `busy` already spans the whole of it.
+  const waitMessage = secondStepFactorId
+    ? ["Checking your code"]
+    : mode === "signup"
+      ? ["Setting up your account", "Getting your vault ready"]
+      : ["Signing you in", "Finding your Pots"];
+
   if (secondStepFactorId) {
     return (
-      <Card className="w-full max-w-md">
-        <CardSection className="p-6 space-y-5">
-          <div className="space-y-1 text-center">
-            <h1 className="text-xl font-semibold tracking-tight">One more step</h1>
-            <p className="text-sm text-ink-muted">
-              Open your authenticator app and enter the code it shows.
-            </p>
-          </div>
+      <>
+        <LoadingScreen open={busy} message={waitMessage} />
+        <Card className="w-full max-w-md">
+          <CardSection className="p-6 space-y-5">
+            <div className="space-y-1 text-center">
+              <h1 className="text-xl font-semibold tracking-tight">One more step</h1>
+              <p className="text-sm text-ink-muted">
+                Open your authenticator app and enter the code it shows.
+              </p>
+            </div>
           <form onSubmit={submitSecondStep} className="space-y-4">
             <Field label="Six-digit code">
               {(props) => (
@@ -203,13 +218,16 @@ export function AuthForm({
               {busy ? "Checking" : "Continue"}
             </Button>
           </form>
-        </CardSection>
-      </Card>
+          </CardSection>
+        </Card>
+      </>
     );
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <>
+      <LoadingScreen open={busy} message={waitMessage} />
+      <Card className="w-full max-w-md">
       <CardSection className="p-6 space-y-5">
         <div className="space-y-1 text-center">
           <h1 className="text-xl font-semibold tracking-tight">{heading}</h1>
@@ -297,6 +315,7 @@ export function AuthForm({
           )}
         </p>
       </CardSection>
-    </Card>
+      </Card>
+    </>
   );
 }

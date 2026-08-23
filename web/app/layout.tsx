@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Baloo_2, Fraunces, Inter, Source_Serif_4 } from "next/font/google";
+import { Baloo_2, Fraunces, Inter, Silkscreen, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -22,6 +22,14 @@ const baloo = Baloo_2({
   subsets: ["latin"],
 });
 
+// Pixel face for the footer credits alone. One weight, because it appears in
+// exactly one place and a second weight would ship for nothing.
+const silkscreen = Silkscreen({
+  variable: "--font-silkscreen",
+  weight: "400",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
   title: {
     default: "MeltingPot",
@@ -39,7 +47,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${sourceSerif.variable} ${fraunces.variable} ${baloo.variable} h-full antialiased`}
+      className={`${inter.variable} ${sourceSerif.variable} ${fraunces.variable} ${baloo.variable} ${silkscreen.variable} h-full antialiased`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInit }} />

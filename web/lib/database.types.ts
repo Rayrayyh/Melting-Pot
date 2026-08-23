@@ -31,6 +31,11 @@ export type ProposalEventKind =
   | "declined"
   | "comment";
 export type AttachmentKind = "image" | "pdf" | "file" | "link";
+/** Not a Postgres enum: study_sets.kind is a checked text column. */
+export type StudySetKind = "summary" | "flashcards" | "practice";
+
+/** Not a Postgres enum: pots.study_generation is a checked text column. */
+export type PotStudyGeneration = "members" | "maintainers";
 
 export type Database = {
   public: {
@@ -46,6 +51,11 @@ export type Database = {
           pot_id: string;
           storage_path: string | null;
           url: string | null;
+          ai_caption: string | null;
+          ai_extracted_text: string | null;
+          ai_useful_for_note: boolean | null;
+          ai_model: string | null;
+          ai_analyzed_at: string | null;
         };
         Insert: {
           contribution_id?: string | null;
@@ -57,6 +67,11 @@ export type Database = {
           pot_id: string;
           storage_path?: string | null;
           url?: string | null;
+          ai_caption?: string | null;
+          ai_extracted_text?: string | null;
+          ai_useful_for_note?: boolean | null;
+          ai_model?: string | null;
+          ai_analyzed_at?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["attachments"]["Insert"]>;
         Relationships: [
@@ -197,6 +212,8 @@ export type Database = {
           takeaways: string[];
           title: string;
           version_number: number;
+          reason: string | null;
+          explanation: string | null;
         };
         Insert: {
           body: Json;
@@ -214,6 +231,8 @@ export type Database = {
           takeaways?: string[];
           title: string;
           version_number: number;
+          reason?: string | null;
+          explanation?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["note_versions"]["Insert"]>;
         Relationships: [
@@ -254,7 +273,9 @@ export type Database = {
           created_at: string;
           description: string | null;
           id: string;
+          join_open: boolean;
           owner_id: string;
+          study_generation: PotStudyGeneration;
           title: string;
         };
         Insert: {
@@ -263,7 +284,9 @@ export type Database = {
           created_at?: string;
           description?: string | null;
           id?: string;
+          join_open?: boolean;
           owner_id: string;
+          study_generation?: PotStudyGeneration;
           title: string;
         };
         Update: Partial<Database["public"]["Tables"]["pots"]["Insert"]>;
@@ -281,11 +304,13 @@ export type Database = {
         Row: {
           created_at: string;
           display_name: string;
+          avatar_url: string | null;
           id: string;
         };
         Insert: {
           created_at?: string;
           display_name: string;
+          avatar_url?: string | null;
           id: string;
         };
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
@@ -337,6 +362,7 @@ export type Database = {
           id: string;
           note_id: string;
           pot_id: string;
+          proposed_organized: Json | null;
           proposed_text: string;
           proposer_id: string;
           reason: string | null;
@@ -355,6 +381,7 @@ export type Database = {
           id?: string;
           note_id: string;
           pot_id: string;
+          proposed_organized?: Json | null;
           proposed_text: string;
           proposer_id: string;
           reason?: string | null;
@@ -430,6 +457,9 @@ export type Database = {
           pot_id: string;
           section_id: string | null;
           shared_at: string;
+          removed_at: string | null;
+          removed_by: string | null;
+          removed_reason: string | null;
         };
         Insert: {
           contribution_id: string;
@@ -439,6 +469,9 @@ export type Database = {
           pot_id: string;
           section_id?: string | null;
           shared_at?: string;
+          removed_at?: string | null;
+          removed_by?: string | null;
+          removed_reason?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["shared_notes"]["Insert"]>;
         Relationships: [
@@ -477,11 +510,160 @@ export type Database = {
             referencedRelation: "sections";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "shared_notes_removed_by_fkey";
+            columns: ["removed_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      study_attempts: {
+        Row: {
+          id: string;
+          pot_id: string;
+          set_id: string;
+          user_id: string;
+          kind: "practice" | "flashcards";
+          first_pass: boolean;
+          correct: number | null;
+          total: number | null;
+          known: number | null;
+          learning: number | null;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "study_attempts_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      study_responses: {
+        Row: {
+          attempt_id: string;
+          question_index: number;
+          choice: number | null;
+          correct: boolean;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      study_sets: {
+        Row: {
+          id: string;
+          pot_id: string;
+          kind: StudySetKind;
+          source_fingerprint: string;
+          payload: Json;
+          model: string | null;
+          options: Json | null;
+          generated_by: string;
+          secured: boolean;
+          created_at: string;
+          removed_at: string | null;
+          removed_by: string | null;
+          removed_reason: string | null;
+        };
+        Insert: {
+          id?: string;
+          pot_id: string;
+          kind: StudySetKind;
+          source_fingerprint: string;
+          payload: Json;
+          model?: string | null;
+          options?: Json | null;
+          generated_by: string;
+          secured?: boolean;
+          removed_at?: string | null;
+          removed_by?: string | null;
+          removed_reason?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["study_sets"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "study_sets_generated_by_fkey";
+            columns: ["generated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "study_sets_pot_id_fkey";
+            columns: ["pot_id"];
+            isOneToOne: false;
+            referencedRelation: "pots";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      note_flashcards: {
+        Row: {
+          id: string;
+          pot_id: string;
+          note_id: string | null;
+          front: string;
+          back: string;
+          tags: string[];
+          source_excerpt: string | null;
+          created_by: string;
+          created_at: string;
+          removed_at: string | null;
+          removed_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          pot_id: string;
+          note_id?: string | null;
+          front: string;
+          back: string;
+          tags?: string[];
+          source_excerpt?: string | null;
+          created_by: string;
+          created_at?: string;
+          removed_at?: string | null;
+          removed_by?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["note_flashcards"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "note_flashcards_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "note_flashcards_note_id_fkey";
+            columns: ["note_id"];
+            isOneToOne: false;
+            referencedRelation: "shared_notes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "note_flashcards_pot_id_fkey";
+            columns: ["pot_id"];
+            isOneToOne: false;
+            referencedRelation: "pots";
+            referencedColumns: ["id"];
+          },
         ];
       };
     };
     Views: { [_ in never]: never };
     Functions: {
+      consume_ai_generation: {
+        Args: { p_kind: string };
+        Returns: undefined;
+      };
       create_pot: {
         Args: { p_description?: string; p_title: string };
         Returns: Json;
@@ -521,6 +703,7 @@ export type Database = {
           p_diff_summary?: string;
           p_explanation?: string;
           p_proposal_id: string;
+          p_proposed_organized?: Json | null;
           p_proposed_text: string;
           p_selected_text: string;
           p_source?: string;
@@ -542,6 +725,65 @@ export type Database = {
           p_title: string;
         };
         Returns: string;
+      };
+      save_attachment_analysis: {
+        Args: {
+          p_attachment_id: string;
+          p_caption: string;
+          p_extracted_text: string;
+          p_useful_for_note: boolean;
+          p_model: string;
+        };
+        Returns: undefined;
+      };
+      restore_study_set: { Args: { p_study_set_id: string }; Returns: undefined };
+      set_flashcard_removed: { Args: { p_card_id: string; p_removed: boolean }; Returns: undefined };
+      save_study_set: {
+        Args: {
+          p_pot_id: string;
+          p_kind: StudySetKind;
+          p_fingerprint: string;
+          p_payload: Json;
+          /** text, and nullable: study_sets.model is nullable and left(null, n) is null. */
+          p_model: string | null;
+          p_options?: Json | null;
+          p_keys?: Json | null;
+        };
+        Returns: string;
+      };
+      submit_practice_test: {
+        Args: { p_attempt_id: string; p_set_id: string; p_answers: Json };
+        Returns: Json;
+      };
+      record_flashcard_run: {
+        Args: {
+          p_attempt_id: string;
+          p_set_id: string;
+          p_known: number;
+          p_learning: number;
+        };
+        Returns: undefined;
+      };
+      admin_study_overview: { Args: { p_pot_id: string }; Returns: Json };
+      update_my_profile: {
+        Args: { p_display_name: string; p_avatar_url?: string | null };
+        Returns: undefined;
+      };
+      delete_study_set: { Args: { p_study_set_id: string }; Returns: undefined };
+      add_note_flashcard: {
+        Args: {
+          p_pot_id: string;
+          p_note_id: string | null;
+          p_front: string;
+          p_back: string;
+          p_tags: string[];
+          p_source_excerpt: string;
+        };
+        Returns: string;
+      };
+      set_shared_note_removed: {
+        Args: { p_note_id: string; p_removed: boolean; p_reason: string };
+        Returns: undefined;
       };
     };
     Enums: {

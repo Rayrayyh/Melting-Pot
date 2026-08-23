@@ -14,6 +14,9 @@ export type NoteVersion = {
   reviewedByName: string | null;
   source: string | null;
   changeSummary: string | null;
+  /** Copied off the correction when it was accepted, so the class can read why. */
+  reason: string | null;
+  explanation: string | null;
   createdAt: string;
   isCurrent: boolean;
 };
@@ -48,7 +51,7 @@ export async function getNoteHistory(
     .from("note_versions")
     .select(
       `id, version_number, title, summary, body, body_text, takeaways, source,
-       change_summary, created_at,
+       change_summary, reason, explanation, created_at,
        contributor:profiles!note_versions_contributor_id_fkey(display_name),
        correction_contributor:profiles!note_versions_correction_contributor_id_fkey(display_name),
        reviewer:profiles!note_versions_reviewed_by_fkey(display_name)`,
@@ -75,6 +78,8 @@ export async function getNoteHistory(
       reviewedByName: version.reviewer?.display_name ?? null,
       source: version.source,
       changeSummary: version.change_summary,
+      reason: version.reason,
+      explanation: version.explanation,
       createdAt: version.created_at,
       isCurrent: version.id === note.current_version_id,
     })),

@@ -9,10 +9,25 @@ export function Input({ className, ...rest }: ComponentProps<"input">) {
   return <input className={cn(controlBase, "h-10 px-3.5 text-sm", className)} {...rest} />;
 }
 
-export function TextArea({ className, ...rest }: ComponentProps<"textarea">) {
+/**
+ * `autoGrow` lets a short field take the height its content needs, with `rows`
+ * as the floor and `max-h` as the ceiling. Without it a two-row box clips its
+ * third line mid-glyph on a narrow screen, and `resize-none` leaves no handle
+ * to recover it. Browsers without `field-sizing` fall back to plain `rows`.
+ */
+export function TextArea({
+  className,
+  autoGrow,
+  ...rest
+}: ComponentProps<"textarea"> & { autoGrow?: boolean }) {
   return (
     <textarea
-      className={cn(controlBase, "p-3.5 text-sm leading-relaxed resize-none", className)}
+      className={cn(
+        controlBase,
+        "p-3.5 text-sm leading-relaxed resize-none",
+        autoGrow && "field-sizing-content max-h-64 overflow-y-auto",
+        className,
+      )}
       {...rest}
     />
   );

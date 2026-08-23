@@ -4,6 +4,7 @@ import { AppShell } from "@/components/shell/app-shell";
 import { PotNav } from "@/components/shell/left-nav";
 import { getPotContext, type PotContext } from "@/lib/data/pot";
 import { requireUser } from "@/lib/data/user";
+import { avatarSrc } from "@/lib/avatar-url";
 
 /**
  * Signed-in shell inside a Pot. Resolves membership and passes the Pot
@@ -23,6 +24,7 @@ export async function PotShell({
   return (
     <AppShell
       displayName={user.displayName}
+      avatarSrc={avatarSrc(user.avatarPath)}
       email={user.email}
       searchScope={{ potId: pot.id, potTitle: pot.title }}
       nav={

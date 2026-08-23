@@ -128,6 +128,7 @@ export function CreatePotFlow() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
+                autoGrow
                 maxLength={2000}
                 placeholder="A line or two so classmates know they're in the right place."
               />

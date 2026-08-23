@@ -17,13 +17,17 @@ export function Wordmark({
       className={cn("inline-flex items-center gap-2 text-ink", className)}
     >
       <PotMark
-        className={cn(size === "lg" ? "size-10" : "size-8")}
+        // The large mark steps down on a phone, where the header is tight.
+        className={cn("shrink-0", size === "lg" ? "size-8 sm:size-10" : "size-8")}
         title="MeltingPot"
       />
       <span
         className={cn(
-          "font-brand font-semibold tracking-tight lowercase",
-          size === "lg" ? "text-[26px]" : "text-[20px]",
+          // Below 360px the mark carries the brand alone: there is not room
+          // for the word and the account controls, and overlapping them is
+          // worse than showing the pot on its own.
+          "font-brand font-semibold tracking-tight lowercase max-[359px]:hidden",
+          size === "lg" ? "text-[21px] sm:text-[26px]" : "text-[20px]",
         )}
       >
         meltingpot

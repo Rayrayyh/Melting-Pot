@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
+import { RollText } from "@/components/ui/roll-text";
 import { cn } from "@/lib/cn";
 
 type Variant = "primary" | "secondary" | "quiet" | "danger" | "clay";
@@ -28,6 +29,8 @@ type ButtonProps = {
   variant?: Variant;
   size?: Size;
   href?: string;
+  /** Roll the label on hover. Text-only labels; reserved for calls to action. */
+  roll?: boolean;
   children: ReactNode;
 } & Omit<ComponentProps<"button">, "children"> &
   Pick<ComponentProps<"a">, "target" | "rel">;
@@ -36,6 +39,7 @@ export function Button({
   variant = "primary",
   size = "md",
   href,
+  roll = false,
   className,
   children,
   target,
@@ -43,17 +47,19 @@ export function Button({
   type,
   ...rest
 }: ButtonProps) {
-  const classes = cn(base, variants[variant], sizes[size], className);
+  const rolling = roll && typeof children === "string";
+  const classes = cn(base, variants[variant], sizes[size], rolling && "group/roll", className);
+  const label = rolling ? <RollText>{children as string}</RollText> : children;
   if (href) {
     return (
       <Link href={href} target={target} rel={rel} className={classes}>
-        {children}
+        {label}
       </Link>
     );
   }
   return (
     <button type={type ?? "button"} className={classes} {...rest}>
-      {children}
+      {label}
     </button>
   );
 }
