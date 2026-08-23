@@ -11,7 +11,7 @@ meltingpot.io is a responsive desktop-first web app where students in a class co
 3. `memory/` - the knowledge base: `decisions/` (what was chosen and why) and `lessons/` (what was learned the hard way). Follow `memory/README.md` rules: one note per file, one-line summary at top, update instead of duplicating, delete wrong notes.
 4. `docs/reference/REFERENCE_CAPTIONS.md` + the 16 PNGs - UX structure references. Captions say per image what to use and ignore.
 
-The four PDFs in the repo root are historical vision docs. Do not build from them (see `memory/decisions/001-source-of-truth.md`).
+The four historical vision PDFs and the pasted rules text were removed from the repo root before submission; `memory/decisions/001-source-of-truth.md` records why they were never the source of truth.
 
 ## Stack
 
