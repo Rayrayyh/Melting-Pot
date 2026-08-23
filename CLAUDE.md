@@ -2,7 +2,7 @@
 
 meltingpot.io is a responsive desktop-first web app where students in a class collaboratively build a shared vault of knowledge. A class space is a Pot. Students join with a six-character class code, write completely unformatted notes, an organizer structures them, and the student approves before anything is shared. Corrections to shared notes go through maintainer review. Built for a hackathon that requires meaningful AI integration, an open-source repo (MIT license present), and a hosted live URL.
 
-**Submission deadline: Sunday 2026-08-24, 9:00 AM Pacific (16:00 UTC).** Scope decisions bend toward shipping before it.
+**Submission deadline: Sunday 2026-08-23, 16:00 UTC** (9:00 AM Pacific, and 9:30 PM IST as Devpost states it). Sunday is the 23rd; an earlier note here said the 24th, which is Monday. Scope decisions bend toward shipping before it.
 
 ## Read these first
 
