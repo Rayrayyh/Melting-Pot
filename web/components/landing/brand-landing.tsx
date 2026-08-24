@@ -29,6 +29,7 @@ export function BrandLanding({
     <div className="flex flex-col">
       <SiteHeader signedIn={signedIn} getStartedHref="#spaces" />
 
+      <main id="main" className="flex flex-col">
       <section id="top" className="relative overflow-hidden">
         <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-12 grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] items-center gap-x-8 gap-y-12 min-h-[calc(100svh-5rem)] sm:min-h-[calc(100svh-6rem)] pt-10 lg:pt-0">
           <div className="space-y-8 lg:pb-24">
@@ -234,6 +235,8 @@ export function BrandLanding({
           </div>
         </Reveal>
       </section>
+
+      </main>
 
       <SiteFooter />
     </div>

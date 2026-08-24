@@ -107,6 +107,17 @@ export function UserNav({ pots }: { pots: UserNavPot[] }) {
           active={pathname === "/pots/new"}
         />
       </div>
+      {/* Settings sits last, where a sidebar is expected to keep it. It was
+          reachable only through the account popover, which is a place you have
+          to already know about. */}
+      <div className="mt-auto pt-4">
+        <NavLink
+          href="/me/settings"
+          label="Settings"
+          icon={<GearSix />}
+          active={pathname.startsWith("/me/settings")}
+        />
+      </div>
     </nav>
   );
 }

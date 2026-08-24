@@ -165,12 +165,15 @@ function TopicTable({ topics }: { topics: TopicEvidence[] }) {
         <Eyebrow>The counts behind it</Eyebrow>
         <div className="overflow-x-auto">
           <table className="w-full min-w-md text-left text-[13px]">
+            {/* Numbers right-aligned so the digits line up by place value
+                (R21). A column of counts you have to read digit by digit is a
+                column nobody reads. */}
             <thead className="text-[12px] text-ink-faint">
               <tr>
                 <th className="pb-1.5 font-normal">Topic</th>
-                <th className="pb-1.5 pl-4 font-normal tabular-nums">Missed</th>
-                <th className="pb-1.5 pl-4 font-normal tabular-nums">Asked</th>
-                <th className="pb-1.5 pl-4 font-normal tabular-nums">People</th>
+                <th className="pb-1.5 pl-4 font-normal text-right">Missed</th>
+                <th className="pb-1.5 pl-4 font-normal text-right">Asked</th>
+                <th className="pb-1.5 pl-4 font-normal text-right">People</th>
               </tr>
             </thead>
             <tbody>
@@ -180,14 +183,14 @@ function TopicTable({ topics }: { topics: TopicEvidence[] }) {
                   {/* Bracketed, because "6" next to "67%" reads as "667%" the
                       moment the gap between them is small or the row is
                       copied out as text. */}
-                  <td className="py-2 pl-4 tabular-nums text-ink">
+                  <td className="py-2 pl-4 text-right tabular-nums text-ink">
                     {topic.missed}{" "}
                     <span className="text-[12px] text-ink-faint">
                       ({Math.round(missRate(topic) * 100)}%)
                     </span>
                   </td>
-                  <td className="py-2 pl-4 tabular-nums text-ink-muted">{topic.asked}</td>
-                  <td className="py-2 pl-4 tabular-nums text-ink-muted">{topic.students}</td>
+                  <td className="py-2 pl-4 text-right tabular-nums text-ink-muted">{topic.asked}</td>
+                  <td className="py-2 pl-4 text-right tabular-nums text-ink-muted">{topic.students}</td>
                 </tr>
               ))}
             </tbody>

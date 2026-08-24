@@ -6,7 +6,22 @@ import { relativeTime } from "@/lib/time";
 
 /** Latest shared notes across every Pot the user belongs to. */
 export function ActivityList({ items }: { items: ActivityItem[] }) {
-  if (items.length === 0) return null;
+  // R44: a panel with nothing in it says so. Returning null left a hole in the
+  // sidebar and no explanation for it, so a class that had not shared yet just
+  // saw the join card sitting on its own and no reason why.
+  if (items.length === 0) {
+    return (
+      <Card>
+        <CardSection className="space-y-1.5">
+          <p className="text-sm font-semibold text-ink">New in your Pots</p>
+          <p className="text-[13px] leading-relaxed text-ink-muted">
+            Nothing shared yet. Notes your class shares will appear here as they
+            land.
+          </p>
+        </CardSection>
+      </Card>
+    );
+  }
   return (
     <Card>
       <CardSection className="space-y-3">

@@ -29,6 +29,14 @@ export function SiteHeader({
 }) {
   return (
     <header className="w-full">
+      {/* Invisible until focused, first in the tab order. The nav is short but
+          a reader should still be able to step over it. */}
+      <a
+        href="#main"
+        className="sr-only focus-visible:not-sr-only focus-visible:absolute focus-visible:left-4 focus-visible:top-4 focus-visible:z-50 focus-visible:rounded-full focus-visible:bg-ink focus-visible:px-4 focus-visible:py-2 focus-visible:text-sm focus-visible:font-medium focus-visible:text-paper"
+      >
+        Skip to content
+      </a>
       <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-12 h-20 sm:h-24 flex items-center justify-between gap-3">
         <Wordmark size="lg" className="min-w-0 shrink" />
         {/* Every label here is nowrap: the pill has a fixed height, so a

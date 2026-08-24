@@ -30,6 +30,15 @@ export function AppShell({
   const profile = <NavProfile displayName={displayName} email={email} avatarSrc={avatarSrc} />;
   return (
     <div className="flex min-h-dvh flex-col">
+      {/* First thing in the tab order, invisible until it has focus. A
+          keyboard reader should not have to walk the whole sidebar to reach
+          the page they just opened. */}
+      <a
+        href="#main"
+        className="sr-only focus-visible:not-sr-only focus-visible:absolute focus-visible:left-4 focus-visible:top-4 focus-visible:z-50 focus-visible:rounded-full focus-visible:bg-ink focus-visible:px-4 focus-visible:py-2 focus-visible:text-sm focus-visible:font-medium focus-visible:text-paper"
+      >
+        Skip to content
+      </a>
       <TopBar searchScope={searchScope} />
       <div className="flex flex-1 min-h-0">
         <aside className="hidden lg:block w-60 shrink-0 border-r border-edge bg-surface">
@@ -71,7 +80,7 @@ export function AppShell({
             </div>
           </div>
         ) : null}
-        <main className="mp-enter flex-1 min-w-0 flex flex-col">{children}</main>
+        <main id="main" className="mp-enter flex-1 min-w-0 flex flex-col">{children}</main>
       </div>
     </div>
   );
