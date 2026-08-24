@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Brain, ListChecks, ClockCounterClockwise, Notebook, TrashSimple } from "@phosphor-icons/react/dist/ssr";
 import { AdminRestore } from "@/components/pot/admin-restore";
 import { RemovedNotesPanel } from "@/components/pot/removed-notes-panel";
+import { TeachingReadout } from "@/components/study/teaching-readout";
 import { PotShell } from "@/components/shell/pot-shell";
 import { Avatar } from "@/components/ui/avatar";
 import { Card, CardSection } from "@/components/ui/card";
@@ -454,6 +455,12 @@ export default async function AdminPage({
                     </Card>
                   ))
                 )}
+
+                {/* The other half of the same tab. Above is who has practiced;
+                    below is what the practice says about the material. */}
+                <div className="border-t border-edge pt-6">
+                  <TeachingReadout potId={pot.id} />
+                </div>
               </section>
             ) : null}
 

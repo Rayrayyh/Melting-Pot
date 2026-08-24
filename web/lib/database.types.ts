@@ -765,6 +765,7 @@ export type Database = {
         Returns: undefined;
       };
       admin_study_overview: { Args: { p_pot_id: string }; Returns: Json };
+      class_topic_evidence: { Args: { p_pot_id: string }; Returns: Json };
       update_my_profile: {
         Args: { p_display_name: string; p_avatar_url?: string | null };
         Returns: undefined;
