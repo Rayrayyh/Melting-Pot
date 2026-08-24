@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GithubLogo, Trophy } from "@phosphor-icons/react/dist/ssr";
+import { GithubLogo } from "@phosphor-icons/react/dist/ssr";
 import { Wordmark } from "@/components/shell/wordmark";
 import { MAKERS, REPO_URL } from "@/components/landing/site-content";
 
@@ -70,13 +70,26 @@ export function SiteFooter() {
             href="https://august-ai-challenge-31059.devpost.com/"
             label="Built for the Prometheus August AI Challenge"
             mark={
-              /* Drawn rather than borrowed. A logo we do not own is a file that
-                 can go missing and a mark we have no licence to; the icon sits
-                 in the same type and colour as everything else here. */
-              <Trophy
-                className="size-7 text-ink transition-transform duration-300 group-hover:-translate-y-0.5"
-                weight="fill"
+              /* The challenge's own mark, supplied by the owner. It ships as
+                 white artwork on transparency, which would be invisible on
+                 cream, so it is painted as a mask rather than an image: the
+                 alpha channel gives the shape and currentColor gives the
+                 colour. That way it reads as ink in either theme instead of
+                 needing two files, and it stays legible if the palette moves
+                 again. 627x93 after trimming the export's empty padding. */
+              <span
                 aria-hidden
+                className="block h-7 w-[189px] bg-ink transition-transform duration-300 group-hover:-translate-y-0.5"
+                style={{
+                  maskImage: "url(/prometheus-logo.png)",
+                  WebkitMaskImage: "url(/prometheus-logo.png)",
+                  maskSize: "contain",
+                  WebkitMaskSize: "contain",
+                  maskRepeat: "no-repeat",
+                  WebkitMaskRepeat: "no-repeat",
+                  maskPosition: "center",
+                  WebkitMaskPosition: "center",
+                }}
               />
             }
           />
