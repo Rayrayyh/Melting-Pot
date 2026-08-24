@@ -2,7 +2,7 @@
 
 Everything your class knows, in one Pot.
 
-**Live:** https://meltingpot-io.netlify.app
+**Live:** https://meltingpot-prometheus.netlify.app
 
 ## The problem
 
@@ -14,7 +14,7 @@ A class space is called a Pot. A teacher creates one and gets a six character cl
 
 ## Try it in two minutes
 
-1. Open the [live site](https://meltingpot-io.netlify.app). Create a Pot as a teacher, or join one with a code if you have it.
+1. Open the [live site](https://meltingpot-prometheus.netlify.app). Create a Pot as a teacher, or join one with a code if you have it.
 2. Paste something messy into "Write anything". Genuinely messy: lowercase, fragments, an "i think..." you are not sure about. Watch it become a structured note, with your uncertainty kept visible as a labeled "Still to confirm" line instead of being laundered into a confident claim.
 3. Share it, then open it from the feed and suggest a correction to one sentence. Review it from the maintainer side and accept it. Open the note's history to see both versions and everyone credited.
 
