@@ -24,6 +24,8 @@ Organization is the product, not a feature bolted onto it. Rough text is mixed i
 
 The Pot home is also a study hub: raw notes, a class-wide summary, flashcards, and a practice test generated from shared material. A fast model handles organization, vision, summaries, and cards; a stronger one is reserved for writing practice tests. Both are named in configuration rather than in source. The deterministic organizer remains as a local fallback when neither is configured.
 
+Which engine did the work is always on screen. A note organized by the model says so and names it; a note the rule-based fallback had to finish says that instead, in plain words. The two produce visibly different writing and a reader cannot tell them apart from the output alone, so the app does not make them guess.
+
 Generated material is stored per Pot and keyed by a fingerprint of the notes it was built from, so a class shares one deck rather than each student spending a generation on the same thing. Share a note, accept a correction, or remove one, and the fingerprint changes and the next request rebuilds. Nothing generated is ever put in an HTTP cache: the database is the only cache, and it is one a maintainer can look at and delete.
 
 ## Studying from what the class built
@@ -33,6 +35,16 @@ Flashcards and the practice test are learning flows, not lists. Cards come one a
 A practice test is set up before it is written: five to twenty questions, three difficulties, the sections to draw from, and anything to concentrate on in your own words. It asks one question at a time with a navigator and answers you can change, reveals nothing until you hand it in, then marks with the correct answer, your answer, the explanation, and the note each question came from, and offers the ones you missed again. Nothing about how you are doing is written down anywhere.
 
 Reading a note is study too. Notes highlight the terms they define or emphasise, worked out from the note itself rather than asked of a model, and selecting any passage offers to turn it into a flashcard that belongs to whoever wrote it.
+
+## For the person teaching
+
+Everything above is built for the student. One screen is built for whoever runs the Pot.
+
+Open the Study tab in a Pot's admin page and it reads the questions the class has actually answered, grouped by the note each question came from, and tells you what to revisit and what to do about it. Two to four topics, worst first, each with one concrete thing to try in a lesson.
+
+The split is the point. The counts are a plain database aggregate over recorded answers, so the model never touches a number and cannot get one wrong; its whole job is reading a table it was handed. The counts are printed underneath the reading, and the model is named, so a teacher can check the claim instead of trusting it.
+
+It refuses a few things on purpose. No student is named, counted, or compared: this is about the material, not the people, and there is no ranking anywhere in it. It says nothing at all until at least twenty first-pass answers from two people exist, because one person having a bad afternoon must never reach a teacher as a fact about their class. Retries do not count, so a class that goes back over a topic never looks worse than one that never returns. And unlike every other model call here, it has no rule-based fallback: a made-up interpretation of real results is the one thing this must never produce, so when the model is unreachable the counts stand alone and the page says why.
 
 ## What is in the product
 
@@ -44,7 +56,7 @@ Maintainers can take a note out of a Pot with a reason and put it back, delete a
 
 Inside a Pot: a shared feed with section filters, full text search across titles, content, contributors, and attachments, file uploads (images including phone camera HEIC, PDFs, documents) and links that stay connected from draft through publication, version history with the complete attribution trail, and maintainer tools for sections, roles, class code regeneration, and archiving with a way back. Light and dark themes throughout, reduced motion respected, and a landing page whose scroll sequence melts a messy note into an organized one.
 
-Account settings hold the theme (follow your device, or pick a side) and, for the people who run a Pot, two-step sign in with an authenticator app such as Google Authenticator. That one is enforced rather than advertised: turning it on adds a code step to every later sign in, and the test suite proves it by playing the authenticator itself.
+Account settings hold the theme (light by default, dark, or follow your device) with a one tap switch in the public header, and, for the people who run a Pot, two-step sign in with an authenticator app such as Google Authenticator. That one is enforced rather than advertised: turning it on adds a code step to every later sign in, and the test suite proves it by playing the authenticator itself.
 
 Sign in is an email and a password, behind a provider seam in `web/lib/auth`: everything the app needs from an identity provider is described in the product's own words, so moving to a hosted provider such as Clerk is an implementation behind that interface rather than a rewrite of every page. `docs/AUTH.md` explains the contract and what a swap actually costs.
 
