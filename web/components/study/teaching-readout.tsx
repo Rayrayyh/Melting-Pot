@@ -177,10 +177,13 @@ function TopicTable({ topics }: { topics: TopicEvidence[] }) {
               {topics.map((topic) => (
                 <tr key={topic.topic} className="border-t border-edge">
                   <td className="py-2 pr-4 text-ink">{topic.topic}</td>
+                  {/* Bracketed, because "6" next to "67%" reads as "667%" the
+                      moment the gap between them is small or the row is
+                      copied out as text. */}
                   <td className="py-2 pl-4 tabular-nums text-ink">
-                    {topic.missed}
-                    <span className="pl-1.5 text-[12px] text-ink-faint">
-                      {Math.round(missRate(topic) * 100)}%
+                    {topic.missed}{" "}
+                    <span className="text-[12px] text-ink-faint">
+                      ({Math.round(missRate(topic) * 100)}%)
                     </span>
                   </td>
                   <td className="py-2 pl-4 tabular-nums text-ink-muted">{topic.asked}</td>
