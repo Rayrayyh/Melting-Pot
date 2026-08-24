@@ -40,10 +40,15 @@ test.describe("account and landing for signed-in people", () => {
     await page.goto("/me/settings");
 
     const root = page.locator("html");
-    await expect(page.getByRole("radio", { name: "System" })).toHaveAttribute(
+    // Light is what someone who has never chosen gets, and it is stamped on the
+    // document rather than left to the device. The browser here runs in the
+    // default light scheme either way, so the attribute is what proves it: a
+    // page following the device would carry no data-theme at all.
+    await expect(page.getByRole("radio", { name: "Light" })).toHaveAttribute(
       "aria-checked",
       "true",
     );
+    await expect(root).toHaveAttribute("data-theme", "light");
 
     await page.getByRole("radio", { name: "Dark" }).click();
     await expect(root).toHaveAttribute("data-theme", "dark");
@@ -56,9 +61,26 @@ test.describe("account and landing for signed-in people", () => {
       "true",
     );
 
-    // And System hands control back to the device.
+    // And System hands control back to the device, which is the one state that
+    // leaves the attribute off.
     await page.getByRole("radio", { name: "System" }).click();
     await expect(root).not.toHaveAttribute("data-theme", "dark");
+    await expect(root).not.toHaveAttribute("data-theme", "light");
+  });
+
+  test("one tap on the landing header flips the theme", async ({ page }) => {
+    await page.goto("/");
+    const root = page.locator("html");
+    await expect(root).toHaveAttribute("data-theme", "light");
+
+    // The icon says where the tap leads, not where you already are.
+    await page.getByRole("button", { name: "Switch to dark theme" }).click();
+    await expect(root).toHaveAttribute("data-theme", "dark");
+
+    await page.reload();
+    await expect(root).toHaveAttribute("data-theme", "dark");
+    await page.getByRole("button", { name: "Switch to light theme" }).click();
+    await expect(root).toHaveAttribute("data-theme", "light");
   });
 
   test("two-step sign in is offered to the person who runs the Pot", async ({ page }) => {
