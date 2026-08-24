@@ -1,8 +1,10 @@
 # MeltingPot
 
-meltingpot.io is a responsive desktop-first web app where students in a class collaboratively build a shared vault of knowledge. A class space is a Pot. Students join with a six-character class code, write completely unformatted notes, an organizer structures them, and the student approves before anything is shared. Corrections to shared notes go through maintainer review. Built for a hackathon that requires meaningful AI integration, an open-source repo (MIT license present), and a hosted live URL.
+meltingpot.io is a responsive desktop-first web app where students in a class collaboratively build a shared vault of knowledge. A class space is a Pot. Students join with a six-character class code, write completely unformatted notes, an organizer structures them, and the student approves before anything is shared. Corrections to shared notes go through maintainer review. Entered in the Prometheus August AI Challenge, which asks for an educational tool where AI/ML is core to how people learn, teach, or absorb information, and requires an open-source repo (MIT license present), a hosted live URL, and a demo video.
 
-**Submission deadline: Sunday 2026-08-23, 16:00 UTC** (9:00 AM Pacific, and 9:30 PM IST as Devpost states it). Sunday is the 23rd; an earlier note here said the 24th, which is Monday. Scope decisions bend toward shipping before it.
+**Submission deadline: Saturday 2026-08-29, 11:45pm PDT** (06:45 UTC on the 30th). The rules page separately says 11:59 PM with no extensions; the two disagree by fourteen minutes, so treat 11:45pm PDT as the wall. Scope decisions bend toward shipping before it.
+
+The judging rubric is 100 points in four equal parts: Educational Impact, Creative Use of AI/ML (their words: "AI is core to the functionality, not just an afterthought"), Technical Execution (codebase, UI, UX), and Pitch & Demo. The demo video is capped at two minutes and anything longer is not watched. `memory/decisions/021` records how this project came to be entered here.
 
 ## Read these first
 
@@ -47,8 +49,8 @@ Cream paper background (#faf4e6), warm white surfaces, near-black ink, brand ora
 
 ## Working agreements
 
-- Follow `docs/PLAN.md` step order; each step ends with lint + typecheck + build green, a commit, and a push to `claude/meltingpot-mvp-build-57aw4u`.
-- All work stays on `claude/meltingpot-mvp-build-57aw4u` until the project is finished. Do not merge it into `main`, do not open follow-up pull requests to move it there, and do not ask again each round: the owner merges when they decide the project is done. `main` being behind is expected, not a problem to solve.
+- Follow `docs/PLAN.md` step order; each step ends with lint + typecheck + build green, a commit, and a push to `claude/prometheus-august-challenge`.
+- All work stays on `claude/prometheus-august-challenge` until the project is finished. Do not merge it into `main`, do not open follow-up pull requests to move it there, and do not ask again each round: the owner merges when they decide the project is done. `main` being behind is expected, not a problem to solve.
 - Do not schedule recurring pull request check-ins or any other self-firing routine. Report on a PR when the owner asks, or when a GitHub event actually needs a decision.
 - When something breaks, check `memory/lessons/` first, and record any new lesson worth keeping.
 - Log every architectural or scope decision in `memory/decisions/` at the moment it is made.

@@ -110,11 +110,11 @@ test.describe("account and landing for signed-in people", () => {
     await expect(page).toHaveURL(/\/home/);
   });
 
-  test("the footer credits the hackathon the project was built for", async ({ page }) => {
+  test("the footer credits the challenge the project was entered in", async ({ page }) => {
     await page.goto("/");
-    const credit = page.getByRole("link", { name: /Pixel Forge AI/ });
+    const credit = page.getByRole("link", { name: /Prometheus August AI Challenge/ });
     await expect(credit).toBeVisible();
     await expect(credit).toHaveAttribute("href", /devpost\.com/);
-    await expect(page.getByText("Made for the Pixel Forge AI Hackathon")).toBeVisible();
+    await expect(page.getByText("Built for the Prometheus August AI Challenge")).toBeVisible();
   });
 });

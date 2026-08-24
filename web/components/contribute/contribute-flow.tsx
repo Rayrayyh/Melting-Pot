@@ -15,6 +15,7 @@ import {
 } from "@phosphor-icons/react";
 import { NoteBody, TakeawaysCard } from "@/components/pot/note-body";
 import { NoteChecks } from "@/components/contribute/note-checks";
+import { OrganizedBy } from "@/components/mix/organized-by";
 import type { NoteCheck } from "@/lib/mix/contracts";
 import { Button } from "@/components/ui/button";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
@@ -128,7 +129,9 @@ export function ContributeFlow({
   const [linkDraft, setLinkDraft] = useState<string | null>(null);
   const [stageStates, setStageStates] = useState<StageState[]>([]);
   const [organized, setOrganized] = useState<EditableOrganized | null>(initialOrganized);
-  const [organizedFallback, setOrganizedFallback] = useState(false);
+  // Which engine organized the current draft: a model name, "deterministic",
+  // or null before anything has been organized.
+  const [organizedBy, setOrganizedBy] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [confirmReorganize, setConfirmReorganize] = useState(false);
   const [sharedNoteId, setSharedNoteId] = useState<string | null>(null);
@@ -407,7 +410,7 @@ export function ContributeFlow({
         analyses?: Array<{ id: string; caption: string; extractedText: string }>;
         error?: string;
         detail?: string;
-        fallback?: string;
+        provider?: string;
         visionWarning?: string | null;
       } | null;
       if (!response.ok || !payload?.result) {
@@ -417,7 +420,7 @@ export function ContributeFlow({
         throw new Error(message);
       }
       const result = payload.result;
-      setOrganizedFallback(payload.fallback === "ai_unavailable");
+      setOrganizedBy(payload.provider ?? null);
       if (payload.visionWarning) {
         setErrorNote(`The note was organized, but one image could not be captioned: ${payload.visionWarning}`);
       }
@@ -884,12 +887,7 @@ export function ContributeFlow({
                   {editing ? "Done editing" : "Edit"}
                 </Button>
               </div>
-              {organizedFallback ? (
-                <p className="text-[12px] text-warning">
-                  The AI organizer was not available, so this was organized with simple
-                  formatting. Read it closely before sharing.
-                </p>
-              ) : null}
+              <OrganizedBy provider={organizedBy} />
               <Card>
                 <CardSection className="space-y-4">
                   {editing ? (
@@ -1119,7 +1117,7 @@ export function ContributeFlow({
               setOrganized(null);
               lastOrganized.current = null;
               reviewDirty.current = false;
-              setOrganizedFallback(false);
+              setOrganizedBy(null);
               setAttachments([]);
               setSharedNoteId(null);
               setSaved("idle");

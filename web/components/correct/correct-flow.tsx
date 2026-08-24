@@ -14,6 +14,7 @@ import { NoticeBanner } from "@/components/ui/notice-banner";
 import { selectableSentences, summarizeDiff } from "@/lib/diff";
 import { asSingleLine, blocksToBodyText } from "@/lib/organizer/edit";
 import { LoadingScreen } from "@/components/ui/loading-screen";
+import { OrganizedBy } from "@/components/mix/organized-by";
 import { organizeErrorMessage, organizeNote } from "@/lib/organizer/request";
 import type { ProposedNote } from "@/lib/organizer/types";
 import type { Json } from "@/lib/database.types";
@@ -113,7 +114,9 @@ export function CorrectFlow({
   // organizing makes it stale rather than wrong. Deriving that beats clearing
   // it on every keystroke, and it means going back and forward again without
   // touching a word costs nothing.
-  const [organized, setOrganized] = useState<{ source: string; note: ProposedNote } | null>(null);
+  const [organized, setOrganized] = useState<
+    { source: string; note: ProposedNote; provider: string | null } | null
+  >(null);
   const organizedNote = organized?.source === proposed.trim() ? organized.note : null;
 
   // What actually gets stored. A sentence replacement is spliced into one
@@ -155,7 +158,7 @@ export function CorrectFlow({
         setError(organizeErrorMessage(result.error));
         return;
       }
-      setOrganized({ source: proposed.trim(), note: result.note });
+      setOrganized({ source: proposed.trim(), note: result.note, provider: result.provider });
       setStage("compare");
     } catch {
       setError("The connection dropped while this was being organized. Try again.");
@@ -457,6 +460,7 @@ export function CorrectFlow({
                 <TakeawaysCard takeaways={organizedNote.takeaways} />
               </CardSection>
             </Card>
+            <OrganizedBy provider={organized?.provider ?? null} />
             <p className="text-[12px] text-ink-faint">
               Your words, with the structure rebuilt. Go back to change any of it.
             </p>

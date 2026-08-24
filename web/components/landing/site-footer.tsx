@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { GithubLogo } from "@phosphor-icons/react/dist/ssr";
+import { GithubLogo, Trophy } from "@phosphor-icons/react/dist/ssr";
 import { Wordmark } from "@/components/shell/wordmark";
 import { MAKERS, REPO_URL } from "@/components/landing/site-content";
 
 /**
  * The public pages' shared footer: the three people who made it first, then
  * the brand and its two verifiable credits, then the legal pages. The makers'
- * row is set in the pixel face, a small nod to the hackathon it was built for.
+ * row is set in the pixel face, the one place this app lets itself wink.
  */
 export function SiteFooter() {
   return (
@@ -51,7 +51,7 @@ export function SiteFooter() {
           </p>
         </div>
         {/* Two credits, one mark each, sharing a baseline. The repository sits
-            beside the hackathon it was built for because both are the same
+            beside the challenge this was entered in because both are the same
             claim: this is a real thing you can go and look at. */}
         <div className="flex flex-wrap items-end justify-center gap-x-10 gap-y-8 sm:justify-end">
           <Credit
@@ -67,17 +67,16 @@ export function SiteFooter() {
           />
           <span aria-hidden className="hidden h-10 w-px bg-edge sm:block" />
           <Credit
-            href="https://pixel-forge-ai-hackathon-08.devpost.com/"
-            label="Made for the Pixel Forge AI Hackathon"
+            href="https://august-ai-challenge-31059.devpost.com/"
+            label="Built for the Prometheus August AI Challenge"
             mark={
-              /* The hackathon's own mark, kept at its own colors as a credit. */
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img
-                src="/pixel-forge-ai-hackathon.png"
-                alt="Pixel Forge AI"
-                width={932}
-                height={103}
-                className="h-7 w-auto transition-transform duration-300 group-hover:-translate-y-0.5"
+              /* Drawn rather than borrowed. A logo we do not own is a file that
+                 can go missing and a mark we have no licence to; the icon sits
+                 in the same type and colour as everything else here. */
+              <Trophy
+                className="size-7 text-ink transition-transform duration-300 group-hover:-translate-y-0.5"
+                weight="fill"
+                aria-hidden
               />
             }
           />

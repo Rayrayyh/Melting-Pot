@@ -74,11 +74,11 @@ Account settings: theme, and two-step sign in for the person who runs the Pot:
 
 ![Account settings](docs/screenshots/account-settings.png)
 
-## Built for the hackathon
+## How this was built
 
-Everything here was designed and built from scratch during the hackathon period. The repo is its own receipt: `docs/PLAN.md` holds the step by step execution plan with per step status, `docs/BUILDLOG.md` records what was built, found, and fixed in order, and `memory/` captures each architectural decision and hard won lesson at the moment it happened. The commit history walks through the whole build.
+Everything here was designed and written from scratch, starting 17 August 2026. The repo is its own receipt: `docs/PLAN.md` holds the step by step execution plan with per step status, `docs/BUILDLOG.md` records what was built, found, and fixed in order, and `memory/` captures each architectural decision and hard won lesson at the moment it happened. The commit history walks through the whole build, day by day.
 
-Built for the [Pixel Forge AI Hackathon](https://pixel-forge-ai-hackathon-08.devpost.com/). The project is open source under the MIT license (see `LICENSE`), hosted live at the URL above, and the three minute demo video is on the Devpost submission.
+Entered in the [Prometheus August AI Challenge](https://august-ai-challenge-31059.devpost.com/). The project is open source under the MIT license (see `LICENSE`), hosted live at the URL above, and the two minute demo video is on the Devpost submission.
 
 ## Under the hood
 
