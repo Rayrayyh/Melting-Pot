@@ -1,0 +1,31 @@
+Prometheus August AI Challenge
+
+Submission Deadline:
+Aug 29, 2026 @ 11:45pm PDT 
+
+Requirements
+What to Build
+Build an educational tool that leverages the power of AI/Machine Learning to transform how people learn, teach, or absorb information. Your project should aim to make knowledge more accessible, engaging, or personalized.
+
+What to Submit
+A 2 minute demo video showcasing your project, as well as your Source Code (GitHub Repository, etc)!
+
+About the challenge
+Welcome to the August AI Challenge, a premier virtual hackathon designed for the next generation of innovators, developers, and creators. This month, we are pushing the boundaries of artificial intelligence to solve real-world problems. Whether you are an AI enthusiast, a seasoned data scientist, or a creative designer, this challenge is a great opportunity to build, collaborate, and showcase your skills on a global stage.
+
+Get started
+Step 1: Click the "Sign Up" button to create your hacker profile and secure your spot in the challenge. 
+
+Step 2: Browse our official community channels to find teammates, or enter solo if you prefer to build alone. Teams can be up to 4 members.
+
+Step 3: You have until August 29th to design, code, and submit a working prototype along with a 2-minute video demonstration.
+
+Judging Criteria
+Educational Impact (25 pts)
+How effectively does the tool solve a real problem in education? Does it genuinely help people learn, teach, or understand a concept better?
+Creative Use of AI/ML (25 Points)
+How clever and meaningful is the integration of machine learning? We are looking for projects where AI is core to the functionality, not just an afterthought.
+Technical Execution (25 Points)
+Is the application functional, stable, and intuitive to use? Judges will look at the quality of the codebase, user interface (UI), and overall user experience (UX).
+The Pitch & Demo (25 Points)
+How well did the team communicate their vision? Points are awarded for a clear, concise, and engaging 2-minute video that clearly explains the "why" and "how" behind the project.
