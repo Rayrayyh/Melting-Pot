@@ -471,3 +471,63 @@ blockquote {
     display: none;
   }
 }
+
+/* ---- 404 -------------------------------------------------------------- */
+
+@keyframes mp-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes mp-drift {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-14px) rotate(6deg); }
+}
+@keyframes mp-drift2 {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(12px) rotate(-8deg); }
+}
+@keyframes mp-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.12); opacity: 1; }
+}
+
+.mp-404-accents {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.mp-404-pot {
+  animation: mp-bob 6s ease-in-out infinite;
+}
+
+.mp-404-cta {
+  margin-top: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: #e07e22;
+  color: #fffcf7;
+  font-family: var(--font-figtree), sans-serif;
+  font-weight: 600;
+  font-size: 17px;
+  padding: 16px 34px;
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(196, 87, 14, 0.28);
+  text-decoration: none;
+  transition: background-color 150ms ease;
+}
+
+.mp-404-cta:hover {
+  background: #c4570e;
+  color: #fffcf7;
+}
+
+/* The design has no reduced-motion handling. Without this the 404 would be
+   the only page in the product that ignores the preference. */
+@media (prefers-reduced-motion: reduce) {
+  .mp-404-accents span,
+  .mp-404-pot {
+    animation: none !important;
+  }
+}

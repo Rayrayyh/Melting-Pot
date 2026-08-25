@@ -1,5 +1,13 @@
 import type { Metadata } from "next";
-import { Baloo_2, Fraunces, Inter, Silkscreen, Source_Serif_4 } from "next/font/google";
+import {
+  Baloo_2,
+  Bricolage_Grotesque,
+  Figtree,
+  Fraunces,
+  Inter,
+  Silkscreen,
+  Source_Serif_4,
+} from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -14,6 +22,19 @@ const sourceSerif = Source_Serif_4({
 
 const fraunces = Fraunces({
   variable: "--font-fraunces",
+  subsets: ["latin"],
+});
+
+// The 404's two faces, from the design file. They live only on that page.
+const bricolage = Bricolage_Grotesque({
+  variable: "--font-bricolage",
+  weight: ["600", "700", "800"],
+  subsets: ["latin"],
+});
+
+const figtree = Figtree({
+  variable: "--font-figtree",
+  weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
 });
 
@@ -51,7 +72,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${inter.variable} ${sourceSerif.variable} ${fraunces.variable} ${baloo.variable} ${silkscreen.variable} h-full antialiased`}
+      className={`${inter.variable} ${sourceSerif.variable} ${fraunces.variable} ${bricolage.variable} ${figtree.variable} ${baloo.variable} ${silkscreen.variable} h-full antialiased`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInit }} />
