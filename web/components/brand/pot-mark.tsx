@@ -23,7 +23,27 @@ const HERO_M =
  * The square mark alone. Simplified for small sizes: a bold pot, one rising
  * blob, one side drop, one dot. Nothing is drawn behind it.
  */
-export function PotMark({ className, title }: { className?: string; title?: string }) {
+export function PotMark({
+  className,
+  title,
+  idPrefix = "mp-pot",
+}: {
+  className?: string;
+  title?: string;
+  /**
+   * Namespace for this instance's gradient and mask ids.
+   *
+   * SVG resolves url(#id) against the whole document and takes the first
+   * match, so two marks on one page had the second silently borrowing the
+   * first's defs. Identical marks made that invisible, but it is invalid
+   * markup and it breaks the moment the two differ or the first unmounts.
+   * Pass a distinct prefix wherever a second mark shares a page.
+   */
+  idPrefix?: string;
+}) {
+  const gradientId = `${idPrefix}-fill`;
+  const bodyMaskId = `${idPrefix}-body`;
+  const lipMaskId = `${idPrefix}-lip`;
   return (
     <svg
       viewBox="0 0 240 240"
@@ -33,28 +53,28 @@ export function PotMark({ className, title }: { className?: string; title?: stri
     >
       {title ? <title>{title}</title> : null}
       <defs>
-        {potGradient("mp-pot")}
+        {potGradient(gradientId)}
         {/* Body: the mouth and the m are cut away. */}
-        <mask id="mp-pot-body">
+        <mask id={bodyMaskId}>
           <rect width="240" height="240" fill="#fff" />
           <ellipse cx="120" cy="104" rx="80" ry="12" fill="#000" />
           <path d={MARK_M} fill="none" stroke="#000" strokeWidth="22" strokeLinecap="round" />
         </mask>
         {/* Front lip: keeps the mouth, loses the m. */}
-        <mask id="mp-pot-lip">
+        <mask id={lipMaskId}>
           <rect width="240" height="240" fill="#fff" />
           <path d={MARK_M} fill="none" stroke="#000" strokeWidth="22" strokeLinecap="round" />
         </mask>
       </defs>
 
-      <g mask="url(#mp-pot-body)">
+      <g mask={`url(#${bodyMaskId})`}>
         {/* Handles behind the body. */}
-        <ellipse cx="18" cy="118" rx="15" ry="16" fill="none" stroke="url(#mp-pot)" strokeWidth="12" />
-        <ellipse cx="222" cy="118" rx="15" ry="16" fill="none" stroke="url(#mp-pot)" strokeWidth="12" />
+        <ellipse cx="18" cy="118" rx="15" ry="16" fill="none" stroke={`url(#${gradientId})`} strokeWidth="12" />
+        <ellipse cx="222" cy="118" rx="15" ry="16" fill="none" stroke={`url(#${gradientId})`} strokeWidth="12" />
         {/* Pot body. */}
         <path
           d="M26 104c0-5 10-9 22-11 22-3 46-5 72-5s50 2 72 5c12 2 22 6 22 11 0 42-12 74-36 94-16 13-38 20-58 20s-42-7-58-20c-24-20-36-52-36-94Z"
-          fill="url(#mp-pot)"
+          fill={`url(#${gradientId})`}
         />
       </g>
 
@@ -74,8 +94,8 @@ export function PotMark({ className, title }: { className?: string; title?: stri
       {/* Front lip clips the blobs into the pot. */}
       <path
         d="M28 108c24 9 56 14 92 14s68-5 92-14c-1 8-3 15-5 22-25 8-54 12-87 12s-62-4-87-12c-2-7-4-14-5-22Z"
-        fill="url(#mp-pot)"
-        mask="url(#mp-pot-lip)"
+        fill={`url(#${gradientId})`}
+        mask={`url(#${lipMaskId})`}
       />
     </svg>
   );

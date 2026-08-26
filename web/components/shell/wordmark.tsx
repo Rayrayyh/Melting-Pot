@@ -6,10 +6,14 @@ export function Wordmark({
   href = "/",
   size = "md",
   className,
+  idPrefix,
 }: {
   href?: string;
   size?: "md" | "lg";
   className?: string;
+  /** Forwarded to the mark. Set it on the second Wordmark of a page so the
+   *  two do not share SVG def ids. See PotMark. */
+  idPrefix?: string;
 }) {
   return (
     <Link
@@ -20,6 +24,7 @@ export function Wordmark({
         // The large mark steps down on a phone, where the header is tight.
         className={cn("shrink-0", size === "lg" ? "size-8 sm:size-10" : "size-8")}
         title="MeltingPot"
+        idPrefix={idPrefix}
       />
       <span
         className={cn(

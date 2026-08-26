@@ -44,7 +44,7 @@ export function SiteFooter() {
 
       <div className="mx-auto w-full max-w-5xl mt-12 border-t border-edge pt-10 flex flex-col gap-10 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-3">
-          <Wordmark />
+          <Wordmark idPrefix="mp-pot-footer" />
           <p className="max-w-xs text-[13px] text-ink-muted">
             Everything your class knows, in one Pot. Built in the open, MIT
             licensed.

@@ -124,6 +124,12 @@ export function ProfilePanel({
               ref={fileInput}
               type="file"
               accept={TYPES.join(",")}
+              // Visually hidden but still in the accessibility tree, so a
+              // screen reader met an unnamed file control sitting beside the
+              // button that actually opens it. The button is the control;
+              // this is plumbing, so it leaves the tree and the tab order.
+              aria-hidden
+              tabIndex={-1}
               className="sr-only"
               onChange={(event) => {
                 const file = event.target.files?.[0];

@@ -71,7 +71,7 @@ export default function NotFound() {
         }}
       >
         {/* The design's placeholder square is our own mark, per the owner. */}
-        <PotMark className="block size-8" title="MeltingPot" />
+        <PotMark className="block size-8" title="MeltingPot" idPrefix="mp-pot-404" />
         <span
           style={{
             fontFamily: "var(--font-figtree), sans-serif",
@@ -108,6 +108,13 @@ export default function NotFound() {
           <img
             src="/pot-splash-cut.png"
             alt="MeltingPot pot spilling over"
+            // React hoists a <link rel=preload> for every eager image it
+            // renders, and Next ships the not-found boundary in the payload
+            // of every route so a client-side 404 can render without a round
+            // trip. The two together were preloading 421KB of 404 artwork on
+            // pages that will never show it. Lazy opts out of the hoist; the
+            // error page itself loses nothing that matters.
+            loading="lazy"
             className="mp-404-pot"
             style={{ width: 540, height: 476, objectFit: "contain", margin: "0 2px" }}
           />

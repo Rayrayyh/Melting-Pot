@@ -1,7 +1,19 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-const PROTECTED_PREFIXES = ["/home", "/p/", "/me", "/pots", "/search"];
+// Every signed-in surface. A route missing from this list still redirects,
+// because requireAuthUser guards the page itself, but it loses the two things
+// the edge adds: the ?next= that returns you where you were after signing in,
+// and the second-factor bounce before the page renders at all.
+const PROTECTED_PREFIXES = [
+  "/home",
+  "/p/",
+  "/me",
+  "/pots",
+  "/search",
+  "/study",
+  "/calendar",
+];
 
 function isProtected(pathname: string) {
   return PROTECTED_PREFIXES.some(

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { List, X } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 import { NavNotifications } from "@/components/shell/nav-notifications";
@@ -29,6 +29,34 @@ export function AppShell({
   children: ReactNode;
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const closeButton = useRef<HTMLButtonElement>(null);
+  const opener = useRef<HTMLButtonElement>(null);
+  const closeDrawer = useCallback(() => setDrawerOpen(false), []);
+
+  // The drawer is a modal overlay and was missing the three things every
+  // modal owes the reader: Escape to leave, a locked page behind it, and
+  // focus that actually moves into the thing that just opened.
+  useEffect(() => {
+    if (!drawerOpen) return;
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") closeDrawer();
+    }
+    document.addEventListener("keydown", onKeyDown);
+    // Without this the page keeps scrolling under the overlay, so dismissing
+    // the drawer returns you somewhere you did not choose to be.
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const returnTo = document.activeElement as HTMLElement | null;
+    // Captured now: by cleanup the ref may point somewhere else.
+    const openerAtOpen = opener.current;
+    closeButton.current?.focus();
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previous;
+      // Send focus back where it came from rather than dumping it on body.
+      (returnTo ?? openerAtOpen)?.focus?.();
+    };
+  }, [drawerOpen, closeDrawer]);
   const profile = <NavProfile displayName={displayName} email={email} avatarSrc={avatarSrc} />;
   // Pinned beside the profile rather than inside the scrolling nav: something
   // addressed to you should not be reachable only by scrolling past a class
@@ -56,8 +84,10 @@ export function AppShell({
         </aside>
         <button
           type="button"
+          ref={opener}
           onClick={() => setDrawerOpen(true)}
           aria-label="Open navigation"
+          aria-expanded={drawerOpen}
           className="lg:hidden fixed bottom-5 left-5 z-30 inline-flex size-11 items-center justify-center rounded-full bg-surface border border-edge-strong shadow-(--shadow-raised) text-ink"
         >
           <List className="size-5" />
@@ -67,20 +97,26 @@ export function AppShell({
             <div
               className="absolute inset-0 bg-black/40"
               aria-hidden
-              onClick={() => setDrawerOpen(false)}
+              onClick={closeDrawer}
             />
-            <div className="absolute inset-y-0 left-0 flex w-72 flex-col bg-surface border-r border-edge">
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Navigation"
+              className="absolute inset-y-0 left-0 flex w-72 flex-col bg-surface border-r border-edge"
+            >
               <div className="flex justify-end p-2">
                 <button
                   type="button"
-                  onClick={() => setDrawerOpen(false)}
+                  ref={closeButton}
+                  onClick={closeDrawer}
                   aria-label="Close navigation"
                   className="inline-flex size-9 items-center justify-center rounded-(--radius-control) text-ink-muted hover:bg-sunken"
                 >
                   <X className="size-5" />
                 </button>
               </div>
-              <div className="min-h-0 flex-1 overflow-y-auto" onClick={() => setDrawerOpen(false)}>
+              <div className="min-h-0 flex-1 overflow-y-auto" onClick={closeDrawer}>
                 {nav}
               </div>
               {alerts}
