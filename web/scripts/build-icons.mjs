@@ -1,10 +1,15 @@
-// Rasterizes app/icon.svg into the two binary icons Next serves by file
+// Rasterizes app/icon.png into the two binary icons Next serves by file
 // convention: app/favicon.ico (32px, PNG-in-ICO) and app/apple-icon.png
-// (180px). Both keep a transparent background so the mark carries no tile.
+// (180px).
 //
 //   node scripts/build-icons.mjs
 //
-// Run it after any edit to app/icon.svg and commit the results.
+// Run it after any edit to app/icon.png and commit the results.
+//
+// The source used to be an SVG of the bare mark. It is now the owner's app
+// icon artwork: the pot on its own rounded cream tile, with everything
+// outside that tile transparent. The tile is part of the icon, so the
+// transparency here is the corner cut rather than a bare glyph.
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -12,17 +17,20 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
 
 const appDir = join(dirname(fileURLToPath(import.meta.url)), "..", "app");
-const svg = readFileSync(join(appDir, "icon.svg"), "utf8");
+const source = readFileSync(join(appDir, "icon.png")).toString("base64");
 
-/** Screenshots the mark at one size on a transparent canvas. */
+/** Screenshots the icon at one size on a transparent canvas. */
 async function render(page, size) {
   await page.setViewportSize({ width: size, height: size });
   await page.setContent(
     `<!doctype html><style>
        html,body{margin:0;background:transparent}
-       svg{display:block;width:${size}px;height:${size}px}
-     </style>${svg}`,
+       img{display:block;width:${size}px;height:${size}px}
+     </style><img src="data:image/png;base64,${source}">`,
   );
+  // The decode has to finish before the screenshot or the canvas comes back
+  // empty at the smaller sizes.
+  await page.locator("img").first().evaluate((el) => el.decode());
   return page.screenshot({ omitBackground: true });
 }
 
