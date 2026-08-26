@@ -58,7 +58,7 @@ export function NavNotifications({ items }: { items: Notification[] }) {
 
   if (items.length === 0) {
     return (
-      <div className="mb-2 px-2">
+      <div className="mb-4 px-2">
         <div className="rounded-(--radius-card) border border-edge bg-sunken px-3 py-2.5">
           <p className="text-[12px] text-ink-muted">You are all caught up</p>
           <p className="mt-0.5 text-[11px] text-ink-faint">
@@ -75,7 +75,7 @@ export function NavNotifications({ items }: { items: Notification[] }) {
   const unread = items.filter((n) => n.isNew).length;
 
   return (
-    <div className="mb-2 px-2">
+    <div className="mb-4 px-2">
       <section
         aria-label="Notifications"
         className="rounded-(--radius-card) border border-edge bg-sunken p-2.5"

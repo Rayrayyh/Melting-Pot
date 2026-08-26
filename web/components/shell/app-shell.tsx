@@ -32,7 +32,7 @@ export function AppShell({
   const profile = <NavProfile displayName={displayName} email={email} avatarSrc={avatarSrc} />;
   // Pinned beside the profile rather than inside the scrolling nav: something
   // addressed to you should not be reachable only by scrolling past a class
-  // list. The 8px sits on the panel, so dismissing it closes the gap too.
+  // list. The gap sits on the panel, so dismissing it closes the gap too.
   const alerts = <NavNotifications items={notifications} />;
   return (
     <div className="flex min-h-dvh flex-col">
