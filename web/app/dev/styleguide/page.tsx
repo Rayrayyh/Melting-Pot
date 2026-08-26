@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Eye, Lightbulb, Tray } from "@phosphor-icons/react";
 import { AppShell } from "@/components/shell/app-shell";
-import { PotNav, UserNav } from "@/components/shell/left-nav";
+import { MainNav } from "@/components/shell/main-nav";
 import { AttributionRow, Avatar } from "@/components/ui/avatar";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
@@ -21,12 +21,6 @@ import { RolePill, SectionPill, StatusPill } from "@/components/ui/pills";
 import { FlowProgress, StageChecklist } from "@/components/ui/progress-steps";
 import { StickyActionBar } from "@/components/ui/sticky-action-bar";
 
-const demoSections = [
-  { id: "s1", title: "Week 1: Foundations" },
-  { id: "s2", title: "Week 2: Cell cycle" },
-  { id: "s3", title: "Exam review" },
-];
-
 /** Times chosen to show distinct moments: rest, mid-orbit, and the burst. */
 const STIR_FRAMES = [0, 0.4, 3.4, 4.2];
 
@@ -43,32 +37,54 @@ export default function StyleguidePage() {
     const id = setTimeout(() => setLoadingOpen(false), 8000);
     return () => clearTimeout(id);
   }, [loadingOpen]);
-  const [navMode, setNavMode] = useState<"user" | "pot">("pot");
 
   return (
     <AppShell
       displayName="Ada Lovelace"
       email="ada@example.com"
-      searchScope={navMode === "pot" ? { potId: "demo", potTitle: "Biology 101" } : undefined}
       nav={
-        navMode === "user" ? (
-          <UserNav
-            pots={[
-              { id: "demo", title: "Biology 101" },
-              { id: "demo2", title: "World History" },
-            ]}
-          />
-        ) : (
-          <PotNav
-            potId="demo"
-            potTitle="Biology 101"
-            memberCount={12}
-            sections={demoSections}
-            role="maintainer"
-            openReviewCount={2}
-          />
-        )
+        <MainNav
+          pots={[
+            { id: "demo", title: "Biology 101" },
+            { id: "demo2", title: "World History" },
+          ]}
+        />
       }
+      notifications={[
+        {
+          id: "review-1",
+          kind: "review",
+          title: "Osmosis and tonicity",
+          detail: "Priya Patel sent a correction",
+          potTitle: "Biology 101",
+          href: "#",
+          at: new Date().toISOString(),
+          atLabel: "1d ago",
+          isNew: true,
+        },
+        {
+          id: "note-1",
+          kind: "note",
+          title: "Membrane transport summary",
+          detail: "Omar Haddad shared a note",
+          potTitle: "Biology 101",
+          href: "#",
+          at: new Date().toISOString(),
+          atLabel: "22h ago",
+          isNew: true,
+        },
+        {
+          id: "decision-1",
+          kind: "decision",
+          title: "The cell cycle and its checkpoints",
+          detail: "Your correction was published",
+          potTitle: "World History",
+          href: "#",
+          at: new Date().toISOString(),
+          atLabel: "3d ago",
+          isNew: false,
+        },
+      ]}
     >
       <div className="mx-auto w-full max-w-3xl px-6 py-10 space-y-12 pb-28">
         <header className="space-y-2">
@@ -77,14 +93,6 @@ export default function StyleguidePage() {
           <p className="text-sm text-ink-muted">
             Every base component in both themes. Toggle the theme from the top bar.
           </p>
-          <div className="flex gap-2 pt-2">
-            <Button size="sm" variant={navMode === "user" ? "primary" : "secondary"} onClick={() => setNavMode("user")}>
-              User nav
-            </Button>
-            <Button size="sm" variant={navMode === "pot" ? "primary" : "secondary"} onClick={() => setNavMode("pot")}>
-              Pot nav
-            </Button>
-          </div>
         </header>
 
         <section className="space-y-4">

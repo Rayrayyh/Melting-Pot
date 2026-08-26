@@ -131,11 +131,15 @@ const waiting = {
   ],
 } as const;
 
-function message(error: string | undefined, detail: string | undefined): string {
+function message(
+  error: string | undefined,
+  detail: string | undefined,
+): string {
   if (error === "mixing_unavailable") {
     return "Mixing is not set up on this server yet, so nothing new can be built. Anything the Pot already has still opens.";
   }
-  if (error === "no_notes") return "Share at least one note before building study material.";
+  if (error === "no_notes")
+    return "Share at least one note before building study material.";
   if (error === "no_notes_in_sections") {
     return "Nothing has been shared in the parts you picked. Choose another part, or the whole Pot.";
   }
@@ -147,7 +151,8 @@ function message(error: string | undefined, detail: string | undefined): string 
   if (error === "rate_limited") {
     return "You have built several study sets recently. Wait a little and try again.";
   }
-  if (error === "not_pot_member") return "You need to be in this Pot to study from it.";
+  if (error === "not_pot_member")
+    return "You need to be in this Pot to study from it.";
   if (error === "generation_closed") {
     return "This Pot is set so only maintainers build new study material. Anything the class has already built still opens.";
   }
@@ -191,7 +196,9 @@ export function StudyWorkspace({
   const [asking, setAsking] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [options, setOptions] = useState<PracticeOptions>(DEFAULT_PRACTICE_OPTIONS);
+  const [options, setOptions] = useState<PracticeOptions>(
+    DEFAULT_PRACTICE_OPTIONS,
+  );
   // A test is set up before it is written, so the settings are a screen of
   // their own that the reader can come back to.
   // Every kind is set up before it is built, so all three open on the setup
@@ -203,29 +210,33 @@ export function StudyWorkspace({
   const mode = copy[kind];
   const Icon = mode.icon;
   const optionsKey = practiceOptionsKey(options);
-  const sectionTitles = new Map(sections.map((section) => [section.id, section.title]));
+  const sectionTitles = new Map(
+    sections.map((section) => [section.id, section.title]),
+  );
 
   const load = useCallback(
-    async (request: { peek?: boolean; regenerate?: boolean; options?: PracticeOptions }) => {
+    async (request: {
+      peek?: boolean;
+      regenerate?: boolean;
+      options?: PracticeOptions;
+    }) => {
       const { options: chosen, ...flags } = request;
       const response = await fetch("/api/ai/study", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ potId, kind, ...flags, options: chosen }),
       });
-      const payload = (await response.json().catch(() => null)) as
-        | {
-            result?: StudyResult;
-            cached?: boolean;
-            generatedAt?: string;
-            studySetId?: string | null;
-            fingerprint?: string | null;
-            model?: string | null;
-            secured?: boolean;
-            error?: string;
-            detail?: string;
-          }
-        | null;
+      const payload = (await response.json().catch(() => null)) as {
+        result?: StudyResult;
+        cached?: boolean;
+        generatedAt?: string;
+        studySetId?: string | null;
+        fingerprint?: string | null;
+        model?: string | null;
+        secured?: boolean;
+        error?: string;
+        detail?: string;
+      } | null;
       if (!response.ok || !payload?.result) {
         return { failure: payload?.error, detail: payload?.detail };
       }
@@ -364,14 +375,17 @@ export function StudyWorkspace({
     if (!opened || opened.studySetId || !opened.fingerprint || saving) return;
     setSaving(true);
     setError(null);
-    const { data, error: rpcError } = await supabaseBrowser().rpc("save_study_set", {
-      p_pot_id: potId,
-      p_kind: kind,
-      p_fingerprint: opened.fingerprint,
-      p_payload: opened.result as unknown as Json,
-      p_model: opened.model,
-      p_options: options as unknown as Json,
-    });
+    const { data, error: rpcError } = await supabaseBrowser().rpc(
+      "save_study_set",
+      {
+        p_pot_id: potId,
+        p_kind: kind,
+        p_fingerprint: opened.fingerprint,
+        p_payload: opened.result as unknown as Json,
+        p_model: opened.model,
+        p_options: options as unknown as Json,
+      },
+    );
     setSaving(false);
     if (rpcError || !data) {
       setError("That set could not be saved to the Pot. Try again.");
@@ -384,9 +398,12 @@ export function StudyWorkspace({
   async function removeSet() {
     if (!opened?.studySetId || deleting) return;
     setDeleting(true);
-    const { error: rpcError } = await supabaseBrowser().rpc("delete_study_set", {
-      p_study_set_id: opened.studySetId,
-    });
+    const { error: rpcError } = await supabaseBrowser().rpc(
+      "delete_study_set",
+      {
+        p_study_set_id: opened.studySetId,
+      },
+    );
     setDeleting(false);
     setAsking(false);
     if (rpcError) {
@@ -400,16 +417,23 @@ export function StudyWorkspace({
   }
 
   const markTest = useCallback(
-    async (order: number[], answers: Record<number, number>): Promise<PracticeMarking> => {
-      const questions = (opened?.result as PracticeResult | undefined)?.questions ?? [];
+    async (
+      order: number[],
+      answers: Record<number, number>,
+    ): Promise<PracticeMarking> => {
+      const questions =
+        (opened?.result as PracticeResult | undefined)?.questions ?? [];
       if (!opened?.secured || !opened.studySetId) {
         return markLocally(questions, order, answers);
       }
-      const { data, error: rpcError } = await supabaseBrowser().rpc("submit_practice_test", {
-        p_attempt_id: crypto.randomUUID(),
-        p_set_id: opened.studySetId,
-        p_answers: { order, choices: answers } as unknown as Json,
-      });
+      const { data, error: rpcError } = await supabaseBrowser().rpc(
+        "submit_practice_test",
+        {
+          p_attempt_id: crypto.randomUUID(),
+          p_set_id: opened.studySetId,
+          p_answers: { order, choices: answers } as unknown as Json,
+        },
+      );
       if (rpcError || !data) throw new Error("submit_failed");
       const returned = data as {
         firstPass?: boolean;
@@ -471,7 +495,9 @@ export function StudyWorkspace({
       <header className="flex items-start justify-between gap-5">
         <div className="space-y-1.5">
           <Eyebrow>Study from the full Pot</Eyebrow>
-          <h1 className="text-2xl font-semibold tracking-tight">{mode.title}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {mode.title}
+          </h1>
           <p className="text-sm text-ink-muted">{mode.description}</p>
         </div>
         <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary">
@@ -480,7 +506,10 @@ export function StudyWorkspace({
       </header>
 
       {showTabs ? (
-        <nav aria-label="Practice tests" className="flex gap-1.5 border-b border-edge">
+        <nav
+          aria-label="Practice tests"
+          className="flex gap-1.5 border-b border-edge"
+        >
           {(
             [
               [
@@ -492,7 +521,11 @@ export function StudyWorkspace({
               [
                 "previous",
                 `${
-                  kind === "summary" ? "Previous summaries" : kind === "flashcards" ? "Previous decks" : "Previous tests"
+                  kind === "summary"
+                    ? "Previous summaries"
+                    : kind === "flashcards"
+                      ? "Previous decks"
+                      : "Previous tests"
                 } (${savedSets.length})`,
               ],
             ] as const
@@ -543,16 +576,18 @@ export function StudyWorkspace({
       ) : !settled ? (
         <Card>
           <CardSection className="py-12 text-center">
-            <p className="text-sm text-ink-muted">Looking for what this Pot already has.</p>
+            <p className="text-sm text-ink-muted">
+              Looking for what this Pot already has.
+            </p>
           </CardSection>
         </Card>
       ) : !opened ? (
         <Card>
           <CardSection className="flex flex-col items-center gap-4 py-12 text-center">
             <p className="max-w-md text-sm leading-relaxed text-ink-muted">
-              This is mixed from the latest shared notes and the captions your class
-              reviewed. Nothing outside the Pot goes in, and the class shares what you
-              build here until someone shares a new note.
+              This is mixed from the latest shared notes and the captions your
+              class reviewed. Nothing outside the Pot goes in, and the class
+              shares what you build here until someone shares a new note.
             </p>
             <Button onClick={() => void generate(false)} disabled={busy}>
               <Sparkle className="size-4" weight="fill" />
@@ -608,13 +643,26 @@ export function StudyWorkspace({
                   Saved to this Pot
                 </span>
               ) : (
-                <Button variant="secondary" size="sm" onClick={() => void saveSet()} disabled={saving}>
-                  {saving ? <Stir size={16} /> : <FloppyDisk className="size-4" />}
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => void saveSet()}
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <Stir size={16} />
+                  ) : (
+                    <FloppyDisk className="size-4" />
+                  )}
                   {saving ? "Saving" : "Save to this Pot"}
                 </Button>
               )}
               {canModerate && opened.studySetId ? (
-                <Button variant="quiet" size="sm" onClick={() => setAsking(true)}>
+                <Button
+                  variant="quiet"
+                  size="sm"
+                  onClick={() => setAsking(true)}
+                >
                   <TrashSimple className="size-4" />
                   Remove this set
                 </Button>
@@ -628,27 +676,36 @@ export function StudyWorkspace({
             </p>
           ) : null}
 
-          {kind === "summary" ? <SummaryView result={opened.result as SummaryResult} /> : null}
+          {kind === "summary" ? (
+            <SummaryView result={opened.result as SummaryResult} />
+          ) : null}
+          {/* A run in progress claims the bare keys. The sidebar's letter
+              shortcuts are global, and losing a half finished deck to a
+              stray S would be the worst thing they could do. */}
           {kind === "flashcards" ? (
-            <FlashcardSession
-              // A rebuilt deck is a new session, not the old one with new cards.
-              key={opened.studySetId ?? opened.generatedAt ?? "deck"}
-              cards={(opened.result as FlashcardResult).cards}
-              onRegenerate={() => void generate(true)}
-              regenerating={busy}
-              onFinished={recordRun}
-            />
+            <div data-no-shortcuts>
+              <FlashcardSession
+                // A rebuilt deck is a new session, not the old one with new cards.
+                key={opened.studySetId ?? opened.generatedAt ?? "deck"}
+                cards={(opened.result as FlashcardResult).cards}
+                onRegenerate={() => void generate(true)}
+                regenerating={busy}
+                onFinished={recordRun}
+              />
+            </div>
           ) : null}
           {kind === "practice" ? (
-            <PracticeSession
-              key={opened.studySetId ?? `${opened.generatedAt}:${optionsKey}`}
-              title={(opened.result as PracticeResult).title}
-              questions={(opened.result as PracticeResult).questions}
-              onRegenerate={() => setSettingUp(true)}
-              regenerating={busy}
-              mark={markTest}
-              recorded={opened.secured && Boolean(opened.studySetId)}
-            />
+            <div data-no-shortcuts>
+              <PracticeSession
+                key={opened.studySetId ?? `${opened.generatedAt}:${optionsKey}`}
+                title={(opened.result as PracticeResult).title}
+                questions={(opened.result as PracticeResult).questions}
+                onRegenerate={() => setSettingUp(true)}
+                regenerating={busy}
+                mark={markTest}
+                recorded={opened.secured && Boolean(opened.studySetId)}
+              />
+            </div>
           ) : null}
         </div>
       )}
@@ -692,15 +749,22 @@ function PreviousSets({
   openedId: string | null;
   onOpen: (set: SavedStudySet) => void;
 }) {
-  const noun = kind === "summary" ? "summary" : kind === "flashcards" ? "deck" : "test";
+  const noun =
+    kind === "summary" ? "summary" : kind === "flashcards" ? "deck" : "test";
   const plural = kind === "summary" ? "summaries" : `${noun}s`;
-  const open = kind === "summary" ? "Read this summary" : kind === "flashcards" ? "Practice this deck" : "Take this test";
+  const open =
+    kind === "summary"
+      ? "Read this summary"
+      : kind === "flashcards"
+        ? "Practice this deck"
+        : "Take this test";
   if (sets.length === 0) {
     return (
       <Card>
         <CardSection className="py-12 text-center">
           <p className="text-sm text-ink-muted">
-            No {plural} yet. The first one built is kept here for the whole class.
+            No {plural} yet. The first one built is kept here for the whole
+            class.
           </p>
         </CardSection>
       </Card>
@@ -715,7 +779,9 @@ function PreviousSets({
         <Card key={set.id}>
           <CardSection className="flex flex-wrap items-center justify-between gap-3 py-4">
             <div className="min-w-0 space-y-1">
-              <p className="truncate text-sm font-medium text-ink">{set.title}</p>
+              <p className="truncate text-sm font-medium text-ink">
+                {set.title}
+              </p>
               <p className="text-[12px] text-ink-faint">
                 {set.options
                   ? describeOptions(set.options, sectionTitles, kind)
@@ -745,7 +811,9 @@ function SummaryView({ result }: { result: SummaryResult }) {
     <div className="space-y-4">
       <Card>
         <CardSection>
-          <p className="text-[15px] leading-relaxed text-ink">{result.overview}</p>
+          <p className="text-[15px] leading-relaxed text-ink">
+            {result.overview}
+          </p>
         </CardSection>
       </Card>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -753,7 +821,9 @@ function SummaryView({ result }: { result: SummaryResult }) {
           <Card key={topic.title}>
             <CardSection className="space-y-1.5">
               <h2 className="font-semibold">{topic.title}</h2>
-              <p className="text-sm leading-relaxed text-ink-muted">{topic.explanation}</p>
+              <p className="text-sm leading-relaxed text-ink-muted">
+                {topic.explanation}
+              </p>
             </CardSection>
           </Card>
         ))}

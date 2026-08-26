@@ -21,6 +21,8 @@
   --ink-faint: #756f5e;
   --edge: #ede3cc;
   --edge-strong: #dbcfaf;
+  --glass-fill: rgb(255 255 255 / 0.62);
+  --glass-border: rgb(36 34 44 / 0.11);
   /* Light mode's brand orange had to darken. At #e0761a it was 2.83:1 as text
      on paper and 2.94:1 behind on-primary, so every primary button label and
      every orange link failed the contrast floor. This is the same hue and the
@@ -103,6 +105,8 @@
   --ink-faint: #97896f;
   --edge: #3b3122;
   --edge-strong: #4d4130;
+  --glass-fill: rgb(255 255 255 / 0.07);
+  --glass-border: rgb(255 255 255 / 0.15);
   --primary: #f19a44;
   --primary-hover: #f5ab60;
   --primary-active: #e58a31;
@@ -170,6 +174,8 @@
     --ink-faint: #97896f;
     --edge: #3b3122;
     --edge-strong: #4d4130;
+    --glass-fill: rgb(255 255 255 / 0.07);
+    --glass-border: rgb(255 255 255 / 0.15);
     --primary: #f19a44;
     --primary-hover: #f5ab60;
     --primary-active: #e58a31;
@@ -530,4 +536,25 @@ blockquote {
   .mp-404-pot {
     animation: none !important;
   }
+}
+
+/* ---- Keyboard chord chip ---------------------------------------------- */
+
+/* Glass rather than a solid chip. The fill is translucent, so the row colour
+   underneath shows through and the chip reads as a pane laid over the nav
+   instead of a second block of paint competing with the class name. The
+   border is even on all four sides. It carried a 1px inset sheen along the
+   top, which read as glass on cream and as a bright seam on near black: a
+   highlight is only a highlight when the light is above it. An even hairline
+   needs no second value per theme.
+
+   No backdrop-filter. It was here and it earned nothing: a blur over a flat
+   sidebar resolves to the same flat colour. Worse, Lightning CSS pruned the
+   unprefixed property and kept only the -webkit- alias, so the declaration
+   that survived the build worked in Chrome and Safari and not in Firefox.
+   A no-op that renders differently per browser is strictly worse than no
+   declaration at all. */
+.mp-kbd {
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-border);
 }

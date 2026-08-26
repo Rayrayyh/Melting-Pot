@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { List, X } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
+import { NavNotifications } from "@/components/shell/nav-notifications";
 import { NavProfile } from "@/components/shell/nav-profile";
+import type { Notification } from "@/lib/data/notifications";
 import { TopBar } from "@/components/shell/top-bar";
 
 /**
@@ -16,18 +18,22 @@ export function AppShell({
   email,
   avatarSrc,
   nav,
-  searchScope,
+  notifications,
   children,
 }: {
   displayName: string;
   email: string;
   avatarSrc?: string | null;
   nav: ReactNode;
-  searchScope?: { potId: string; potTitle: string };
+  notifications: Notification[];
   children: ReactNode;
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const profile = <NavProfile displayName={displayName} email={email} avatarSrc={avatarSrc} />;
+  // Pinned beside the profile rather than inside the scrolling nav: something
+  // addressed to you should not be reachable only by scrolling past a class
+  // list. The 8px sits on the panel, so dismissing it closes the gap too.
+  const alerts = <NavNotifications items={notifications} />;
   return (
     <div className="flex min-h-dvh flex-col">
       {/* First thing in the tab order, invisible until it has focus. A
@@ -39,11 +45,12 @@ export function AppShell({
       >
         Skip to content
       </a>
-      <TopBar searchScope={searchScope} />
+      <TopBar />
       <div className="flex flex-1 min-h-0">
         <aside className="hidden lg:block w-60 shrink-0 border-r border-edge bg-surface">
           <div className="sticky top-14 flex h-[calc(100dvh-3.5rem)] flex-col">
             <div className="min-h-0 flex-1 overflow-y-auto">{nav}</div>
+            {alerts}
             {profile}
           </div>
         </aside>
@@ -76,6 +83,7 @@ export function AppShell({
               <div className="min-h-0 flex-1 overflow-y-auto" onClick={() => setDrawerOpen(false)}>
                 {nav}
               </div>
+              {alerts}
               {profile}
             </div>
           </div>
