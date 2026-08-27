@@ -1,15 +1,20 @@
-// Rasterizes app/icon.png into the two binary icons Next serves by file
-// convention: app/favicon.ico (32px, PNG-in-ICO) and app/apple-icon.png
-// (180px).
+// Builds the two binary icons Next serves by file convention, from two
+// different sources, because a browser tab and a home screen want different
+// artwork.
 //
 //   node scripts/build-icons.mjs
 //
-// Run it after any edit to app/icon.png and commit the results.
+// app/favicon.ico (32px) comes from app/icon.png, the mark with no tile.
+// A tab renders it at 16 or 32 pixels, and the owner's cream tile eats about
+// a third of that canvas before the pot gets any, so the tile is dropped and
+// the glyph takes the whole square.
 //
-// The source used to be an SVG of the bare mark. It is now the owner's app
-// icon artwork: the pot on its own rounded cream tile, with everything
-// outside that tile transparent. The tile is part of the icon, so the
-// transparency here is the corner cut rather than a bare glyph.
+// app/apple-icon.png (180px) comes from public/brand/app-icon-tile.png, the
+// square tile with no corner cut. iOS applies its own mask and composites the
+// icon opaque, so supplying pre-rounded transparent corners leaves black
+// wedges on some versions.
+//
+// Run it after editing either source and commit the results.
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -17,10 +22,13 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
 
 const appDir = join(dirname(fileURLToPath(import.meta.url)), "..", "app");
-const source = readFileSync(join(appDir, "icon.png")).toString("base64");
+const markSource = readFileSync(join(appDir, "icon.png")).toString("base64");
+const tileSource = readFileSync(
+  join(appDir, "..", "public", "brand", "app-icon-tile.png"),
+).toString("base64");
 
-/** Screenshots the icon at one size on a transparent canvas. */
-async function render(page, size) {
+/** Screenshots one source at one size on a transparent canvas. */
+async function render(page, size, source) {
   await page.setViewportSize({ width: size, height: size });
   await page.setContent(
     `<!doctype html><style>
@@ -57,10 +65,10 @@ const browser = await chromium.launch({
 });
 const page = await browser.newPage();
 
-const ico = await render(page, 32);
+const ico = await render(page, 32, markSource);
 writeFileSync(join(appDir, "favicon.ico"), pngToIco(ico, 32));
 
-const apple = await render(page, 180);
+const apple = await render(page, 180, tileSource);
 writeFileSync(join(appDir, "apple-icon.png"), apple);
 
 await browser.close();
