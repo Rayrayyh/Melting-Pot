@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowDown, ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { HeroDashboard } from "@/components/landing/hero-dashboard";
+import { HeroEntrance } from "@/components/landing/hero-entrance";
 import { JoinCard } from "@/components/landing/join-card";
 import { NamesOnTheNote } from "@/components/landing/names-on-the-note";
 import { ScrollStopper } from "@/components/landing/scroll-stopper";
@@ -36,7 +37,7 @@ export function BrandLanding({
 
       <main id="main" className="flex flex-col">
       <section id="top" className="relative overflow-hidden bg-sunken">
-        <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-12 pt-10 sm:pt-16 pb-16 md:pb-0 text-center">
+        <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-12 pt-8 sm:pt-10 pb-16 md:pb-0 text-center">
           {/* Fluid so the three forced lines never become four or five. */}
           <h1 className="font-display text-[32px] sm:text-[clamp(2.1rem,3.4vw,3.4rem)] font-semibold leading-[1.08] tracking-tight text-ink">
             Everyone takes notes.
@@ -45,11 +46,11 @@ export function BrandLanding({
             <br />
             them together.
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg sm:text-xl text-ink-muted leading-relaxed">
+          <p className="mx-auto mt-5 max-w-2xl text-lg sm:text-xl text-ink-muted leading-relaxed">
             Turn scattered notes, resources, and explanations into one
             shared course space your whole class can explore.
           </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-8">
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-8">
             <Button href={signedIn ? "/home" : "#spaces"} size="lg" roll>
               {signedIn ? "Go to dashboard" : "Join a class"}
             </Button>
@@ -77,17 +78,28 @@ export function BrandLanding({
         <div
           aria-hidden
           inert
-          className="pointer-events-none select-none mt-14 hidden h-[586px] justify-start overflow-hidden px-4 sm:px-10 md:flex min-[1360px]:justify-center"
+          className="pointer-events-none select-none mt-10 hidden h-[586px] justify-start overflow-hidden md:flex min-[1360px]:justify-center"
         >
-          <div
-            className="pt-6"
-            style={{
-              transform: "translateX(-4px) skewY(1.5deg) skewX(-7deg)",
-              transformOrigin: "50% 50%",
-            }}
-          >
-            <HeroDashboard />
-          </div>
+          {/* The shadow lives here, on an untransformed wrapper, as a filter:
+              the silhouette tilts with the card but the light stays overhead. */}
+          <HeroEntrance>
+            <div className="pl-4 sm:pl-10 min-[1360px]:pl-0 pt-6 [filter:var(--shadow-hero)]">
+              <div
+                style={{
+                  transform: "translateX(-4px) skewY(1.5deg) skewX(-7deg)",
+                  transformOrigin: "50% 50%",
+                }}
+              >
+                <div className="relative overflow-hidden rounded-[20px]">
+                  <HeroDashboard />
+                  <span
+                    aria-hidden
+                    className="mp-hero-shine absolute -inset-y-16 w-36 rotate-[14deg] bg-white/70 opacity-0 blur-2xl"
+                  />
+                </div>
+              </div>
+            </div>
+          </HeroEntrance>
         </div>
       </section>
 

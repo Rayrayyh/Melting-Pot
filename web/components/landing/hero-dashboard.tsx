@@ -64,7 +64,7 @@ export function HeroDashboard() {
      "Omar Reyes", "5h ago", "Membrane transport", null],
   ];
   return (
-    <div className="w-[1240px] overflow-hidden rounded-[20px] border border-edge-strong bg-surface shadow-(--shadow-hero)">
+    <div className="w-[1240px] overflow-hidden rounded-[20px] border border-edge-strong bg-surface">
       <div className="flex">
         <div className="flex w-60 shrink-0 flex-col border-r border-edge bg-surface">
           <div className="p-3">

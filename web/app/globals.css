@@ -23,12 +23,15 @@
   --edge-strong: #dbcfaf;
   --glass-fill: rgb(255 255 255 / 0.62);
   --glass-border: rgb(36 34 44 / 0.11);
-  /* The hero card's elevation. Warm brown-grey so the shadow darkens the
-     cream instead of dirtying it; five layers with a geometric blur ramp,
-     measured off railway.com's hero card. */
-  --shadow-hero: 0 100px 191px rgba(62, 45, 45, 0.24),
-    0 36.5px 69.7px rgba(62, 45, 45, 0.166), 0 17.7px 33.8px rgba(62, 45, 45, 0.134),
-    0 8.7px 16.6px rgba(62, 45, 45, 0.106), 0 3.4px 6.6px rgba(62, 45, 45, 0.074);
+  /* The hero card's elevation. Applied as a filter on the card's untransformed
+     wrapper, not as box-shadow on the tilted card: box-shadow inherits the
+     skew, which piles shadow under one corner and leaks it above the opposite
+     edge. drop-shadow follows the tilted silhouette while the light stays
+     overhead. Warm brown-grey so it darkens the cream instead of dirtying it. */
+  --shadow-hero: drop-shadow(0 2px 3px rgba(62, 45, 45, 0.10))
+    drop-shadow(0 10px 14px rgba(62, 45, 45, 0.12))
+    drop-shadow(0 32px 36px rgba(62, 45, 45, 0.15))
+    drop-shadow(0 72px 64px rgba(62, 45, 45, 0.16));
   /* Light mode's brand orange had to darken. At #e0761a it was 2.83:1 as text
      on paper and 2.94:1 behind on-primary, so every primary button label and
      every orange link failed the contrast floor. This is the same hue and the
@@ -113,11 +116,12 @@
   --edge-strong: #4d4130;
   --glass-fill: rgb(255 255 255 / 0.07);
   --glass-border: rgb(255 255 255 / 0.15);
-  /* Warm rgba(62,45,45) composites lighter than the dark ground, which reads
-     as a halo, so dark mode shadows in true black. */
-  --shadow-hero: 0 100px 191px rgba(0, 0, 0, 0.55), 0 36.5px 69.7px rgba(0, 0, 0, 0.4),
-    0 17.7px 33.8px rgba(0, 0, 0, 0.32), 0 8.7px 16.6px rgba(0, 0, 0, 0.26),
-    0 3.4px 6.6px rgba(0, 0, 0, 0.2);
+  /* Warm shadow composites lighter than the dark ground and reads as a halo,
+     so dark mode shadows in true black. */
+  --shadow-hero: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35))
+    drop-shadow(0 10px 14px rgba(0, 0, 0, 0.32))
+    drop-shadow(0 32px 36px rgba(0, 0, 0, 0.34))
+    drop-shadow(0 72px 64px rgba(0, 0, 0, 0.3));
   --primary: #f19a44;
   --primary-hover: #f5ab60;
   --primary-active: #e58a31;
@@ -187,11 +191,12 @@
     --edge-strong: #4d4130;
     --glass-fill: rgb(255 255 255 / 0.07);
     --glass-border: rgb(255 255 255 / 0.15);
-  /* Warm rgba(62,45,45) composites lighter than the dark ground, which reads
-     as a halo, so dark mode shadows in true black. */
-  --shadow-hero: 0 100px 191px rgba(0, 0, 0, 0.55), 0 36.5px 69.7px rgba(0, 0, 0, 0.4),
-    0 17.7px 33.8px rgba(0, 0, 0, 0.32), 0 8.7px 16.6px rgba(0, 0, 0, 0.26),
-    0 3.4px 6.6px rgba(0, 0, 0, 0.2);
+  /* Warm shadow composites lighter than the dark ground and reads as a halo,
+     so dark mode shadows in true black. */
+  --shadow-hero: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35))
+    drop-shadow(0 10px 14px rgba(0, 0, 0, 0.32))
+    drop-shadow(0 32px 36px rgba(0, 0, 0, 0.34))
+    drop-shadow(0 72px 64px rgba(0, 0, 0, 0.3));
     --primary: #f19a44;
     --primary-hover: #f5ab60;
     --primary-active: #e58a31;
