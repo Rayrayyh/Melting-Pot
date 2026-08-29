@@ -9,3 +9,12 @@ Environment: NEXT_PUBLIC_SUPABASE_URL (direct https project URL; the dev-only re
 Production is clean: migration 0013 wiped all dev-seed data and dropped dev_seed/dev_reseed before the deploy, the post-deploy smoke test created a temporary account and Pot, ran the full contribution and correction loops plus the RLS guards against the live stack (all checks passed), deleted the Pot, and the temporary auth users were removed afterward. Every table and the storage bucket sit at zero rows.
 
 Owner decision point, left as the spec intended: the organizer ships deterministic. Flipping NEXT_PUBLIC_ORGANIZER_PROVIDER=claude selects the ClaudeOrganizer slot once it is implemented; nothing else changes.
+
+## Superseded target (2026-08-29)
+
+The owner's standing instruction: deploys go to https://meltingpot-prometheus.netlify.app
+(site id a2450904-3c80-40b0-aeb4-dc524654b897, same team) and nowhere else.
+meltingpot-io and meltingpotworks are earlier sites and must not receive deploys.
+The mechanics in this note (web/ as package root, Netlify MCP zip deploy, the
+Next runtime plugin in netlify.toml) still apply unchanged. CLAUDE.md carries
+the rule; this note carries the history.

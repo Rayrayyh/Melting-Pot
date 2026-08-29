@@ -31,6 +31,8 @@ Run these from `web/`:
 
 Next is v16: `proxy.ts` instead of `middleware.ts`, `params`/`searchParams` are async, docs bundled at `web/node_modules/next/dist/docs/`. See `memory/lessons/002`.
 
+Deploys go to https://meltingpot-prometheus.netlify.app only (owner's standing instruction, 2026-08-29). Never deploy to meltingpotworks.netlify.app or meltingpot-io.netlify.app; those are earlier sites. Deploy the committed tree from a detached worktree via the Netlify MCP zip deploy with web/ as the package root, so uncommitted work never ships.
+
 Database changes go through Supabase MCP migrations (`apply_migration`), one migration per schema change, mirrored into `supabase/migrations/` in the repo.
 
 ## Product rules that are easy to violate
