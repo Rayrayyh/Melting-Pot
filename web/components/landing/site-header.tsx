@@ -48,7 +48,7 @@ export function SiteHeader({
               href={item.href}
               aria-current={active === item.href ? "page" : undefined}
               className={cn(
-                "hidden md:block whitespace-nowrap transition-colors hover:text-primary",
+                "hidden lg:block whitespace-nowrap transition-colors hover:text-primary",
                 active === item.href ? "text-primary font-medium" : "text-ink",
               )}
             >

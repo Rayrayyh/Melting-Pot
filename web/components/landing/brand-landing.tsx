@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowDown, ArrowRight } from "@phosphor-icons/react/dist/ssr";
+import { HeroDashboard } from "@/components/landing/hero-dashboard";
 import { JoinCard } from "@/components/landing/join-card";
 import { NamesOnTheNote } from "@/components/landing/names-on-the-note";
 import { ScrollStopper } from "@/components/landing/scroll-stopper";
@@ -27,68 +28,65 @@ export function BrandLanding({
 }) {
   return (
     <div className="flex flex-col">
-      <SiteHeader signedIn={signedIn} getStartedHref="#spaces" />
+      {/* Same ground as the hero, so the top of the page is one surface
+          rather than a paper band over a sunken one. */}
+      <div className="bg-sunken">
+        <SiteHeader signedIn={signedIn} getStartedHref="#spaces" />
+      </div>
 
       <main id="main" className="flex flex-col">
-      <section id="top" className="relative overflow-hidden">
-        <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-12 grid lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] items-center gap-x-8 gap-y-12 min-h-[calc(100svh-5rem)] sm:min-h-[calc(100svh-6rem)] pt-10 lg:pt-0">
-          <div className="space-y-8 lg:pb-24">
-            {/* Fluid so the three forced lines never become four or five: a
-                wrapped line pushes the pot below the fold on shorter screens.
-                These lines run longer than the old ones, so the ramp tops out
-                lower. */}
-            <h1 className="font-display text-[32px] sm:text-[clamp(2.1rem,3.4vw,3.4rem)] font-semibold leading-[1.08] tracking-tight text-ink">
-              Everyone takes notes.
-              <br />
-              Meltingpot brings
-              <br />
-              them together.
-            </h1>
-            <p className="text-lg sm:text-xl text-ink-muted leading-relaxed max-w-md">
-              Turn scattered notes, resources, and explanations into one
-              shared course space your whole class can explore.
-            </p>
-            <div className="flex flex-wrap items-center gap-8 pt-2">
-              <Button href={signedIn ? "/home" : "#spaces"} size="lg" roll>
-                {signedIn ? "Go to dashboard" : "Join a class"}
-              </Button>
-              <a
-                href="#explore"
-                className="group/roll inline-flex items-center gap-2 text-[16px] font-medium text-ink hover:text-primary transition-colors"
-              >
-                <RollText>Learn more</RollText>
-                <ArrowRight
-                  className="size-4 transition-transform duration-300 group-hover/roll:translate-x-1"
-                  aria-hidden
-                />
-              </a>
-            </div>
+      <section id="top" className="relative overflow-hidden bg-sunken">
+        <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-12 pt-10 sm:pt-16 pb-16 md:pb-0 text-center">
+          {/* Fluid so the three forced lines never become four or five. */}
+          <h1 className="font-display text-[32px] sm:text-[clamp(2.1rem,3.4vw,3.4rem)] font-semibold leading-[1.08] tracking-tight text-ink">
+            Everyone takes notes.
+            <br />
+            Meltingpot brings
+            <br />
+            them together.
+          </h1>
+          <p className="mx-auto mt-6 max-w-2xl text-lg sm:text-xl text-ink-muted leading-relaxed">
+            Turn scattered notes, resources, and explanations into one
+            shared course space your whole class can explore.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-8">
+            <Button href={signedIn ? "/home" : "#spaces"} size="lg" roll>
+              {signedIn ? "Go to dashboard" : "Join a class"}
+            </Button>
+            <a
+              href="#explore"
+              className="group/roll inline-flex items-center gap-2 text-[16px] font-medium text-ink hover:text-primary transition-colors"
+            >
+              <RollText>Learn more</RollText>
+              <ArrowRight
+                className="size-4 transition-transform duration-300 group-hover/roll:translate-x-1"
+                aria-hidden
+              />
+            </a>
           </div>
-          {/* Centred rather than sat on the bottom edge, then nudged 10px down
-              from that centre. The nudge is margin, not a transform, so the
-              box the layout reserves is the box the pot occupies. */}
-          <div className="relative h-full min-h-[320px] lg:min-h-[calc(100svh-6rem)] flex items-center justify-center lg:justify-end">
-            {/* The owner's illustration, used verbatim. It ships its own
-                transparency, so it sits on both themes.
+        </div>
+        {/* The product shot: a Pot page built from the shipped components,
+            tilted 7 degrees and cropped by this container so the surface
+            reads as continuing past the fold. The container height, not the
+            section, owns the cut, so the crop line stays on the same swept
+            row of the card at every viewport width. Below md the card would
+            be illegible at any honest scale, so the hero is copy only there.
 
-                Bound by height as well as width. Sized on max-w alone it was a
-                fixed 685px tall at every viewport, so anything shorter than
-                about 836px pushed its top past this section, which is
-                overflow-hidden, and the steam got sliced off. Nudging the
-                offset only moved the height at which that started. max-h ties
-                it to the space actually available: the section is 100svh minus
-                the header, and centring means the whole 6px of top margin
-                comes off the bottom clearance, so 7.5rem of headroom leaves
-                the pot clear at every height. Width is what grows; the height
-                clamp only ever catches short viewports. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/pot-hero.png"
-              alt=""
-              width={1254}
-              height={1254}
-              className="w-full max-w-140 lg:w-[110.25%] lg:max-w-none max-h-[calc(100svh-7.5rem)] h-auto object-contain mt-1.5 -translate-x-[23px]"
-            />
+            Decorative throughout: fabricated demo content, hidden from
+            assistive tech, inert to pointer and selection. */}
+        <div
+          aria-hidden
+          inert
+          className="pointer-events-none select-none mt-14 hidden h-[586px] justify-start overflow-hidden px-4 sm:px-10 md:flex min-[1360px]:justify-center"
+        >
+          <div
+            className="pt-6"
+            style={{
+              transform: "translateX(-4px) skewY(1.5deg) skewX(-7deg)",
+              transformOrigin: "50% 50%",
+            }}
+          >
+            <HeroDashboard />
           </div>
         </div>
       </section>

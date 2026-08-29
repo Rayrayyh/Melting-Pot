@@ -33,6 +33,8 @@ This directory is the project's knowledge base. It makes the repo, not chat hist
 - 012 Google sign in on Supabase Auth rather than Firebase (asked for, declined with reasons), gated behind an env flag; contributor activity on the Pot home; restrained landing motion
 - 013 Auth seam in lib/auth: Google OAuth removed, provider selection by env, Clerk slot present and unimplemented, one marked exception in proxy.ts
 
+- 023 A demo Pot and a guided walkthrough for brand new accounts (idea, not built)
+- 024 The landing hero shows the product: cropped tilted Pot page mock replaces the illustration
 ### Lessons
 - 001 Reading the spec PDFs in this container requires poppler, not pypdf
 - 002 Next 16 conventions (proxy.ts, async params) and Playwright executablePath in this container
