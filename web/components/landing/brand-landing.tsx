@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ArrowDown, ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { HeroDashboard } from "@/components/landing/hero-dashboard";
-import { HeroEntrance } from "@/components/landing/hero-entrance";
 import { JoinCard } from "@/components/landing/join-card";
 import { NamesOnTheNote } from "@/components/landing/names-on-the-note";
 import { ScrollStopper } from "@/components/landing/scroll-stopper";
@@ -82,24 +81,16 @@ export function BrandLanding({
         >
           {/* The shadow lives here, on an untransformed wrapper, as a filter:
               the silhouette tilts with the card but the light stays overhead. */}
-          <HeroEntrance>
-            <div className="pl-4 sm:pl-10 min-[1360px]:pl-0 pt-6 [filter:var(--shadow-hero)]">
-              <div
-                style={{
-                  transform: "translateX(-4px) skewY(1.5deg) skewX(-7deg)",
-                  transformOrigin: "50% 50%",
-                }}
-              >
-                <div className="relative overflow-hidden rounded-[20px]">
-                  <HeroDashboard />
-                  <span
-                    aria-hidden
-                    className="mp-hero-shine absolute -inset-y-16 w-36 rotate-[14deg] bg-white/70 opacity-0 blur-2xl"
-                  />
-                </div>
-              </div>
+          <div className="pl-4 sm:pl-10 min-[1360px]:pl-0 pt-6 will-change-transform [filter:var(--shadow-hero)]">
+            <div
+              style={{
+                transform: "translateX(-4px) skewY(1.5deg) skewX(-7deg)",
+                transformOrigin: "50% 50%",
+              }}
+            >
+              <HeroDashboard />
             </div>
-          </HeroEntrance>
+          </div>
         </div>
       </section>
 
