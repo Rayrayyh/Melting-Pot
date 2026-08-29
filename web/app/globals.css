@@ -257,6 +257,14 @@
   }
 }
 
+/* Anchor links glide natively now that the landing no longer runs a wheel
+   hijack; instant under reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 @theme inline {
   --color-paper: var(--paper);
   --color-surface: var(--surface);

@@ -14,9 +14,10 @@ async function settleScroll(page: Page) {
 test.describe("brand landing", () => {
   test("the brand hero leads and code entry still validates in place", async ({ page }) => {
     await page.goto("/");
-    // Lenis marks the root when it is running; without this a dynamic import
-    // that silently failed would still pass every other assertion here.
-    await expect(page.locator("html")).toHaveClass(/(^|\s)lenis(\s|$)/);
+    // The landing scrolls natively: the Lenis wheel hijack was removed on
+    // 2026-08-29 because owner testing found it made scrolling feel jittery.
+    // Nothing may reintroduce a scroll takeover silently.
+    await expect(page.locator("html")).not.toHaveClass(/(^|\s)lenis(\s|$)/);
     await expect(
       page.getByRole("heading", { name: "Everyone takes notes. Meltingpot brings them together." }),
     ).toBeVisible();
@@ -139,8 +140,8 @@ test.describe("brand landing", () => {
     const page = await context.newPage();
     await page.goto("/");
 
-    // Smooth scroll is never constructed under the preference, not merely
-    // constructed and disabled.
+    // No scroll takeover exists under any preference; the class must stay
+    // absent here too.
     await expect(page.locator("html")).not.toHaveClass(/(^|\s)lenis(\s|$)/);
 
     // Everything is readable immediately, no scroll choreography required.
