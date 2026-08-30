@@ -28,11 +28,8 @@
      skew, which piles shadow under one corner and leaks it above the opposite
      edge. drop-shadow follows the tilted silhouette while the light stays
      overhead. Warm brown-grey so it darkens the cream instead of dirtying it. */
-  --shadow-hero: drop-shadow(0 1px 1px rgba(62, 45, 45, 0.12))
-    drop-shadow(0 8px 7px rgba(62, 45, 45, 0.09))
-    drop-shadow(0 22px 17px rgba(62, 45, 45, 0.1))
-    drop-shadow(0 52px 38px rgba(62, 45, 45, 0.13))
-    drop-shadow(0 96px 58px rgba(62, 45, 45, 0.1));
+  --shadow-hero: drop-shadow(0 2px 2px rgba(62, 45, 45, 0.1))
+    drop-shadow(0 34px 30px rgba(62, 45, 45, 0.17));
   /* Light mode's brand orange had to darken. At #e0761a it was 2.83:1 as text
      on paper and 2.94:1 behind on-primary, so every primary button label and
      every orange link failed the contrast floor. This is the same hue and the
@@ -119,11 +116,8 @@
   --glass-border: rgb(255 255 255 / 0.15);
   /* Warm shadow composites lighter than the dark ground and reads as a halo,
      so dark mode shadows in true black. */
-  --shadow-hero: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3))
-    drop-shadow(0 8px 7px rgba(0, 0, 0, 0.24))
-    drop-shadow(0 22px 17px rgba(0, 0, 0, 0.26))
-    drop-shadow(0 52px 38px rgba(0, 0, 0, 0.3))
-    drop-shadow(0 96px 58px rgba(0, 0, 0, 0.24));
+  --shadow-hero: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.3))
+    drop-shadow(0 34px 30px rgba(0, 0, 0, 0.38));
   --primary: #f19a44;
   --primary-hover: #f5ab60;
   --primary-active: #e58a31;
@@ -195,11 +189,8 @@
     --glass-border: rgb(255 255 255 / 0.15);
   /* Warm shadow composites lighter than the dark ground and reads as a halo,
      so dark mode shadows in true black. */
-  --shadow-hero: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3))
-    drop-shadow(0 8px 7px rgba(0, 0, 0, 0.24))
-    drop-shadow(0 22px 17px rgba(0, 0, 0, 0.26))
-    drop-shadow(0 52px 38px rgba(0, 0, 0, 0.3))
-    drop-shadow(0 96px 58px rgba(0, 0, 0, 0.24));
+  --shadow-hero: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.3))
+    drop-shadow(0 34px 30px rgba(0, 0, 0, 0.38));
     --primary: #f19a44;
     --primary-hover: #f5ab60;
     --primary-active: #e58a31;
