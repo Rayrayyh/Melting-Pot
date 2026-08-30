@@ -286,3 +286,37 @@ Known follow-ups, documented not built (feature gaps or minor polish, no securit
 - Three defects were caught by review before any of this landed: the new replaceState carried a student off the success screen when the post-share refresh re-navigated to the canonical URL; the section's height floor covered the record but not the paragraph above it, so the page jumped 24 to 48px on every name click; and the decided list sorted by creation time while displaying decision time.
 - Verified: 138 unit and 56 end-to-end green, lint, typecheck, production build, deployed and probed live.
 - Production data note: the dev seed was dropped again after this round. Final state is four real accounts, the one real Pot with its four shared notes and eight contributions, zero test data, and dev_seed and dev_reseed absent. The end-to-end suite cannot run against production again until the seed is restored, which is deliberate.
+
+## Security boundaries, removals that stay recoverable, and the maintainer's record (2026-08-21)
+
+- Closed the audit round: removals leave the feed but never delete history, Pot governance settings landed, the maintainer got the Pot's own record, and the organizer learned to keep its doubts beside the note instead of correcting the writer.
+- The 404 was rebuilt from the supplied design, and platform call cutoffs stopped eating long organize waits.
+
+## Landing rework, profile, study setup, and a hardening round (2026-08-22)
+
+- New landing with the join and create paths one scroll down, a changeable profile, and a setup screen in front of every study kind.
+- Hardening: rate limits stopped trusting caller-supplied headers, the answer-key boundary moved marking fully server side, attempts became durable rows, and save_study_set revalidates ownership.
+
+## Light by default, and a public root (2026-08-23)
+
+- Light became the default theme for everyone without a stored choice, stamped before first paint, with the landing carrying a one-tap switch.
+- The repo root was cleared of working papers, and the study tab learned to show the score.
+
+## The Prometheus retarget (2026-08-24)
+
+- Entered the Prometheus August AI Challenge; deadline and framing recorded in CLAUDE.md and decision 021.
+- The mix layer now names the engine that produced every organized note and study set, so the deterministic fallback can never pass as AI.
+- The teaching readout landed: SQL aggregates first-pass misses by source note, the model only interprets the table, the counts print underneath, and it stays silent below twenty answers from two students.
+- A sixty-rule UI pass produced RULES.md and CHECKLIST.md and the seven fixes they forced.
+
+## One nav for the whole product (2026-08-26 to 2026-08-27)
+
+- The account-level nav landed everywhere: search, Home, a My Pots disclosure, Study, Calendar, Contributions, with bare-letter and Control-number shortcuts and the notification card above the profile.
+- Crawling every route at three widths surfaced five defects, all fixed; the owner's app icon became the favicon and tab icon.
+
+## Hero product shot, native scroll, and submission media (2026-08-29 to 2026-08-30)
+
+- The illustration hero gave way to a cropped, gently tilted product shot of a Pot page built from the shipped components; it now renders static, with the real mark at full resolution and a two-layer shadow that stays natural in both themes.
+- Scrolling jitter was traced, not guessed: the Lenis wheel hijack went, the melt pin became position sticky, and the hero shadow lost three gaussian passes; decision 025 carries the numbers.
+- Submission media re-shot from a real account walked through the product; the README's live link was found pointing at an obsolete site and now points at meltingpot-prometheus; the deadline moved to Monday 11:45 AM Pacific per the owner.
+- Every empty state in the app now offers the next action, which surfaced and fixed a real bug: the desktop Add contribution button had been dead code since the nav rework.

@@ -1,8 +1,11 @@
 # Two minute demo script
 
 For the Prometheus August AI Challenge. The cap is hard: the rules say
-anything past 2:00 is not watched, so this is written to land at about 1:52
-with room to breathe rather than 1:59 with none.
+anything past 2:00 is not watched. The first draft carried 279 narration
+words, which is two minutes of continuous speech before a single pause, so
+this cut holds the narration near 210 words and lands at about 1:50 with
+the mandated silences included. Read it aloud against a stopwatch before
+recording; if the table read passes 1:45, cut more, do not talk faster.
 
 The rubric gives 25 points to the pitch and 25 to "AI is core to the
 functionality, not just an afterthought". Both are won in the same place, by
@@ -15,23 +18,23 @@ tour, no talking head over slides. Screen recording with voiceover throughout.
 
 | Beat | Runs | Ends at |
 |---|---|---|
-| 1. The problem | 0:15 | 0:15 |
-| 2. A student writes and shares | 0:45 | 1:00 |
-| 3. The teacher finds out what to reteach | 0:40 | 1:40 |
-| 4. Close | 0:12 | 1:52 |
+| 1. The problem | 0:14 | 0:14 |
+| 2. A student writes and shares | 0:44 | 0:58 |
+| 3. The teacher finds out what to reteach | 0:38 | 1:36 |
+| 4. Close | 0:14 | 1:50 |
 
 ---
 
 ## Beat 1: the problem (0:00 to 0:15)
 
-**On screen:** the landing page, then scroll once so the messy note melts
-into the organized one. Do not narrate the scroll, let it land.
+**On screen:** open cold on the landing hero: the headline over the tilted
+Human Biology product shot. Hold it five seconds, no scrolling. The melt
+moved down the page; the hero now makes the argument on its own.
 
-> Every class produces knowledge all day long, and almost none of it
-> survives. One student takes good notes nobody sees. The answer is in the
-> group chat, forty scrolls up.
+> Every class produces knowledge all day, and almost none of it survives.
+> Good notes nobody sees. Answers forty scrolls up in the group chat.
 >
-> Meltingpot is where a class keeps it all in one place.
+> Meltingpot is where a class keeps it all.
 
 ## Beat 2: a student writes and shares (0:15 to 1:00)
 
@@ -40,21 +43,17 @@ wall. Then Add contribution. Paste something genuinely messy: lowercase, no
 punctuation, an "i think" that is not certain.
 
 > A student joins with a six character code and is reading the class vault
-> before making an account.
->
-> Then they write. Badly, on purpose. This is what notes actually look like
-> between classes.
+> before making an account. Then they write, badly, on purpose.
 
 **On screen:** hit the organize button. Let the wait screen run. When it
 lands, hold on the split view for a beat, then point at two things.
 
-> The model rebuilds it: a title, structure, key takeaways. The original is
-> right there and never changes.
+> The model rebuilds it: title, structure, takeaways. The original never
+> changes.
 >
-> Two things it will not do. It will not quietly fix a claim it doubts, it
-> flags it here for a person to settle. And it says which engine wrote this,
-> by name, so you always know whether you are reading the model or the
-> fallback.
+> Two refusals, on purpose. A claim it doubts is never fixed quietly, it is
+> flagged for a person. And it names the engine that wrote this, so you
+> always know what you are reading.
 
 **On screen:** Share with class. Then the note in the feed.
 
@@ -67,28 +66,23 @@ tab. Scroll past the per-member record to the readout. Click "Read the
 results". Hold while it thinks, then let the result sit on screen long
 enough to actually read one item.
 
-> Now the other side. This class has been sitting practice tests built from
+> Now the teacher. The class has been sitting practice tests built from
 > their own notes.
 >
-> The database counts what they got wrong, grouped by the note each question
-> came from. The model reads those counts and tells the teacher what to go
-> over again, and one concrete thing to try.
+> The database counts the misses by note. The model reads those counts and
+> says what to reteach, with one concrete thing to try.
 
 **On screen:** scroll to the counts table underneath.
 
-> The numbers are the database's, not the model's, and they are printed
-> underneath so a teacher can check the claim instead of trusting it.
->
-> No student is named or ranked anywhere in this. It stays quiet until
-> enough people have practiced to mean anything. It is about the material,
-> not the people.
+> The numbers are the database's, not the model's, printed underneath so
+> the claim can be checked. No student is named or ranked anywhere.
 
 ## Beat 4: close (1:40 to 1:52)
 
 **On screen:** the Pot feed with several notes, then hold on the landing.
 
-> A class writes badly, on purpose, and ends up with one set of notes worth
-> revising from, and a teacher who knows what to say on Monday.
+> One class, one set of notes worth revising from, and a teacher who knows
+> what to say on Monday.
 >
 > Meltingpot. Open source, and live now.
 

@@ -4,6 +4,8 @@ Everything your class knows, in one Pot.
 
 **Live:** https://meltingpot-prometheus.netlify.app
 
+**Judges:** join the live demo class with class code **HXU863** to land in a working Pot with real shared notes.
+
 ## The problem
 
 Every class generates knowledge constantly, and almost all of it evaporates. One student writes brilliant notes nobody else sees. Another understands Tuesday's lecture but not Thursday's. The group chat has the answer somewhere, forty scrolls up. The tools that promise to fix this all fail the same way: they demand structure up front, and tired students between classes will not fill in templates.
