@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardSection } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/input";
 import { LoadingScreen } from "@/components/ui/loading-screen";
+import { PasswordChecklist } from "@/components/auth/password-checklist";
 import { AuthError, getClientAuth } from "@/lib/auth/client";
+import { passwordMeetsRules } from "@/lib/auth/password-rules";
 import { safeNextPath } from "@/lib/auth/next-path";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { clearPendingJoin, takePendingJoin } from "@/lib/pending-join";
@@ -15,7 +17,8 @@ import { clearPendingJoin, takePendingJoin } from "@/lib/pending-join";
 /** One sentence per failure the seam can report. */
 const MESSAGES: Record<string, string> = {
   email_taken: "That email already has an account. Sign in instead.",
-  weak_password: "Use a password with at least 8 characters.",
+  weak_password:
+    "Use at least 8 characters with an uppercase letter, a lowercase letter and a number.",
   invalid_email: "That email address doesn't look right.",
   invalid_display_name: "Enter a display name of 80 characters or fewer.",
   invalid_credentials: "That email and password don't match. Check them and try again.",
@@ -84,6 +87,12 @@ export function AuthForm({
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (busy) return;
+    if (mode === "signup" && !passwordMeetsRules(password)) {
+      // The checklist under the field shows which rule is still open; this
+      // just stops the round trip the server would reject anyway.
+      setError("Your password doesn't meet every rule in the list yet.");
+      return;
+    }
     setBusy(true);
     setError(null);
     const auth = getClientAuth();
@@ -262,22 +271,22 @@ export function AuthForm({
               />
             )}
           </Field>
-          <Field
-            label="Password"
-            hint={mode === "signup" ? "At least 8 characters." : undefined}
-          >
-            {(props) => (
-              <Input
-                {...props}
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete={mode === "signup" ? "new-password" : "current-password"}
-                required
-                minLength={8}
-              />
-            )}
-          </Field>
+          <div>
+            <Field label="Password">
+              {(props) => (
+                <Input
+                  {...props}
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                  required
+                  minLength={8}
+                />
+              )}
+            </Field>
+            {mode === "signup" ? <PasswordChecklist password={password} /> : null}
+          </div>
           {error ? (
             <p role="alert" className="text-[13px] text-danger">
               {error}
