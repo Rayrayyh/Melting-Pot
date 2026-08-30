@@ -2,7 +2,7 @@
 
 meltingpot.io is a responsive desktop-first web app where students in a class collaboratively build a shared vault of knowledge. A class space is a Pot. Students join with a six-character class code, write completely unformatted notes, an organizer structures them, and the student approves before anything is shared. Corrections to shared notes go through maintainer review. Entered in the Prometheus August AI Challenge, which asks for an educational tool where AI/ML is core to how people learn, teach, or absorb information, and requires an open-source repo (MIT license present), a hosted live URL, and a demo video.
 
-**Submission deadline: Saturday 2026-08-29, 11:45pm PDT** (06:45 UTC on the 30th). The rules page separately says 11:59 PM with no extensions; the two disagree by fourteen minutes, so treat 11:45pm PDT as the wall. Scope decisions bend toward shipping before it.
+**Submission deadline: Monday 2026-08-31, 11:45 AM Pacific** (18:45 UTC), per the owner on 2026-08-30; this supersedes the Saturday 11:45pm wall recorded earlier. Scope decisions bend toward shipping before it.
 
 The judging rubric is 100 points in four equal parts: Educational Impact, Creative Use of AI/ML (their words: "AI is core to the functionality, not just an afterthought"), Technical Execution (codebase, UI, UX), and Pitch & Demo. The demo video is capped at two minutes and anything longer is not watched. `memory/decisions/021` records how this project came to be entered here.
 
