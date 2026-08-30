@@ -18,6 +18,26 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // Netlify's Next runtime does not attach netlify.toml [[headers]] rules to
+  // SSR responses, so the baseline security headers live here instead.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          { key: "X-Frame-Options", value: "DENY" },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
