@@ -18,7 +18,7 @@ import { clearPendingJoin, takePendingJoin } from "@/lib/pending-join";
 const MESSAGES: Record<string, string> = {
   email_taken: "That email already has an account. Sign in instead.",
   weak_password:
-    "Use at least 8 characters with an uppercase letter, a lowercase letter and a number.",
+    "Use at least 8 characters with an uppercase letter, a lowercase letter, a number and a symbol.",
   invalid_email: "That email address doesn't look right.",
   invalid_display_name: "Enter a display name of 80 characters or fewer.",
   invalid_credentials: "That email and password don't match. Check them and try again.",

@@ -324,6 +324,6 @@ Known follow-ups, documented not built (feature gaps or minor polish, no securit
 ## The scanner round and two borrowed touches (2026-08-30)
 
 - The live site went through vibecodesecure.com: 80/100 before, 95/100 after, with must-have checks at 100. A production CSP, X-XSS-Protection, nosniff and COOP everywhere, X-Powered-By gone, console stripped from the bundle, robots.txt and security.txt added, and the dead lenis dependency finally removed. The one remaining fail is Netlify's own Server header, which is not ours to remove. Decision 026.
-- Signup grew the familiar password checklist: four rules that tick as you type, enforced identically in register_student by migration 0041.
+- Signup grew the familiar password checklist: five rules that tick as you type (the owner added one symbol after the first cut), enforced identically in register_student by migrations 0041 and 0042.
 - Two interactions arrived by translation, not imitation. A pot ring loader now fills the route gaps behind seven new loading boundaries, invisible for its first 150ms. And the landing got a lock-on reticle: four rounded orange corners that glide out to frame whatever the pointer can click, native cursor untouched. Decision 027 records what was deliberately left behind.
 - The join preview stopped claiming membership before it exists: You found, and the button says Join Pot.

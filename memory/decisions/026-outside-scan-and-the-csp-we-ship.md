@@ -13,4 +13,4 @@ The one remaining fail is Server: Netlify. That header belongs to the platform a
 
 Also accepted, not findings: the Supabase project URL and anon-role key in the client bundle are by design and safe under RLS (the probe confirmed no service_role material anywhere client-side), and the scanner's eight informational categories are covered by what already exists: RLS on all sixteen tables, definer RPCs behind rate limits, 2FA enforced at browser, edge, server and database.
 
-Same round, owner request: signup gained the live password checklist (length 8, upper, lower, digit), with register_student redefined in migration 0041 to enforce the identical list server side. The client helper is web/lib/auth/password-rules.ts; keep the two lists in lockstep.
+Same round, owner request: signup gained the live password checklist (length 8, upper, lower, digit, symbol), with register_student redefined in migrations 0041 and 0042 to enforce the identical list server side. A symbol is anything that is not a letter, digit or whitespace, the same class on both sides. The client helper is web/lib/auth/password-rules.ts; keep the two lists in lockstep.
