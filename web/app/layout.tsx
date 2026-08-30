@@ -61,11 +61,12 @@ export const metadata: Metadata = {
 };
 
 // Applies the persisted theme before first paint so neither theme flashes.
-// Nothing stored means light: that is the default, and it has to be stamped
-// here rather than left to the system preference, or a viewer whose machine is
-// dark would see dark before the choice they never made is even readable.
-// Only "system" leaves the attribute off and lets the media query decide.
-const themeInit = `(function(){var d=document.documentElement;try{var t=localStorage.getItem("mp-theme");if(t==="light"||t==="dark"){d.setAttribute("data-theme",t)}else if(t!=="system"){d.setAttribute("data-theme","light")}}catch(e){d.setAttribute("data-theme","light")}})()`;
+// Nothing stored means dark: the owner's call, 2026-08-30. It has to be
+// stamped here rather than left to the system preference, or a viewer whose
+// machine is light would see light before the choice they never made is even
+// readable. Only "system" leaves the attribute off and lets the media query
+// decide.
+const themeInit = `(function(){var d=document.documentElement;try{var t=localStorage.getItem("mp-theme");if(t==="light"||t==="dark"){d.setAttribute("data-theme",t)}else if(t!=="system"){d.setAttribute("data-theme","dark")}}catch(e){d.setAttribute("data-theme","dark")}})()`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

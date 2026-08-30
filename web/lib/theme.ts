@@ -4,8 +4,8 @@
  * Three states, and the difference between them matters. "light" and "dark"
  * are explicit choices. "system" is also an explicit choice: it says follow
  * the operating system, and it is stored so that it can be told apart from
- * never having chosen at all. Nothing stored means light, because a class
- * vault reads like paper and that is the surface this product was drawn on.
+ * never having chosen at all. Nothing stored means dark, the owner's call on
+ * 2026-08-30; the cream paper light theme stays one tap away in the header.
  */
 
 export const THEME_STORAGE_KEY = "mp-theme";
@@ -14,7 +14,7 @@ export const THEME_EVENT = "mp-theme-change";
 export type ThemeChoice = "system" | "light" | "dark";
 
 /** What a viewer who has never chosen gets. */
-export const DEFAULT_THEME: ThemeChoice = "light";
+export const DEFAULT_THEME: ThemeChoice = "dark";
 
 export function readThemeChoice(): ThemeChoice {
   try {
@@ -32,7 +32,7 @@ export function resolveTheme(choice: ThemeChoice): "light" | "dark" {
   try {
     return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   } catch {
-    return "light";
+    return "dark";
   }
 }
 
