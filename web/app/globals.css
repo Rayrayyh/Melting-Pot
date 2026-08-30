@@ -362,6 +362,35 @@ blockquote {
   animation: mp-enter 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/*
+ * The route-transition loader. It starts invisible and only appears after
+ * 150ms, so a navigation the server answers quickly never flashes it; slow
+ * ones fade it in. The global reduced-motion rule collapses both animations,
+ * which leaves the loader visible and the arc parked: still a mark that
+ * something is happening, without the movement. The delay survives that
+ * collapse on purpose, since it is what keeps fast loads clean.
+ */
+@keyframes mp-loader-appear {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes mp-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.mp-route-loader {
+  opacity: 0;
+  animation: mp-loader-appear 0.3s ease 0.15s forwards;
+}
+
+.mp-route-loader-arc {
+  animation: mp-loader-spin 1.1s linear infinite;
+}
+
 /* A card that answers the pointer. Paired with a border change at the call
    site, so the lift is never the only thing that says it is interactive. */
 .mp-lift {
