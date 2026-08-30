@@ -2,7 +2,7 @@
 
 Everything your class knows, in one Pot.
 
-**Live:** https://meltingpot-class-vault.netlify.app
+**Live:** https://meltingpot-prometheus.netlify.app
 
 ## The problem
 
@@ -14,7 +14,7 @@ A class space is called a Pot. A teacher creates one and gets a six character cl
 
 ## Try it in two minutes
 
-1. Open the [live site](https://meltingpot-class-vault.netlify.app). Create a Pot as a teacher, or join one with a code if you have it.
+1. Open the [live site](https://meltingpot-prometheus.netlify.app). Create a Pot as a teacher, or join one with a code if you have it.
 2. Paste something messy into "Write anything". Genuinely messy: lowercase, fragments, an "i think..." you are not sure about. Watch it become a structured note, with your uncertainty kept visible as a labeled "Still to confirm" line instead of being laundered into a confident claim.
 3. Share it, then open it from the feed and suggest a correction to one sentence. Review it from the maintainer side and accept it. Open the note's history to see both versions and everyone credited.
 
@@ -62,11 +62,11 @@ Sign in is an email and a password, behind a provider seam in `web/lib/auth`: ev
 
 ## Screenshots
 
-Role based dashboard with the maintainer review queue, Pot stats, and cross Pot activity:
+The dashboard: your Pots, what is new across them, and your own contribution record:
 
 ![Dashboard](docs/screenshots/dashboard.png)
 
-Review before sharing: the organized note beside the preserved original, with attachments and identity in view:
+Review before sharing: the organized note beside the preserved original, with the organizer's checks in view. Nothing is published until the writer approves:
 
 ![Review before sharing](docs/screenshots/review-before-sharing.png)
 
