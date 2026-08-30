@@ -38,7 +38,11 @@ export function SiteHeader({
         Skip to content
       </a>
       <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-12 h-20 sm:h-24 flex items-center justify-between gap-3">
-        <Wordmark size="lg" className="min-w-0 shrink" />
+        {/* The landing reticle skips the brand mark: framing the logo makes
+            it read as a control, and the wordmark speaks for itself. */}
+        <span data-cursor-nolock className="min-w-0 shrink">
+          <Wordmark size="lg" />
+        </span>
         {/* Every label here is nowrap: the pill has a fixed height, so a
             wrapped label spills out of it rather than growing the button. */}
         <nav className="flex shrink-0 items-center gap-4 sm:gap-6 lg:gap-10 text-[14px] sm:text-[15px]">
