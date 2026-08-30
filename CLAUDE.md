@@ -46,6 +46,7 @@ Database changes go through Supabase MCP migrations (`apply_migration`), one mig
 - No Git terminology, no schools/organizations, no likes or leaderboards, no purple AI branding, no gradients, no chatbot UI.
 - Two of these rules were lifted by the owner on 2026-08-19 and 2026-08-20. Flashcards and practice tests are real features now, built from shared notes. A contribution streak exists, but only as a private record of one person's own days: never compared to anyone, and a quiet stretch shows the run they already managed rather than a zero. Nothing else keeps score.
 - Copy style: sentence case, natural language ("Share with class", "Send to maintainer"). No emojis. No em dashes, in UI copy and in this repo's docs alike.
+- Everything a person reads must sound human, not AI generated (owner's standing instruction, 2026-08-30). That covers the README, docs, scripts, demo narration and website text. Write it in the owner's own plain voice and typography: short natural sentences, contractions are fine, no em dashes (use a comma or a period, at most one dash where a person would really put one). Skip the usual AI tells: "seamless", "dive in", "empower", "elevate", tidy three-part parallel clauses, bullet essays. Read it back; if it sounds like a model wrote it, rewrite it until it sounds like the owner did.
 
 ## Design tokens (digest)
 
