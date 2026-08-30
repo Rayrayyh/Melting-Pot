@@ -8,3 +8,12 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+# Post-deadline follow-up: add a Content-Security-Policy once there is time
+# to test it against Supabase, GSAP, and the media embeds.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "DENY"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
