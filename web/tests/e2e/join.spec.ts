@@ -21,7 +21,7 @@ test.describe("joining a Pot", () => {
 
     // Pot preview before any authentication.
     await expect(page).toHaveURL(/\/join\/BIO101/);
-    await expect(page.getByText("You joined")).toBeVisible();
+    await expect(page.getByText("You found")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Biology 101" })).toBeVisible();
     await expect(page.getByText(/\d+ members/)).toBeVisible();
 

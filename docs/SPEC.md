@@ -78,7 +78,7 @@ Do not ask for an account, school, organization, or profile information yet.
 If the code is invalid, show: "We couldn't find that Pot. Check the code and try again." Do not erase the entered code.
 
 ### Step 2: Show the Pot
-When the code is valid, show the Pot before authentication. Example: "You joined Biology 101".
+When the code is valid, show the Pot before authentication. Example: "You found Biology 101". The copy must not claim membership before it is finalized.
 Supporting information may include: Pot description, owner or maintainer, member count, recent activity.
 
 ### Step 3: Sign Up or Sign In

@@ -53,7 +53,7 @@ export default async function JoinConfirmPage({ params }: PageProps<"/join/[code
             </span>
             <div className="space-y-1">
               <p className="text-[13px] text-ink-muted">
-                {pot.is_member ? "Welcome back to" : "You joined"}
+                {pot.is_member ? "Welcome back to" : "You found"}
               </p>
               <h1 className="text-xl font-semibold tracking-tight">{pot.title}</h1>
               {pot.description ? (
@@ -101,7 +101,7 @@ export default async function JoinConfirmPage({ params }: PageProps<"/join/[code
                   Membership is saved instantly. No extra setup required.
                 </p>
                 <form action={joinWithCode}>
-                  <JoinSubmit label="Open Pot" busyLabel="Opening" />
+                  <JoinSubmit label="Join Pot" busyLabel="Joining" />
                 </form>
               </div>
             )
