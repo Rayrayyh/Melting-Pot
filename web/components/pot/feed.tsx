@@ -137,10 +137,9 @@ export function PotFeed({
               {activeSection ? "Notes in this section" : "Latest shared notes"}
             </p>
             {pot.archived ? null : (
-              // The left nav already carries the primary contribute button on
-              // large screens; repeating it here only adds noise. Below lg
-              // the nav is in a drawer, so the feed keeps its own.
-              <Button href={`/p/${pot.id}/contribute`} size="sm" className="lg:hidden">
+              // The unified nav is account level and carries no contribute
+              // button, so the feed owns this affordance at every width.
+              <Button href={`/p/${pot.id}/contribute`} size="sm">
                 <Plus className="size-4" />
                 Add contribution
               </Button>

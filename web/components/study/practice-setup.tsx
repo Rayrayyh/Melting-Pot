@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Clock } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Stir } from "@/components/brand/stir";
@@ -32,6 +33,7 @@ export function PracticeSetup({
   checking,
   busy,
   error,
+  errorAction,
   onBuild,
   onOpenSaved,
 }: {
@@ -51,6 +53,8 @@ export function PracticeSetup({
   checking: boolean;
   busy: boolean;
   error: string | null;
+  /** Optional next step rendered under the error, e.g. a contribute link. */
+  errorAction?: ReactNode;
   onBuild: () => void;
   onOpenSaved: () => void;
 }) {
@@ -185,9 +189,12 @@ export function PracticeSetup({
         </Field>
 
         {error ? (
-          <p role="alert" className="text-[13px] text-danger">
-            {error}
-          </p>
+          <div className="flex flex-col items-center gap-3">
+            <p role="alert" className="text-[13px] text-danger">
+              {error}
+            </p>
+            {errorAction}
+          </div>
         ) : null}
 
         <div className="space-y-2">

@@ -1,9 +1,12 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { CaretLeft, CaretRight } from "@phosphor-icons/react/dist/ssr";
 import { UserShell } from "@/components/shell/user-shell";
+import { Button } from "@/components/ui/button";
 import { Card, CardSection } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { getMonthEntries } from "@/lib/data/calendar";
+import { supabaseServer } from "@/lib/supabase/server";
 import { cn } from "@/lib/cn";
 
 export const metadata = { title: "Calendar" };
@@ -34,6 +37,34 @@ export default async function CalendarPage({ searchParams }: PageProps<"/calenda
     : now.getUTCMonth();
 
   const entries = await getMonthEntries(year, month);
+  const viewingCurrentMonth =
+    year === now.getUTCFullYear() && month === now.getUTCMonth();
+
+  // An empty month still offers the next action: back to today when browsing
+  // history, or the first place a note could actually be written. The
+  // memberships read is RLS scoped to the caller.
+  let emptyAction: ReactNode = null;
+  if (entries.length === 0) {
+    if (!viewingCurrentMonth) {
+      emptyAction = (
+        <Button href="/calendar" variant="secondary">
+          Back to this month
+        </Button>
+      );
+    } else {
+      const supabase = await supabaseServer();
+      const { data: memberships } = await supabase
+        .from("memberships")
+        .select("pot_id, pots(archived_at)");
+      const firstActivePotId =
+        (memberships ?? []).find((m) => m.pots && !m.pots.archived_at)?.pot_id ?? null;
+      emptyAction = firstActivePotId ? (
+        <Button href={`/p/${firstActivePotId}/contribute`}>Add contribution</Button>
+      ) : (
+        <Button href="/join">Join a Pot</Button>
+      );
+    }
+  }
 
   const byDay = new Map<number, typeof entries>();
   for (const entry of entries) {
@@ -136,6 +167,7 @@ export default async function CalendarPage({ searchParams }: PageProps<"/calenda
             <EmptyState
               title="Nothing shared this month"
               body="When your class shares a note, the day it landed shows up here."
+              action={emptyAction ?? undefined}
             />
           </Card>
         ) : (

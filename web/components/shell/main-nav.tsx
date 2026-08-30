@@ -240,9 +240,12 @@ export function MainNav({ pots }: { pots: NavPot[] }) {
         <div className="overflow-hidden">
           <div className="flex flex-col gap-0.5 pl-4 pt-1">
             {pots.length === 0 ? (
-              <p className="px-3 py-1.5 text-[12px] text-ink-faint">
+              <Link
+                href="/home"
+                className="block px-3 py-1.5 text-[12px] text-ink-faint transition-colors hover:text-ink"
+              >
                 No classes yet. Join one from Home.
-              </p>
+              </Link>
             ) : (
               pots.map((pot, i) => (
                 <Link

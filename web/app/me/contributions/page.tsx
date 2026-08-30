@@ -2,6 +2,7 @@ import Link from "next/link";
 import { NotePencil, Tray } from "@phosphor-icons/react/dist/ssr";
 import { UserShell } from "@/components/shell/user-shell";
 import { Avatar } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { Card, CardSection } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SectionPill, StatusPill } from "@/components/ui/pills";
@@ -48,9 +49,18 @@ export default async function MyContributionsPage({
   // membership, so rows are scoped to the Pots the user currently belongs to.
   const { data: membershipRows } = await supabase
     .from("memberships")
-    .select("pot_id")
+    .select("pot_id, pots(archived_at)")
     .eq("user_id", user.id);
   const potIds = (membershipRows ?? []).map((m) => m.pot_id);
+  // Every empty state below offers the next action, and an archived Pot is
+  // not a place a contribution can go.
+  const firstActivePotId =
+    (membershipRows ?? []).find((m) => m.pots && !m.pots.archived_at)?.pot_id ?? null;
+  const contributeAction = firstActivePotId ? (
+    <Button href={`/p/${firstActivePotId}/contribute`}>Add contribution</Button>
+  ) : (
+    <Button href="/join">Join a Pot</Button>
+  );
 
   const [sharedRows, draftRows, proposalRows, everyoneRows] = await Promise.all([
     supabase
@@ -122,6 +132,7 @@ export default async function MyContributionsPage({
                 icon={<Tray />}
                 title="Nothing shared yet"
                 body="Your first note can be rough. Write it however it comes to you."
+                action={contributeAction}
               />
             </Card>
           ) : (
@@ -162,6 +173,13 @@ export default async function MyContributionsPage({
                 icon={<NotePencil />}
                 title="No drafts"
                 body="Anything you start is saved here automatically."
+                action={
+                  firstActivePotId ? (
+                    <Button href={`/p/${firstActivePotId}/contribute`}>Write a note</Button>
+                  ) : (
+                    <Button href="/join">Join a Pot</Button>
+                  )
+                }
               />
             </Card>
           ) : (
@@ -199,6 +217,15 @@ export default async function MyContributionsPage({
               <EmptyState
                 title="No proposals yet"
                 body="Suggest a correction from any shared note."
+                action={
+                  firstActivePotId ? (
+                    <Button href={`/p/${firstActivePotId}`} variant="secondary">
+                      Open your Pots
+                    </Button>
+                  ) : (
+                    <Button href="/join">Join a Pot</Button>
+                  )
+                }
               />
             </Card>
           ) : (
@@ -243,6 +270,7 @@ export default async function MyContributionsPage({
                   icon={<Tray />}
                   title="Nothing shared yet"
                   body="As soon as anyone in your Pots shares a note, it appears here."
+                  action={contributeAction}
                 />
               </Card>
             ) : (

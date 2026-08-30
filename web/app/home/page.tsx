@@ -157,7 +157,10 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
                   with what their classes are doing. */}
               {dashboard.isMaintainerAnywhere ? (
                 <>
-                  <ActivityList items={dashboard.activity} />
+                  <ActivityList
+                    items={dashboard.activity}
+                    contributeHref={`/p/${dashboard.pots[0].id}/contribute`}
+                  />
                   <Card>
                     <CardSection className="space-y-2.5">
                       <p className="text-sm font-semibold text-ink">Have a class code?</p>
@@ -173,7 +176,10 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
                       <HomeJoinCard initialCode={joinCode} initialError={joinError} />
                     </CardSection>
                   </Card>
-                  <ActivityList items={dashboard.activity} />
+                  <ActivityList
+                    items={dashboard.activity}
+                    contributeHref={`/p/${dashboard.pots[0].id}/contribute`}
+                  />
                 </>
               )}
               {/* Personal recognition sits last and streams on its own, so its

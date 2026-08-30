@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Brain, Cards, Sparkle } from "@phosphor-icons/react/dist/ssr";
 import { UserShell } from "@/components/shell/user-shell";
+import { Button } from "@/components/ui/button";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { getDashboard } from "@/lib/data/dashboard";
@@ -40,6 +41,7 @@ export default async function StudyPage() {
             <EmptyState
               title="Nothing to study yet"
               body="Join a class from Home, and whatever it shares becomes study material here."
+              action={<Button href="/join">Join a Pot</Button>}
             />
           </Card>
         ) : (

@@ -25,6 +25,7 @@ export default async function StudyPage({ params }: PageProps<"/p/[potId]/study/
             sections={pot.sections}
             canModerate={pot.role === "maintainer" || pot.role === "owner"}
             savedSets={savedSets}
+            archived={pot.archived}
           />
           <div className="mx-auto w-full max-w-3xl px-6 pb-10">
             <MyStudyRecord potId={pot.id} kind={kind} />

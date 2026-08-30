@@ -6,6 +6,7 @@ import { RemovedNotesPanel } from "@/components/pot/removed-notes-panel";
 import { TeachingReadout } from "@/components/study/teaching-readout";
 import { PotShell } from "@/components/shell/pot-shell";
 import { Avatar } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { Card, CardSection } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SectionPill, StatusPill } from "@/components/ui/pills";
@@ -295,6 +296,11 @@ export default async function AdminPage({
                       icon={<Notebook />}
                       title="Nothing written yet"
                       body="Contributions appear here as soon as anyone starts one, draft or shared."
+                      action={
+                        pot.archived ? undefined : (
+                          <Button href={`/p/${pot.id}/contribute`}>Add contribution</Button>
+                        )
+                      }
                     />
                   </Card>
                 ) : (
@@ -394,6 +400,11 @@ export default async function AdminPage({
                       icon={<Brain />}
                       title="Nobody has practiced yet"
                       body="When someone hands in a practice test or finishes a flashcard round, it shows up here."
+                      action={
+                        <Button href={`/p/${pot.id}/study/practice`} variant="secondary">
+                          Open the practice test
+                        </Button>
+                      }
                     />
                   </Card>
                 ) : (

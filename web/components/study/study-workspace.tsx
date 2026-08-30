@@ -166,6 +166,7 @@ export function StudyWorkspace({
   sections,
   canModerate,
   savedSets,
+  archived = false,
 }: {
   potId: string;
   potTitle: string;
@@ -176,8 +177,17 @@ export function StudyWorkspace({
   canModerate: boolean;
   /** Everything of this kind the Pot has already built, newest first. */
   savedSets: SavedStudySet[];
+  /** An archived Pot takes no new notes, so the no_notes action hides. */
+  archived?: boolean;
 }) {
   const router = useRouter();
+  // "Share at least one note" names the next step; this hands it over.
+  const noNotesAction =
+    !archived ? (
+      <Button href={`/p/${potId}/contribute`} variant="secondary" size="sm">
+        Share a note
+      </Button>
+    ) : null;
   // What the reader has opened, and what the store happens to hold for the
   // settings on screen, are two different things. Keeping them apart is what
   // lets the lookup run quietly: it can learn there is a saved test without
@@ -193,6 +203,7 @@ export function StudyWorkspace({
   // generation earns the full screen; anything shorter would just flash.
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [asking, setAsking] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -291,6 +302,7 @@ export function StudyWorkspace({
     setBusy(true);
     setGenerating(true);
     setError(null);
+    setErrorCode(null);
     // The finally is what makes the full screen safe to use here. `load` calls
     // fetch, which rejects outright when the network drops, and a flag that
     // only ever cleared on the happy path would leave the cover up with no way
@@ -317,6 +329,7 @@ export function StudyWorkspace({
           return;
         }
         setError(message(outcome.failure, outcome.detail));
+        setErrorCode(outcome.failure ?? null);
         return;
       }
       setOpened(outcome.loaded);
@@ -328,6 +341,7 @@ export function StudyWorkspace({
       router.refresh();
     } catch {
       setError("The connection dropped while this was being built. Try again.");
+      setErrorCode(null);
     } finally {
       setBusy(false);
       setGenerating(false);
@@ -339,6 +353,7 @@ export function StudyWorkspace({
     if (busy) return;
     setBusy(true);
     setError(null);
+    setErrorCode(null);
     const { data } = await supabaseBrowser()
       .from("study_sets")
       .select("id, payload, created_at, options, secured")
@@ -348,6 +363,7 @@ export function StudyWorkspace({
     setBusy(false);
     if (!data) {
       setError("That test could not be opened. It may have been removed.");
+      setErrorCode(null);
       return;
     }
     setOpened({
@@ -375,6 +391,7 @@ export function StudyWorkspace({
     if (!opened || opened.studySetId || !opened.fingerprint || saving) return;
     setSaving(true);
     setError(null);
+    setErrorCode(null);
     const { data, error: rpcError } = await supabaseBrowser().rpc(
       "save_study_set",
       {
@@ -389,6 +406,7 @@ export function StudyWorkspace({
     setSaving(false);
     if (rpcError || !data) {
       setError("That set could not be saved to the Pot. Try again.");
+      setErrorCode(null);
       return;
     }
     setOpened({ ...opened, studySetId: data });
@@ -408,6 +426,7 @@ export function StudyWorkspace({
     setAsking(false);
     if (rpcError) {
       setError("That set could not be removed. Try again.");
+      setErrorCode(null);
       return;
     }
     setOpened(null);
@@ -567,6 +586,7 @@ export function StudyWorkspace({
           checking={checking}
           busy={busy}
           error={error}
+          errorAction={errorCode === "no_notes" ? noNotesAction : null}
           onBuild={() => void generate(true)}
           onOpenSaved={() => {
             setOpened(peeked);
@@ -601,9 +621,12 @@ export function StudyWorkspace({
               )}
             </Button>
             {error ? (
-              <p role="alert" className="text-[13px] text-danger">
-                {error}
-              </p>
+              <div className="flex flex-col items-center gap-3">
+                <p role="alert" className="text-[13px] text-danger">
+                  {error}
+                </p>
+                {errorCode === "no_notes" ? noNotesAction : null}
+              </div>
             ) : null}
           </CardSection>
         </Card>

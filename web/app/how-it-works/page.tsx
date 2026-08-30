@@ -126,6 +126,10 @@ export default async function HowItWorksPage() {
                   chain along the inner membrane. Aerobic respiration yields
                   roughly 36 ATP per glucose; anaerobic yields 2.
                 </p>
+              <p className="mt-3 border-t border-edge pt-3 text-[11px] text-ink-faint">
+                Worth checking: the ATP count, flagged from your &quot;36ish
+                ... i think&quot;. The organizer never smooths a doubt over.
+              </p>
               </div>
             </div>
           </div>
