@@ -36,6 +36,8 @@ This directory is the project's knowledge base. It makes the repo, not chat hist
 - 023 A demo Pot and a guided walkthrough for brand new accounts (idea, not built)
 - 024 The landing hero shows the product: cropped tilted Pot page mock replaces the illustration
 - 025 The landing scrolls natively: the Lenis wheel hijack removed after owner testing found it jittery
+- 026 An outside scan set the header work, and the CSP ships permissive on purpose
+- 027 Two interactions borrowed from other sites, translated rather than copied
 ### Lessons
 - 001 Reading the spec PDFs in this container requires poppler, not pypdf
 - 002 Next 16 conventions (proxy.ts, async params) and Playwright executablePath in this container

@@ -320,3 +320,10 @@ Known follow-ups, documented not built (feature gaps or minor polish, no securit
 - Scrolling jitter was traced, not guessed: the Lenis wheel hijack went, the melt pin became position sticky, and the hero shadow lost three gaussian passes; decision 025 carries the numbers.
 - Submission media re-shot from a real account walked through the product; the README's live link was found pointing at an obsolete site and now points at meltingpot-prometheus; the deadline moved to Monday 11:45 AM Pacific per the owner.
 - Every empty state in the app now offers the next action, which surfaced and fixed a real bug: the desktop Add contribution button had been dead code since the nav rework.
+
+## The scanner round and two borrowed touches (2026-08-30)
+
+- The live site went through vibecodesecure.com: 80/100 before, 95/100 after, with must-have checks at 100. A production CSP, X-XSS-Protection, nosniff and COOP everywhere, X-Powered-By gone, console stripped from the bundle, robots.txt and security.txt added, and the dead lenis dependency finally removed. The one remaining fail is Netlify's own Server header, which is not ours to remove. Decision 026.
+- Signup grew the familiar password checklist: four rules that tick as you type, enforced identically in register_student by migration 0041.
+- Two interactions arrived by translation, not imitation. A pot ring loader now fills the route gaps behind seven new loading boundaries, invisible for its first 150ms. And the landing got a lock-on reticle: four rounded orange corners that glide out to frame whatever the pointer can click, native cursor untouched. Decision 027 records what was deliberately left behind.
+- The join preview stopped claiming membership before it exists: You found, and the button says Join Pot.
