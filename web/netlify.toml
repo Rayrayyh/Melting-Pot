@@ -9,11 +9,15 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-# Post-deadline follow-up: add a Content-Security-Policy once there is time
-# to test it against Supabase, GSAP, and the media embeds.
+# These rules reach only statically-served files; SSR responses get the same
+# set (plus the Content-Security-Policy, which only matters on documents)
+# from headers() in next.config.ts.
 [[headers]]
   for = "/*"
   [headers.values]
     Referrer-Policy = "strict-origin-when-cross-origin"
     X-Frame-Options = "DENY"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    X-Content-Type-Options = "nosniff"
+    Cross-Origin-Opener-Policy = "same-origin"
+    X-XSS-Protection = "1; mode=block"

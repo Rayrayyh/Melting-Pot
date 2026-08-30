@@ -49,9 +49,9 @@ export function ScrollStopper() {
             trigger: sectionRef.current,
             start: "top top",
             end: "+=1700",
-            // Lenis already smooths the wheel, and GSAP's own scrub stacks on
-            // top of it. At 0.6 the melt trails the gesture far enough to feel
-            // mushy, so the scrub gives up most of its share.
+            // Scrolling is native, so the scrub is the only smoothing layer.
+            // At 0.6 the melt trails the gesture far enough to feel mushy,
+            // so it stays short.
             scrub: 0.3,
           },
         });

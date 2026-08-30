@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /home
+Disallow: /p/
+Disallow: /me
+Disallow: /pots
+Disallow: /study
+Disallow: /calendar
+Disallow: /search
+Disallow: /login
+Disallow: /signup
+Disallow: /join

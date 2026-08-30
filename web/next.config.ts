@@ -8,7 +8,37 @@ import type { NextConfig } from "next";
 // talks to Supabase directly. See memory/lessons/004.
 const supabaseRewriteOrigin = process.env.SUPABASE_REWRITE_ORIGIN;
 
+// The one Supabase project this app talks to. The CSP below needs it spelled
+// out for XHR and realtime websockets, and for storage-served avatar images.
+const SUPABASE_ORIGIN = "https://evcfmwxzxwmeiczfupsw.supabase.co";
+const SUPABASE_WSS = "wss://evcfmwxzxwmeiczfupsw.supabase.co";
+
+// Production only: dev needs eval for React refresh, and a dev-shaped policy
+// would drift from what actually ships. script-src carries 'unsafe-inline'
+// because the App Router streams inline hydration scripts and the theme stamp
+// in app/layout.tsx is inline; the tighter nonce-based policy through
+// proxy.ts is the post-deadline upgrade.
+const csp = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline'",
+  `img-src 'self' data: blob: ${SUPABASE_ORIGIN}`,
+  "font-src 'self'",
+  `connect-src 'self' ${SUPABASE_ORIGIN} ${SUPABASE_WSS}`,
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "object-src 'none'",
+].join("; ");
+
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
+  compiler: {
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? { exclude: ["error", "warn"] }
+        : false,
+  },
   async rewrites() {
     if (!supabaseRewriteOrigin) return [];
     return [
@@ -19,7 +49,7 @@ const nextConfig: NextConfig = {
     ];
   },
   // Netlify's Next runtime does not attach netlify.toml [[headers]] rules to
-  // SSR responses, so the baseline security headers live here instead.
+  // SSR responses, so the security headers live here instead.
   async headers() {
     return [
       {
@@ -34,6 +64,14 @@ const nextConfig: NextConfig = {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=()",
           },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+          // Legacy header every modern browser ignores; external scanners
+          // still look for it, and it costs nothing to carry.
+          { key: "X-XSS-Protection", value: "1; mode=block" },
+          ...(process.env.NODE_ENV === "production"
+            ? [{ key: "Content-Security-Policy", value: csp }]
+            : []),
         ],
       },
     ];
