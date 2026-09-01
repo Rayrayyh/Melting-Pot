@@ -22,25 +22,28 @@ function Row({
   icon,
   active,
   chord,
+  fx,
 }: {
   href: string;
   label: string;
   icon: React.ReactNode;
   active: boolean;
   chord?: string;
+  /** The icon's hover micro-move, an mp-fx-* class from globals.css. */
+  fx?: string;
 }) {
   return (
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "group/row flex items-center gap-2 h-9 px-3 rounded-(--radius-control) text-sm transition-colors min-w-0",
+        "group/row mp-fx flex items-center gap-2 h-9 px-3 rounded-(--radius-control) text-sm transition-colors min-w-0",
         active
           ? "bg-primary-soft text-primary font-medium"
           : "text-ink-muted hover:text-ink hover:bg-sunken",
       )}
     >
-      <span aria-hidden className="[&>svg]:size-[18px] shrink-0 me-0.5">
+      <span aria-hidden className={cn("[&>svg]:size-[18px] shrink-0 me-0.5", fx)}>
         {icon}
       </span>
       <span className="truncate">{label}</span>
@@ -183,9 +186,11 @@ export function MainNav({ pots }: { pots: NavPot[] }) {
     <nav aria-label="Main" className="flex flex-col gap-0.5 p-3">
       <Link
         href="/search"
-        className="group/search mb-4 flex h-9 items-center gap-2 rounded-(--radius-control) border border-edge bg-sunken px-3 text-sm text-ink-faint transition-colors hover:border-edge-strong hover:text-ink-muted"
+        className="group/search mp-fx mb-4 flex h-9 items-center gap-2 rounded-(--radius-control) border border-edge bg-sunken px-3 text-sm text-ink-faint transition-colors hover:border-edge-strong hover:text-ink-muted"
       >
-        <MagnifyingGlass aria-hidden className="size-[18px] shrink-0" />
+        <span aria-hidden className="mp-fx-scan shrink-0 [&>svg]:size-[18px]">
+          <MagnifyingGlass />
+        </span>
         <span className="truncate">Search</span>
         <kbd
           aria-hidden
@@ -202,6 +207,7 @@ export function MainNav({ pots }: { pots: NavPot[] }) {
         icon={<House />}
         active={pathname === "/home"}
         chord="H"
+        fx="mp-fx-hop"
       />
 
       <button
@@ -212,9 +218,9 @@ export function MainNav({ pots }: { pots: NavPot[] }) {
         // Never highlighted. It is a disclosure, not a destination: the only
         // thing that should look selected is the page you are actually on, and
         // when you are inside a class it is that class in the list below.
-        className="flex items-center gap-2.5 h-9 px-3 rounded-(--radius-control) text-sm text-ink-muted transition-colors min-w-0 hover:text-ink hover:bg-sunken"
+        className="mp-fx flex items-center gap-2.5 h-9 px-3 rounded-(--radius-control) text-sm text-ink-muted transition-colors min-w-0 hover:text-ink hover:bg-sunken"
       >
-        <span aria-hidden className="[&>svg]:size-[18px] shrink-0">
+        <span aria-hidden className="mp-fx-stir [&>svg]:size-[18px] shrink-0">
           <CookingPot />
         </span>
         <span className="truncate">My Pots</span>
@@ -298,6 +304,7 @@ export function MainNav({ pots }: { pots: NavPot[] }) {
         icon={<GraduationCap />}
         active={pathname.startsWith("/study")}
         chord="S"
+        fx="mp-fx-doff"
       />
       <Row
         href="/calendar"
@@ -305,6 +312,7 @@ export function MainNav({ pots }: { pots: NavPot[] }) {
         icon={<CalendarBlank />}
         active={pathname.startsWith("/calendar")}
         chord="C"
+        fx="mp-fx-flick"
       />
       <Row
         href="/me/contributions"
@@ -312,6 +320,7 @@ export function MainNav({ pots }: { pots: NavPot[] }) {
         icon={<Notebook />}
         active={pathname.startsWith("/me/contributions")}
         chord="N"
+        fx="mp-fx-jot"
       />
     </nav>
   );

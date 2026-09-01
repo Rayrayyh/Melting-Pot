@@ -406,6 +406,116 @@ blockquote {
   animation: mp-lock-pulse 0.5s ease-out 1;
 }
 
+/*
+ * Icon greetings on nav row hover, in the spirit of kolejain.com's sidebar
+ * but with one routine per glyph rather than a shared nudge: the glass
+ * scans, the house hops, the pot rocks like it is being stirred, the cap
+ * doffs, the calendar flicks a page, the notebook jots. Each plays once on
+ * hover or keyboard focus and returns to rest, so nothing is held tilted
+ * while someone reads. The row carries .mp-fx, the icon span its routine.
+ * Wrapped in the motion query so reduced motion means no movement at all.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .mp-fx-scan svg,
+  .mp-fx-hop svg,
+  .mp-fx-stir svg,
+  .mp-fx-doff svg,
+  .mp-fx-flick svg,
+  .mp-fx-jot svg {
+    transform-origin: center;
+  }
+
+  @keyframes mp-fx-scan {
+    25% {
+      transform: rotate(-14deg) translateY(-1px);
+    }
+    60% {
+      transform: rotate(9deg);
+    }
+  }
+
+  @keyframes mp-fx-hop {
+    30% {
+      transform: translateY(-3px);
+    }
+    65% {
+      transform: translateY(1px);
+    }
+  }
+
+  @keyframes mp-fx-stir {
+    22% {
+      transform: rotate(-11deg);
+    }
+    50% {
+      transform: rotate(8deg);
+    }
+    78% {
+      transform: rotate(-4deg);
+    }
+  }
+
+  @keyframes mp-fx-doff {
+    30% {
+      transform: rotate(14deg) translate(1.5px, -2.5px);
+    }
+    70% {
+      transform: rotate(8deg) translate(1px, -1.5px);
+    }
+  }
+
+  @keyframes mp-fx-flick {
+    30% {
+      transform: translateY(-2.5px) rotate(7deg);
+    }
+    65% {
+      transform: translateY(0.5px) rotate(-2deg);
+    }
+  }
+
+  @keyframes mp-fx-jot {
+    20% {
+      transform: translate(1.5px, -2px) rotate(-6deg);
+    }
+    45% {
+      transform: translate(2.5px, -0.5px) rotate(3deg);
+    }
+    70% {
+      transform: translate(1px, -2px) rotate(-3deg);
+    }
+  }
+
+  .mp-fx:hover .mp-fx-scan svg,
+  .mp-fx:focus-visible .mp-fx-scan svg {
+    animation: mp-fx-scan 0.55s ease;
+  }
+
+  .mp-fx:hover .mp-fx-hop svg,
+  .mp-fx:focus-visible .mp-fx-hop svg {
+    animation: mp-fx-hop 0.45s ease;
+  }
+
+  .mp-fx:hover .mp-fx-stir svg,
+  .mp-fx:focus-visible .mp-fx-stir svg {
+    animation: mp-fx-stir 0.6s ease;
+  }
+
+  .mp-fx:hover .mp-fx-doff svg,
+  .mp-fx:focus-visible .mp-fx-doff svg {
+    animation: mp-fx-doff 0.5s ease;
+  }
+
+  .mp-fx:hover .mp-fx-flick svg,
+  .mp-fx:focus-visible .mp-fx-flick svg {
+    animation: mp-fx-flick 0.5s ease;
+  }
+
+  .mp-fx:hover .mp-fx-jot svg,
+  .mp-fx:focus-visible .mp-fx-jot svg {
+    animation: mp-fx-jot 0.6s ease;
+  }
+}
+
 /* A card that answers the pointer. Paired with a border change at the call
    site, so the lift is never the only thing that says it is interactive. */
 .mp-lift {
