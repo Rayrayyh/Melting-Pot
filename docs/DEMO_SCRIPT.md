@@ -42,7 +42,7 @@ moved down the page; the hero now makes the argument on its own.
 wall. Then Add contribution. Paste something genuinely messy: lowercase, no
 punctuation, an "i think" that is not certain.
 
-> A student joins with a six character code and is reading the class vault
+> A student joins with a six character code and sees the class
 > before making an account. Then they write, badly, on purpose.
 
 **On screen:** hit the organize button. Let the wait screen run. When it
@@ -92,7 +92,7 @@ enough to actually read one item.
 
 - **Record at 1920x1080.** The app is desktop first and the admin tables need
   the width.
-- **Light theme.** It is the default now and it reads better compressed.
+- **Dark theme.** It is the default now, so record in it unless you flip the header toggle on camera; the light theme reads better compressed if you do.
 - **Set the model key before recording.** The whole of beat 2 depends on the
   organizer being the model and not the fallback, and the on-screen credit
   will say which one it was. This is the exact failure that spoiled the last

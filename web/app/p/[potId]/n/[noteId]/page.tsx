@@ -88,7 +88,9 @@ export default async function NotePage({ params }: PageProps<"/p/[potId]/n/[note
                   }`}
                   size="sm"
                 />
-                <div className="flex items-center gap-2">
+                {/* Wraps so the owner's third action (Remove) never pushes the
+                    row past a phone's edge. */}
+                <div className="flex flex-wrap items-center gap-2">
                   <Button
                     variant="quiet"
                     size="sm"

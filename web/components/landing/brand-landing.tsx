@@ -134,7 +134,7 @@ export function BrandLanding({
                 </h3>
                 <p className="mt-2 flex-1 text-sm text-ink-muted leading-relaxed">
                   Human Biology is our live demo Pot: shared notes, open
-                  corrections, flashcards, the lot. Open it and read everything
+                  corrections, flashcards, the lot. Open it and see the class
                   before you make any account.
                 </p>
                 <div className="mt-5 space-y-3">

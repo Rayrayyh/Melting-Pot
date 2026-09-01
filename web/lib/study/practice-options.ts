@@ -33,8 +33,12 @@ export const DIFFICULTIES: ReadonlyArray<{
 
 export const MAX_SECTIONS = 20;
 
+// Five by default, not ten: the reasoning model writes a ten-question test
+// in about thirty seconds, and the hosting function is cut off at
+// twenty-six, so the larger default failed more often than it landed on the
+// live site. Ten and more stay one tap away for anyone who wants them.
 export const DEFAULT_PRACTICE_OPTIONS: PracticeOptions = {
-  questionCount: 10,
+  questionCount: 5,
   difficulty: "standard",
   emphasis: "",
   sectionIds: [],
