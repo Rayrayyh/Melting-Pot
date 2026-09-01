@@ -327,3 +327,10 @@ Known follow-ups, documented not built (feature gaps or minor polish, no securit
 - Signup grew the familiar password checklist: five rules that tick as you type (the owner added one symbol after the first cut), enforced identically in register_student by migrations 0041 and 0042.
 - Two interactions arrived by translation, not imitation. A pot ring loader now fills the route gaps behind seven new loading boundaries, invisible for its first 150ms. And the landing got a lock-on reticle: four rounded orange corners that glide out to frame whatever the pointer can click, native cursor untouched. Decision 027 records what was deliberately left behind.
 - The join preview stopped claiming membership before it exists: You found, and the button says Join Pot.
+
+## Section two, the icon greetings, and Gemini goes live (2026-08-31)
+
+- The landing's second section stopped being a code form nobody could fill in. It opens on the owner's chosen headline and three doors (demo Pot, class code, create a Pot), with the hero CTAs retargeted to land on them. Decision 028.
+- Nav icons got one hover routine each, built on the existing Phosphor glyphs and off entirely under reduced motion.
+- The hero CTA row moved to the mid band gap after four measured spacing presets were compared side by side.
+- The owner set the model environment variables on Netlify; the deployed site now generates study material with gemini-3.6-flash, verified end to end against the demo Pot.

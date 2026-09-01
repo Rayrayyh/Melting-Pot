@@ -38,6 +38,7 @@ This directory is the project's knowledge base. It makes the repo, not chat hist
 - 025 The landing scrolls natively: the Lenis wheel hijack removed after owner testing found it jittery
 - 026 An outside scan set the header work, and the CSP ships permissive on purpose
 - 027 Two interactions borrowed from other sites, translated rather than copied
+- 028 Section two names the problem and opens three doors: demo Pot, class code, create a Pot
 ### Lessons
 - 001 Reading the spec PDFs in this container requires poppler, not pypdf
 - 002 Next 16 conventions (proxy.ts, async params) and Playwright executablePath in this container
