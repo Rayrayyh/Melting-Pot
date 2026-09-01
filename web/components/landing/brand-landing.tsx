@@ -1,8 +1,7 @@
-import Link from "next/link";
 import { ArrowDown, ArrowRight } from "@phosphor-icons/react/dist/ssr";
 import { CursorLock } from "@/components/landing/cursor-lock";
 import { HeroDashboard } from "@/components/landing/hero-dashboard";
-import { JoinCard } from "@/components/landing/join-card";
+import { JoinInline } from "@/components/landing/join-inline";
 import { NamesOnTheNote } from "@/components/landing/names-on-the-note";
 import { ScrollStopper } from "@/components/landing/scroll-stopper";
 import { SiteFooter } from "@/components/landing/site-footer";
@@ -33,7 +32,7 @@ export function BrandLanding({
       {/* Same ground as the hero, so the top of the page is one surface
           rather than a paper band over a sunken one. */}
       <div className="bg-sunken">
-        <SiteHeader signedIn={signedIn} getStartedHref="#spaces" />
+        <SiteHeader signedIn={signedIn} getStartedHref="#join" />
       </div>
 
       <main id="main" className="flex flex-col">
@@ -51,8 +50,8 @@ export function BrandLanding({
             Turn scattered notes, resources, and explanations into one
             shared course space your whole class can explore.
           </p>
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-8">
-            <Button href={signedIn ? "/home" : "#spaces"} size="lg" roll>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-8">
+            <Button href={signedIn ? "/home" : "#join"} size="lg" roll>
               {signedIn ? "Go to dashboard" : "Join a class"}
             </Button>
             <a
@@ -96,59 +95,110 @@ export function BrandLanding({
         </div>
       </section>
 
+      {/* Slot two names the problem, then gives every arrival a door that
+          works. The audit that reshaped it: both hero CTAs used to land on a
+          code form almost no first-time visitor could complete, with the
+          teacher path in 13px fine print and the demo class nowhere. Now the
+          codeless majority gets the live demo Pot, code holders get a compact
+          entry whose button never plays dead, and teachers get equal billing.
+          The old #spaces id survives for stale links; #join is where the hero
+          and header CTAs land. */}
       <section
         id="spaces"
-        className="px-6 sm:px-10 py-24 sm:py-32 bg-surface border-y border-edge scroll-mt-8"
+        className="px-6 sm:px-10 py-24 sm:py-28 bg-surface border-y border-edge scroll-mt-8"
       >
-        <div className="mx-auto w-full max-w-6xl grid lg:grid-cols-[1fr_minmax(0,26rem)] gap-14 lg:gap-24 items-center">
-          <div className="space-y-7">
+        <div className="mx-auto w-full max-w-6xl">
+          <div className="mx-auto max-w-3xl text-center space-y-6">
             <p className="text-[12px] font-semibold tracking-[0.14em] uppercase text-clay">
-              A shared class vault
+              How notes reach the class
             </p>
             <h2 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.08] text-ink">
-              Everything your class knows, in one Pot.
+              The part you need is in someone else&apos;s handwriting.
             </h2>
-            <p className="text-lg text-ink-muted leading-relaxed max-w-xl">
-              One code opens the whole vault. Thirty people take thirty sets of
-              half-finished notes and end up with one set worth studying from,
-              built by all of them and checked by people, not guesswork.
-            </p>
-            <ul className="flex flex-wrap gap-x-8 gap-y-3 pt-1 text-[13px] text-ink-muted">
-              <li className="flex items-center gap-2">
-                <span aria-hidden className="size-1.5 rounded-full bg-primary" />
-                No formatting needed
-              </li>
-              <li className="flex items-center gap-2">
-                <span aria-hidden className="size-1.5 rounded-full bg-primary" />
-                Originals always preserved
-              </li>
-              <li className="flex items-center gap-2">
-                <span aria-hidden className="size-1.5 rounded-full bg-primary" />
-                You approve every share
-              </li>
-            </ul>
-          </div>
-          <div className="w-full space-y-4">
-            <p className="text-[12px] font-semibold tracking-[0.14em] uppercase text-ink-faint">
-              For students
-            </p>
-            <JoinCard initialCode={initialCode} initialError={initialError} />
-            <p className="text-center text-[13px] text-ink-muted">
-              Teaching a class?{" "}
-              <Link
-                href="/pots/new"
-                className="font-medium text-primary hover:underline underline-offset-4"
-              >
-                Create a Pot
-              </Link>{" "}
-              and share the code.
+            <p className="text-lg text-ink-muted leading-relaxed">
+              A classmate&apos;s notebook often holds the note you need, written
+              in a hurry with no other reader in mind. Meltingpot prepares an
+              organized version alongside the original, with uncertain passages
+              marked, and shares it with the class once the writer approves.
             </p>
           </div>
+
+          <div id="join" className="scroll-mt-24 mt-14 grid gap-6 md:grid-cols-3">
+            <Reveal className="h-full">
+              <div className="flex h-full flex-col rounded-(--radius-card) border border-edge-strong bg-paper p-6">
+                <p className="text-[12px] font-semibold tracking-[0.14em] uppercase text-clay">
+                  No code? Start here
+                </p>
+                <h3 className="mt-3 text-lg font-semibold text-ink">
+                  Peek inside a real class
+                </h3>
+                <p className="mt-2 flex-1 text-sm text-ink-muted leading-relaxed">
+                  Human Biology is our live demo Pot: shared notes, open
+                  corrections, flashcards, the lot. Open it and read everything
+                  before you make any account.
+                </p>
+                <div className="mt-5 space-y-3">
+                  <Button href="/join/HXU863" size="md" className="w-full" roll>
+                    Open the demo Pot
+                  </Button>
+                  <p className="text-center text-[12px] text-ink-faint">
+                    Class code <span className="font-mono tracking-[0.2em]">HXU863</span>
+                  </p>
+                </div>
+              </div>
+            </Reveal>
+            <Reveal delay={0.08} className="h-full">
+              <div className="flex h-full flex-col rounded-(--radius-card) border border-edge bg-surface-raised p-6">
+                <p className="text-[12px] font-semibold tracking-[0.14em] uppercase text-ink-faint">
+                  For students
+                </p>
+                <h3 className="mt-3 text-lg font-semibold text-ink">
+                  I have a class code
+                </h3>
+                <p className="mt-2 text-sm text-ink-muted leading-relaxed">
+                  Enter the 6 characters your class shared. You see the Pot
+                  before you join anything.
+                </p>
+                <div className="mt-5">
+                  <JoinInline initialCode={initialCode} initialError={initialError} />
+                </div>
+              </div>
+            </Reveal>
+            <Reveal delay={0.16} className="h-full">
+              <div className="flex h-full flex-col rounded-(--radius-card) border border-edge bg-surface-raised p-6">
+                <p className="text-[12px] font-semibold tracking-[0.14em] uppercase text-ink-faint">
+                  For teachers
+                </p>
+                <h3 className="mt-3 text-lg font-semibold text-ink">
+                  I run a class
+                </h3>
+                <p className="mt-2 flex-1 text-sm text-ink-muted leading-relaxed">
+                  Create a Pot and share one code. Your class joins in seconds,
+                  and everything they type stays theirs to approve.
+                </p>
+                <div className="mt-5">
+                  <Button
+                    href="/pots/new"
+                    variant="secondary"
+                    size="md"
+                    className="w-full"
+                    roll
+                  >
+                    Create a Pot
+                  </Button>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+
         </div>
-        <p className="flex items-center justify-center gap-2 pt-20 text-[12px] text-ink-faint">
+        <a
+          href="#explore"
+          className="group/roll mx-auto mt-14 flex w-fit items-center justify-center gap-2 text-[12px] text-ink-faint transition-colors hover:text-primary"
+        >
           <ArrowDown className="size-3.5" aria-hidden />
-          See how the melt works
-        </p>
+          <RollText>See how the melt works</RollText>
+        </a>
       </section>
 
       <div id="explore" className="scroll-mt-8">
@@ -230,7 +280,7 @@ export function BrandLanding({
               Create a Pot
             </Button>
             <a
-              href="#spaces"
+              href="#join"
               className="text-[14px] font-medium text-on-primary/90 hover:text-on-primary underline underline-offset-4"
             >
               or enter a class code

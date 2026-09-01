@@ -21,13 +21,13 @@ test.describe("brand landing", () => {
     await expect(
       page.getByRole("heading", { name: "Everyone takes notes. Meltingpot brings them together." }),
     ).toBeVisible();
-    // The nav offers both paths: sign in and the dark get-started pill.
+    // The nav offers both paths: sign in and the orange get-started pill.
     await expect(page.getByRole("link", { name: "Get started" }).first()).toBeVisible();
-    // The join path stays one anchor away, and the code validates in place.
+    // The join door stays one anchor away, and the code validates in place.
     await expect(page.getByLabel("Enter class code")).toBeVisible();
 
     await page.getByLabel("Enter class code").fill("zzzzzz");
-    await page.getByRole("button", { name: "Join Pot" }).click();
+    await page.getByRole("button", { name: "See the Pot" }).click();
     await expect(
       page.getByText("We couldn't find that Pot. Check the code and try again."),
     ).toBeVisible();
