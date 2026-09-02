@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { StirPot, STIR_LOOP } from "@/components/brand/stir-pot";
 import { cn } from "@/lib/cn";
+import { stirLine } from "@/lib/contributions/stir-lines";
 import type { WeekDay } from "@/lib/contributions/streak";
 
 /**
@@ -23,29 +24,6 @@ import type { WeekDay } from "@/lib/contributions/streak";
  * with no movement at all.
  */
 
-const WORDS = [
-  "No",
-  "One",
-  "Two",
-  "Three",
-  "Four",
-  "Five",
-  "Six",
-  "Seven",
-  "Eight",
-  "Nine",
-  "Ten",
-];
-
-function spelled(n: number): string {
-  return n < WORDS.length ? WORDS[n] : String(n);
-}
-
-function heading(days: number): string {
-  if (days <= 1) return "Day one. The pot is on.";
-  return `Day ${days}, still stirring.`;
-}
-
 export function StillStirring({
   open,
   days,
@@ -60,6 +38,9 @@ export function StillStirring({
   onClose: () => void;
 }) {
   const reduced = useReducedMotion();
+  // The day picks the wording, so the card does not say the same thing every
+  // time and the same day never says two different things.
+  const line = stirLine(days, week.find((d) => d.today)?.day ?? "");
   const [elapsed, setElapsed] = useState(0);
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -135,12 +116,9 @@ export function StillStirring({
             </div>
 
             <p className="mt-5 font-display text-2xl font-semibold tracking-tight text-ink">
-              {heading(days)}
+              {line.heading}
             </p>
-            <p className="mt-1.5 text-[13px] leading-relaxed text-ink-muted">
-              {spelled(days)} {days === 1 ? "day" : "days"} of putting something in or
-              taking something out.
-            </p>
+            <p className="mt-1.5 text-[13px] leading-relaxed text-ink-muted">{line.subline}</p>
 
             <div className="mt-5 flex items-center justify-center gap-2" aria-hidden>
               {week.map((day, i) => (
