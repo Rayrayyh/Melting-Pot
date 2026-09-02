@@ -334,3 +334,11 @@ Known follow-ups, documented not built (feature gaps or minor polish, no securit
 - Nav icons got one hover routine each, built on the existing Phosphor glyphs and off entirely under reduced motion.
 - The hero CTA row moved to the mid band gap after four measured spacing presets were compared side by side.
 - The owner set the model environment variables on Netlify; the deployed site now generates study material with gemini-3.6-flash, verified end to end against the demo Pot.
+
+## The sidebar folds and the controls are ours (2026-09-02)
+
+- The sidebar collapses to its icons on the kolejain.com curve, remembers the choice before first paint, and the notification card pops out and back in around the fold. Decision 029.
+- The My Pots list stopped cutting to closed when a click left a Pot: it now slides shut, and slides open on the way in, whichever sidebar mounts next.
+- The browser's select is gone from the app. Search filters, sort and the contribution section picker use the product's own dropdown, built from the account menu's card with full keyboard reach.
+- Notification rows gained a layered hover, and the scrollbar is drawn by the app in Chromium and Safari.
+

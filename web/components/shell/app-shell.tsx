@@ -75,7 +75,7 @@ export function AppShell({
       </a>
       <TopBar />
       <div className="flex flex-1 min-h-0">
-        <aside className="hidden lg:block w-60 shrink-0 border-r border-edge bg-surface">
+        <aside className="mp-side hidden lg:block w-60 shrink-0 overflow-hidden border-r border-edge bg-surface">
           <div className="sticky top-14 flex h-[calc(100dvh-3.5rem)] flex-col">
             <div className="min-h-0 flex-1 overflow-y-auto">{nav}</div>
             {alerts}

@@ -3,8 +3,10 @@
 import { getClientAuth } from "@/lib/auth/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { CaretUpDown, GearSix, Info, SignOut, User } from "@phosphor-icons/react";
 import { Avatar } from "@/components/ui/avatar";
+import { MENU_EASE } from "@/components/ui/select";
 
 /**
  * The account control, anchored to the bottom of the left nav. Identity sits
@@ -31,9 +33,19 @@ export function NavProfile({
   return (
     <div className="relative border-t border-edge p-2">
       {open ? (
-        <>
-          <div className="fixed inset-0 z-40" aria-hidden onClick={() => setOpen(false)} />
-          <div className="absolute bottom-full left-2 right-2 z-50 mb-1 rounded-(--radius-card) border border-edge bg-surface py-1.5 shadow-(--shadow-raised)">
+        <div className="fixed inset-0 z-40" aria-hidden onClick={() => setOpen(false)} />
+      ) : null}
+      <AnimatePresence>
+        {open ? (
+          <motion.div
+            key="menu"
+            initial={{ opacity: 0, y: 4, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.98 }}
+            transition={{ duration: 0.2, ease: MENU_EASE }}
+            style={{ transformOrigin: "bottom left" }}
+            className="absolute bottom-full left-2 right-2 z-50 mb-1 rounded-(--radius-card) border border-edge bg-surface py-1.5 shadow-(--shadow-raised)"
+          >
             <MenuItem
               icon={<User className="size-4" />}
               label="My contributions"
@@ -60,22 +72,23 @@ export function NavProfile({
                 router.refresh();
               }}
             />
-          </div>
-        </>
-      ) : null}
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label="Account menu"
         aria-expanded={open}
-        className="flex w-full items-center gap-2.5 rounded-(--radius-control) p-1.5 text-left transition-colors hover:bg-sunken"
+        title={displayName}
+        className="mp-nav-profile flex w-full items-center gap-2.5 rounded-(--radius-control) p-1.5 text-left transition-colors hover:bg-sunken"
       >
         <Avatar name={displayName} src={avatarSrc} />
-        <span className="min-w-0 flex-1">
+        <span className="mp-nav-open-only min-w-0 flex-1">
           <span className="block truncate text-sm font-medium text-ink">{displayName}</span>
           <span className="block truncate text-[12px] text-ink-muted">{email}</span>
         </span>
-        <CaretUpDown className="size-4 shrink-0 text-ink-faint" aria-hidden />
+        <CaretUpDown className="mp-nav-open-only size-4 shrink-0 text-ink-faint" aria-hidden />
       </button>
     </div>
   );

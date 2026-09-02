@@ -66,7 +66,7 @@ export const metadata: Metadata = {
 // machine is light would see light before the choice they never made is even
 // readable. Only "system" leaves the attribute off and lets the media query
 // decide.
-const themeInit = `(function(){var d=document.documentElement;try{var t=localStorage.getItem("mp-theme");if(t==="light"||t==="dark"){d.setAttribute("data-theme",t)}else if(t!=="system"){d.setAttribute("data-theme","dark")}}catch(e){d.setAttribute("data-theme","dark")}})()`;
+const themeInit = `(function(){var d=document.documentElement;try{var t=localStorage.getItem("mp-theme");if(t==="light"||t==="dark"){d.setAttribute("data-theme",t)}else if(t!=="system"){d.setAttribute("data-theme","dark")}if(localStorage.getItem("mp:nav-collapsed")==="1"){d.setAttribute("data-nav","collapsed")}}catch(e){d.setAttribute("data-theme","dark")}})()`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

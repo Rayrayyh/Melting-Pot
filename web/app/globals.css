@@ -60,6 +60,7 @@
   --shadow-card: 0 1px 2px rgba(36, 34, 44, 0.05);
   --shadow-raised: 0 4px 16px rgba(36, 34, 44, 0.08);
   --scrollbar: #d9ccac;
+  --scrollbar-hover: #bfae86;
   /*
     Avatar tints. Decorative identity only: one pair per person, picked by a
     hash of their name. Kept apart from the functional colors so a green
@@ -142,6 +143,7 @@
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-raised: 0 4px 16px rgba(0, 0, 0, 0.4);
   --scrollbar: #4d4433;
+  --scrollbar-hover: #6b5e45;
   --avatar-1: #f0a055;
   --avatar-1-soft: #3c2612;
   --avatar-2: #e79274;
@@ -215,6 +217,7 @@
     --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
     --shadow-raised: 0 4px 16px rgba(0, 0, 0, 0.4);
     --scrollbar: #4d4433;
+    --scrollbar-hover: #6b5e45;
     --avatar-1: #f0a055;
     --avatar-1-soft: #3c2612;
     --avatar-2: #e79274;
@@ -330,9 +333,54 @@ blockquote {
   color: var(--on-primary);
 }
 
-* {
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar) transparent;
+/*
+ * The scrollbar is drawn by the app where the browser allows it: a slim pill
+ * in the paper's own tan, floating in a clear gutter with no track and no
+ * arrow buttons, that fills in under the pointer and turns brand orange while
+ * it is being dragged. Chromium ignores the ::-webkit-scrollbar rules the
+ * moment scrollbar-color is set, so the standard properties are reserved for
+ * browsers that do not understand the pseudo-elements, which today means
+ * Firefox, where thin and tinted is as far as the drawing goes.
+ */
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar) transparent;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar);
+  background-clip: padding-box;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  min-height: 2.5rem;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-hover);
+  border-width: 2px;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background-color: var(--primary);
+  border-width: 2px;
 }
 
 :focus-visible {
@@ -734,4 +782,159 @@ blockquote {
 .mp-kbd {
   background: var(--glass-fill);
   border: 1px solid var(--glass-border);
+}
+
+/*
+ * The collapsible sidebar. html[data-nav="collapsed"] is stamped before
+ * first paint by the inline script in app/layout.tsx and toggled by the
+ * control at the top of the nav. The aside narrows over a second on the
+ * same long ease out kolejain.com uses, clipping its labels at the moving
+ * edge rather than fading them; rows recentre on their icons; anything
+ * that only makes sense at full width (shortcut hints, the pots list, the
+ * profile text) is hidden; and the notification card pops out at once and
+ * pops back in only after the width has settled. The global reduced-motion
+ * rule collapses every transition here to an instant switch.
+ */
+.mp-side {
+  width: 15rem;
+  transition: width 1s cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+html[data-nav="collapsed"] .mp-side {
+  width: 4.5rem;
+}
+
+.mp-nav-chevrons {
+  transition: transform 0.6s cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+html[data-nav="collapsed"] .mp-side .mp-nav-label,
+html[data-nav="collapsed"] .mp-side .mp-nav-open-only {
+  display: none;
+}
+
+html[data-nav="collapsed"] .mp-side .mp-nav-row,
+html[data-nav="collapsed"] .mp-side .mp-nav-profile {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+  gap: 0;
+}
+
+html[data-nav="collapsed"] .mp-side .mp-nav-row > span:first-child {
+  margin: 0;
+}
+
+.mp-nav-alerts {
+  transition:
+    opacity 0.35s cubic-bezier(0.075, 0.82, 0.165, 1) 0.55s,
+    transform 0.35s cubic-bezier(0.075, 0.82, 0.165, 1) 0.55s;
+}
+
+html[data-nav="collapsed"] .mp-side .mp-nav-alerts {
+  opacity: 0;
+  transform: translateY(6px) scale(0.97);
+  pointer-events: none;
+  transition-delay: 0s;
+  transition-duration: 0.15s;
+}
+
+/*
+ * A notification row under the pointer. It lifts onto the card's surface, an
+ * orange hairline draws up its left edge, the icon tips towards the title,
+ * the title itself eases a step to the right and an arrow arrives at the far
+ * end to say the row goes somewhere. Every part rides the sidebar's long ease
+ * out, and the global reduced-motion rule stills all of it.
+ */
+/* The dropdown list carries focus for the keyboard, but the highlighted row
+   is the focus indicator; a second ring around the whole card said the same
+   thing twice. */
+[role="listbox"]:focus-visible {
+  outline: none;
+}
+
+.mp-alert-row {
+  isolation: isolate;
+  transition:
+    background-color 0.25s cubic-bezier(0.075, 0.82, 0.165, 1),
+    box-shadow 0.35s cubic-bezier(0.075, 0.82, 0.165, 1),
+    transform 0.35s cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.mp-alert-row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 22%;
+  bottom: 22%;
+  width: 2px;
+  border-radius: 999px;
+  background: var(--primary);
+  opacity: 0;
+  transform: scaleY(0);
+  transition:
+    opacity 0.2s ease-out,
+    transform 0.35s cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.mp-alert-row:hover,
+.mp-alert-row:focus-visible {
+  background-color: var(--surface);
+  box-shadow: var(--shadow-card), inset 0 0 0 1px var(--edge);
+  transform: translateX(2px);
+}
+
+.mp-alert-row:active {
+  transform: translateX(2px) scale(0.99);
+}
+
+.mp-alert-row:hover::before,
+.mp-alert-row:focus-visible::before {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+.mp-alert-icon {
+  transition: color 0.2s ease-out;
+}
+
+.mp-alert-row:hover .mp-alert-icon,
+.mp-alert-row:focus-visible .mp-alert-icon {
+  color: var(--primary);
+  animation: mp-alert-tip 0.45s cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+@keyframes mp-alert-tip {
+  0% {
+    transform: none;
+  }
+  40% {
+    transform: translateX(1px) rotate(-10deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+.mp-alert-title {
+  transition: transform 0.35s cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.mp-alert-row:hover .mp-alert-title,
+.mp-alert-row:focus-visible .mp-alert-title {
+  transform: translateX(2px);
+}
+
+.mp-alert-arrow {
+  opacity: 0;
+  transform: translateX(-6px);
+  transition:
+    opacity 0.25s ease-out,
+    transform 0.35s cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.mp-alert-row:hover .mp-alert-arrow,
+.mp-alert-row:focus-visible .mp-alert-arrow {
+  opacity: 1;
+  transform: none;
 }

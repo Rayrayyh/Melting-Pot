@@ -17,6 +17,7 @@ import { NoteBody, TakeawaysCard } from "@/components/pot/note-body";
 import { NoteChecks } from "@/components/contribute/note-checks";
 import { OrganizedBy } from "@/components/mix/organized-by";
 import type { NoteCheck } from "@/lib/mix/contracts";
+import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -846,23 +847,26 @@ export function ContributeFlow({
 
           <div className="flex flex-wrap items-center gap-2">
             <Eyebrow>Suggested placement</Eyebrow>
-            <select
+            <Select
+              size="sm"
+              align="start"
+              label="Section"
               value={sectionChoice ?? ""}
-              onChange={(e) => {
-                setSectionChoice(e.target.value || null);
+              options={[
+                { value: "", label: "No section yet" },
+                ...sections.map((section) => ({
+                  value: section.id,
+                  label:
+                    section.id === organized.suggestedSectionId
+                      ? `${section.title} (suggested)`
+                      : section.title,
+                })),
+              ]}
+              onChange={(next) => {
+                setSectionChoice(next || null);
                 markReviewDirty();
               }}
-              aria-label="Section"
-              className="h-8 rounded-(--radius-control) border border-edge-strong bg-surface px-2.5 text-[13px] text-ink focus:border-primary focus:outline-none"
-            >
-              <option value="">No section yet</option>
-              {sections.map((section) => (
-                <option key={section.id} value={section.id}>
-                  {section.title}
-                  {section.id === organized.suggestedSectionId ? " (suggested)" : ""}
-                </option>
-              ))}
-            </select>
+            />
             {viewerName ? (
               <span className="ml-auto text-[13px] text-ink-muted">
                 Shared as <span className="font-medium text-ink">{viewerName}</span>

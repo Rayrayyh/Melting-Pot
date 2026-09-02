@@ -1,8 +1,9 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
-import { CheckCircle, Notebook, PencilSimpleLine, X } from "@phosphor-icons/react";
+import { ArrowRight, CheckCircle, Notebook, PencilSimpleLine, X } from "@phosphor-icons/react";
 import type { Notification } from "@/lib/data/notifications";
 
 /**
@@ -59,7 +60,7 @@ export function NavNotifications({ items }: { items: Notification[] }) {
   if (items.length === 0) {
     return (
       <div className="mb-4 px-2">
-        <div className="rounded-(--radius-card) border border-edge bg-sunken px-3 py-2.5">
+        <div className="mp-nav-alerts rounded-(--radius-card) border border-edge bg-sunken px-3 py-2.5">
           <p className="text-[12px] text-ink-muted">You are all caught up</p>
           <p className="mt-0.5 text-[11px] text-ink-faint">
             Corrections and new class notes land here.
@@ -70,15 +71,26 @@ export function NavNotifications({ items }: { items: Notification[] }) {
   }
 
   const top = items[0].id;
-  if (dismissed === top) return null;
-
   const unread = items.filter((n) => n.isNew).length;
 
+  // The card pops out when dismissed (and when the sidebar collapses, via
+  // .mp-nav-alerts in globals.css) and pops back in when there is something
+  // new: a short drop and shrink on the way out, a rise on the way in, on the
+  // same long ease out the sidebar uses.
   return (
-    <div className="mb-4 px-2">
+    <AnimatePresence initial={false}>
+      {dismissed === top ? null : (
+    <motion.div
+      key={top}
+      initial={{ opacity: 0, y: 10, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 10, scale: 0.97 }}
+      transition={{ duration: 0.35, ease: [0.075, 0.82, 0.165, 1] }}
+      className="mb-4 px-2"
+    >
       <section
         aria-label="Notifications"
-        className="rounded-(--radius-card) border border-edge bg-sunken p-2.5"
+        className="mp-nav-alerts rounded-(--radius-card) border border-edge bg-sunken p-2.5"
       >
         <div className="flex items-center gap-2">
           {unread > 0 ? (
@@ -105,14 +117,13 @@ export function NavNotifications({ items }: { items: Notification[] }) {
               <li key={n.id}>
                 <Link
                   href={n.href}
-                  className="group/n flex gap-2 rounded-(--radius-control) px-1.5 py-1.5 transition-colors hover:bg-surface"
+                  className="mp-alert-row relative flex gap-2 rounded-(--radius-control) px-1.5 py-1.5"
                 >
-                  <Icon
-                    aria-hidden
-                    className="mt-px size-3.5 shrink-0 text-ink-faint transition-colors group-hover/n:text-primary"
-                  />
+                  <Icon aria-hidden className="mp-alert-icon mt-px size-3.5 shrink-0 text-ink-faint" />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[12px] text-ink">{n.title}</span>
+                    <span className="mp-alert-title block truncate text-[12px] text-ink">
+                      {n.title}
+                    </span>
                     {/* Three lines, three weights of attention: what it is,
                         who did it, where and when. Flattening the last two
                         into one colour turned the row into a paragraph. */}
@@ -121,12 +132,18 @@ export function NavNotifications({ items }: { items: Notification[] }) {
                       {n.potTitle} · {n.atLabel}
                     </span>
                   </span>
+                  <ArrowRight
+                    aria-hidden
+                    className="mp-alert-arrow size-3.5 shrink-0 self-center text-primary"
+                  />
                 </Link>
               </li>
             );
           })}
         </ul>
       </section>
-    </div>
+    </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

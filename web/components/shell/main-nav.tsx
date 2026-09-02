@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   CalendarBlank,
+  CaretDoubleLeft,
   CaretRight,
   CookingPot,
   GraduationCap,
@@ -13,8 +14,22 @@ import {
   Notebook,
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/cn";
+import { applyNavCollapsed, readNavCollapsed, subscribeToNav } from "@/lib/nav-collapse";
 
 export type NavPot = { id: string; title: string };
+
+/**
+ * The My Pots list, remembered across sidebars.
+ *
+ * The Pot shell and the account shell each mount their own MainNav, so
+ * leaving a Pot for Contributions replaces the whole nav. Left to useState
+ * the new nav would render the list already closed: a cut, where every other
+ * close is a slide. So the last state lives here, outside any one instance,
+ * and a route change that crosses the Pot boundary slides the list a frame
+ * after the new nav has painted the old state.
+ */
+let lastPotsOpen: boolean | null = null;
+let lastInAPot: boolean | null = null;
 
 function Row({
   href,
@@ -35,9 +50,10 @@ function Row({
   return (
     <Link
       href={href}
+      title={label}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "group/row mp-fx flex items-center gap-2 h-9 px-3 rounded-(--radius-control) text-sm transition-colors min-w-0",
+        "group/row mp-fx mp-nav-row flex items-center gap-2 h-9 px-3 rounded-(--radius-control) text-sm transition-colors min-w-0",
         active
           ? "bg-primary-soft text-primary font-medium"
           : "text-ink-muted hover:text-ink hover:bg-sunken",
@@ -46,12 +62,12 @@ function Row({
       <span aria-hidden className={cn("[&>svg]:size-[18px] shrink-0 me-0.5", fx)}>
         {icon}
       </span>
-      <span className="truncate">{label}</span>
+      <span className="mp-nav-label truncate">{label}</span>
       {chord ? (
         <>
           <kbd
             aria-hidden
-            className="mp-kbd ml-auto shrink-0 whitespace-nowrap rounded-md px-1.5 py-0.5 font-sans text-[11px] text-ink-muted opacity-0 transition-opacity duration-150 group-hover/row:opacity-100 group-focus-visible/row:opacity-100"
+            className="mp-kbd mp-nav-open-only ml-auto shrink-0 whitespace-nowrap rounded-md px-1.5 py-0.5 font-sans text-[11px] text-ink-muted opacity-0 transition-opacity duration-150 group-hover/row:opacity-100 group-focus-visible/row:opacity-100"
           >
             {chord}
           </kbd>
@@ -124,6 +140,32 @@ const DESTINATION_KEYS: Record<string, string> = {
   "/": "/search",
 };
 
+/**
+ * The collapse control, under the wordmark and above the search field, the
+ * way kolejain.com places it. One click narrows the sidebar to its icons
+ * over a second on a long ease out; the labels are clipped by the narrowing
+ * edge rather than faded, and the chevrons turn to point the way back.
+ */
+function CollapseToggle() {
+  const collapsed = useSyncExternalStore(subscribeToNav, readNavCollapsed, () => false);
+  return (
+    <button
+      type="button"
+      onClick={() => applyNavCollapsed(!collapsed)}
+      aria-expanded={!collapsed}
+      title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+      className="mp-nav-row mb-3 hidden h-8 items-center gap-2 rounded-(--radius-control) px-3 text-[13px] text-ink-faint transition-colors hover:bg-sunken hover:text-ink-muted lg:flex"
+    >
+      <CaretDoubleLeft
+        aria-hidden
+        className={cn("mp-nav-chevrons size-4 shrink-0", collapsed && "rotate-180")}
+      />
+      <span className="mp-nav-label">Collapse</span>
+      <span className="sr-only">{collapsed ? "Expand sidebar" : "Collapse sidebar"}</span>
+    </button>
+  );
+}
+
 export function MainNav({ pots }: { pots: NavPot[] }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -131,7 +173,28 @@ export function MainNav({ pots }: { pots: NavPot[] }) {
   const inAPot = pathname.startsWith("/p/");
   // Open by default when you are already inside a Pot, so the sidebar shows
   // where you are rather than hiding it behind a closed group.
-  const [open, setOpen] = useState(inAPot);
+  const [open, setOpen] = useState(() => lastPotsOpen ?? inAPot);
+
+  useEffect(() => {
+    lastPotsOpen = open;
+  }, [open]);
+
+  useEffect(() => {
+    const was = lastInAPot;
+    lastInAPot = inAPot;
+    if (was === null || was === inAPot) return;
+    // Two frames, not one: the first guarantees the browser has computed the
+    // list at its previous height, so the change to the next one transitions
+    // instead of snapping.
+    let inner = 0;
+    const outer = requestAnimationFrame(() => {
+      inner = requestAnimationFrame(() => setOpen(inAPot));
+    });
+    return () => {
+      cancelAnimationFrame(outer);
+      cancelAnimationFrame(inner);
+    };
+  }, [inAPot]);
 
   useEffect(() => {
     /** True while the keystroke belongs to someone else: a text field, a
@@ -184,17 +247,19 @@ export function MainNav({ pots }: { pots: NavPot[] }) {
 
   return (
     <nav aria-label="Main" className="flex flex-col gap-0.5 p-3">
+      <CollapseToggle />
       <Link
         href="/search"
-        className="group/search mp-fx mb-4 flex h-9 items-center gap-2 rounded-(--radius-control) border border-edge bg-sunken px-3 text-sm text-ink-faint transition-colors hover:border-edge-strong hover:text-ink-muted"
+        title="Search"
+        className="group/search mp-fx mp-nav-row mb-4 flex h-9 items-center gap-2 rounded-(--radius-control) border border-edge bg-sunken px-3 text-sm text-ink-faint transition-colors hover:border-edge-strong hover:text-ink-muted"
       >
         <span aria-hidden className="mp-fx-scan shrink-0 [&>svg]:size-[18px]">
           <MagnifyingGlass />
         </span>
-        <span className="truncate">Search</span>
+        <span className="mp-nav-label truncate">Search</span>
         <kbd
           aria-hidden
-          className="mp-kbd ml-auto shrink-0 rounded-md px-1.5 py-0.5 font-sans text-[11px] text-ink-muted opacity-0 transition-opacity duration-150 group-hover/search:opacity-100"
+          className="mp-kbd mp-nav-open-only ml-auto shrink-0 rounded-md px-1.5 py-0.5 font-sans text-[11px] text-ink-muted opacity-0 transition-opacity duration-150 group-hover/search:opacity-100"
         >
           /
         </kbd>
@@ -218,16 +283,17 @@ export function MainNav({ pots }: { pots: NavPot[] }) {
         // Never highlighted. It is a disclosure, not a destination: the only
         // thing that should look selected is the page you are actually on, and
         // when you are inside a class it is that class in the list below.
-        className="mp-fx flex items-center gap-2.5 h-9 px-3 rounded-(--radius-control) text-sm text-ink-muted transition-colors min-w-0 hover:text-ink hover:bg-sunken"
+        title="My Pots"
+        className="mp-fx mp-nav-row flex items-center gap-2.5 h-9 px-3 rounded-(--radius-control) text-sm text-ink-muted transition-colors min-w-0 hover:text-ink hover:bg-sunken"
       >
         <span aria-hidden className="mp-fx-stir [&>svg]:size-[18px] shrink-0">
           <CookingPot />
         </span>
-        <span className="truncate">My Pots</span>
+        <span className="mp-nav-label truncate">My Pots</span>
         <CaretRight
           aria-hidden
           className={cn(
-            "ml-auto size-3.5 shrink-0 transition-transform duration-200",
+            "mp-nav-open-only ml-auto size-3.5 shrink-0 transition-transform duration-200",
             open && "rotate-90",
           )}
         />
@@ -239,7 +305,7 @@ export function MainNav({ pots }: { pots: NavPot[] }) {
       <div
         id="nav-my-pots"
         className={cn(
-          "grid transition-[grid-template-rows,opacity] duration-200 ease-out",
+          "mp-nav-open-only grid transition-[grid-template-rows,opacity] duration-200 ease-out",
           open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
         )}
       >
