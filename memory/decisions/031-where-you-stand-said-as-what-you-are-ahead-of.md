@@ -1,0 +1,9 @@
+# Where you stand, said as what you are ahead of
+
+Chosen 2026-09-02 by the owner: "They should see rankings and how much the student is ahead of others. It should be optimistic. So not five percent behind others. Maybe, like, ninety five percent ahead of others as an example."
+
+This lifts the rule, standing since the streak was allowed, that the record is never compared to anyone. What replaces it is narrow on purpose. Each person sees their own standing in each active class: their rank, the class size, and the share of classmates they are ahead of, on days counted in the last thirty days. The sentence is always the positive form of the same fact: five percent behind the class is "Ahead of 95% of Human Biology". A tie says "Level with 4 classmates", with the way up in the next sentence; last place says "Your next counted day moves you up"; a class of one says "Just you so far". The word behind never appears.
+
+What did not change: there is no leaderboard, no list of names, and no way for one person to read another's standing or counts. The numbers come from one server function, own_standing, that aggregates the class and returns only the caller's own figures, so a classmate's days never reach a browser. Days for the comparison are cut in UTC for everyone alike, because one class compared across its members' zones would not be one comparison; the private record itself still cuts days where the reader is.
+
+The Contributions page also took the shape of the owner's Figma file on the same day: a twelve month stream of weekly droplet clusters across the four term islands with the current run boxed at the right, a column of counts beside it (where you stand first, then notes shared, corrections accepted, days in a row, resources shared, reviews completed), and a journey band of six steps in this product's own words. The Figma file's note not to use that section for inspiration was set aside by the owner for this pass.

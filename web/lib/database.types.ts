@@ -688,6 +688,7 @@ export type Database = {
         Args: { p_pot_id: string };
         Returns: number;
       };
+      own_standing: { Args: never; Returns: Json };
       lookup_pot_by_code: { Args: { p_code: string }; Returns: Json };
       regenerate_class_code: { Args: { p_pot_id: string }; Returns: string };
       register_student: {

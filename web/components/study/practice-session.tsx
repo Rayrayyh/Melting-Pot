@@ -418,6 +418,7 @@ function PracticeResults({
                 {marking.firstPass
                   ? "Recorded as your first pass on this test."
                   : "Recorded as a retry. Your first pass stands."}
+                {marking.countedToday ? " Today is on your record." : ""}
               </p>
             ) : (
               <p className="text-[12px] text-ink-faint">

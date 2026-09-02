@@ -16,7 +16,7 @@ export default async function PrivacyPage() {
       signedIn={Boolean(user)}
       eyebrow="What we know and who sees it"
       title="Privacy policy"
-      updated="22 August 2026"
+      updated="2 September 2026"
     >
       <section>
         <h2>What we collect</h2>
@@ -30,7 +30,9 @@ export default async function PrivacyPage() {
         </ul>
         <p>
           There are no advertising trackers and no analytics scripts. Cookies
-          are used for one thing: keeping you signed in.
+          are used for two things: keeping you signed in, and remembering your
+          time zone so the days on your private record are counted where you
+          are.
         </p>
       </section>
       <section>
@@ -38,8 +40,10 @@ export default async function PrivacyPage() {
         <p>
           Drafts are private to you. Nobody, including class maintainers, can
           read a note you have not shared. When you share a note, the members
-          of that class can read it, and your name appears on it. Your streak
-          is never shown to anyone else.
+          of that class can read it, and your name appears on it. Your record of
+          days is never shown to anyone else. Where you stand in a class is
+          worked out on the server from the class as a whole and shown only to
+          you.
         </p>
       </section>
       <section>

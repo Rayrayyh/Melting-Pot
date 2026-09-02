@@ -232,6 +232,8 @@ Avoid: Generate AI content, Create pull request, Merge changes, Fork note, Execu
 
 Google Classroom or Canvas integration (add only the framework hook, not functionality), school and organization systems, formal module and lesson hierarchy, calendars and assignments, personal forks or branches, full AI study assistant (framework wiring only, API key later), Catch me up, missing-material analysis, flashcards and quizzes (placeholders only if needed), comments and reactions, contribution graphs, ranks and streaks, advanced contributor profiles, recaps and certificates, school administration, advanced analytics, adaptive learning.
 
+Lifted since, by the owner: flashcards and practice tests (2026-08-19 and 2026-08-20); a private record of one person's own days, quiet by decision 030; and on 2026-09-02 the twelve month contribution stream on the Contributions page and a personal standing in each class, said only as what the person is ahead of, with no leaderboard and no names (decision 031).
+
 Do not place unfinished future features in the main navigation.
 
 ## Build Priority

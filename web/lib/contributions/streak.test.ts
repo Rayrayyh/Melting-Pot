@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { contributionMilestone, contributionStreak } from "@/lib/contributions/streak";
+import {
+  contributionMilestone,
+  contributionStreak,
+  isZone,
+  localDate,
+  runMarkers,
+  weekStrip,
+} from "@/lib/contributions/streak";
 
 const TODAY = "2026-08-20";
 
@@ -154,5 +161,113 @@ describe("contributionMilestone", () => {
       nextAt: 5,
     });
     expect(contributionMilestone(-3)).toBeNull();
+  });
+});
+
+describe("localDate", () => {
+  it("keeps the UTC day in UTC", () => {
+    expect(localDate("2026-08-20T01:30:00Z", "UTC")).toBe("2026-08-20");
+  });
+
+  it("moves a late evening in Los Angeles back onto the day it was lived", () => {
+    // 01:30 UTC on the 21st is 6:30 pm on the 20th in Los Angeles in August.
+    expect(localDate("2026-08-21T01:30:00Z", "America/Los_Angeles")).toBe("2026-08-20");
+  });
+
+  it("follows the zone across daylight saving", () => {
+    // 07:30 UTC on 11 January is 11:30 pm on 10 January in Los Angeles,
+    // which is an hour further from UTC in winter than in summer.
+    expect(localDate("2026-01-11T07:30:00Z", "America/Los_Angeles")).toBe("2026-01-10");
+    expect(localDate("2026-07-11T07:30:00Z", "America/Los_Angeles")).toBe("2026-07-11");
+  });
+
+  it("moves an early morning in Kolkata forward onto its own day", () => {
+    // 20:00 UTC on the 20th is 1:30 am on the 21st in Kolkata.
+    expect(localDate("2026-08-20T20:00:00Z", "Asia/Kolkata")).toBe("2026-08-21");
+  });
+
+  it("falls back to the UTC day for a zone it does not know", () => {
+    expect(localDate("2026-08-21T01:30:00Z", "Mars/Olympus_Mons")).toBe("2026-08-21");
+  });
+
+  it("returns an empty string for something that is not a time", () => {
+    expect(localDate("soon", "UTC")).toBe("");
+  });
+});
+
+describe("isZone", () => {
+  it("knows a real zone from a made-up one", () => {
+    expect(isZone("Europe/London")).toBe(true);
+    expect(isZone("UTC")).toBe(true);
+    expect(isZone("Nowhere/Special")).toBe(false);
+    expect(isZone("")).toBe(false);
+  });
+});
+
+describe("weekStrip", () => {
+  it("draws Monday to Sunday around a Thursday, with today and the future marked", () => {
+    // 2026-08-20 is a Thursday.
+    const week = weekStrip(["2026-08-18", "2026-08-20"], "2026-08-20");
+    expect(week.map((d) => d.day)).toEqual([
+      "2026-08-17",
+      "2026-08-18",
+      "2026-08-19",
+      "2026-08-20",
+      "2026-08-21",
+      "2026-08-22",
+      "2026-08-23",
+    ]);
+    expect(week.map((d) => d.label).join("")).toBe("MTWTFSS");
+    expect(week.map((d) => d.counted)).toEqual([false, true, false, true, false, false, false]);
+    expect(week.map((d) => d.today)).toEqual([false, false, false, true, false, false, false]);
+    expect(week.map((d) => d.future)).toEqual([false, false, false, false, true, true, true]);
+  });
+
+  it("starts the week on the same day when today is a Monday", () => {
+    const week = weekStrip([], "2026-08-17");
+    expect(week[0].day).toBe("2026-08-17");
+    expect(week[0].today).toBe(true);
+  });
+
+  it("ends the week on the same day when today is a Sunday", () => {
+    const week = weekStrip([], "2026-08-23");
+    expect(week[6].day).toBe("2026-08-23");
+    expect(week[6].today).toBe(true);
+    expect(week.some((d) => d.future)).toBe(false);
+  });
+
+  it("never counts a day that is still ahead", () => {
+    const week = weekStrip(["2026-08-22"], "2026-08-20");
+    expect(week[5].counted).toBe(false);
+  });
+});
+
+describe("runMarkers", () => {
+  it("has no markers before a week in a row", () => {
+    expect(runMarkers(["2026-08-18", "2026-08-19", "2026-08-20"], TODAY)).toEqual({
+      weekAt: null,
+      monthAt: null,
+    });
+  });
+
+  it("dates the week marker to the seventh day of the first run that reached it", () => {
+    const run = ["2026-08-01", "2026-08-02", "2026-08-03", "2026-08-04", "2026-08-05", "2026-08-06", "2026-08-07", "2026-08-08"];
+    expect(runMarkers(run, TODAY).weekAt).toBe("2026-08-07");
+  });
+
+  it("keeps the first marker when a later run also reaches a week", () => {
+    const first = ["2026-07-01", "2026-07-02", "2026-07-03", "2026-07-04", "2026-07-05", "2026-07-06", "2026-07-07"];
+    const second = ["2026-08-10", "2026-08-11", "2026-08-12", "2026-08-13", "2026-08-14", "2026-08-15", "2026-08-16"];
+    expect(runMarkers([...second, ...first], TODAY).weekAt).toBe("2026-07-07");
+  });
+
+  it("dates the month marker to the thirtieth day", () => {
+    const run = Array.from({ length: 31 }, (_, i) => `2026-07-${String(i + 1).padStart(2, "0")}`);
+    expect(runMarkers(run, TODAY)).toEqual({ weekAt: "2026-07-07", monthAt: "2026-07-30" });
+  });
+
+  it("ignores days after today", () => {
+    const run = Array.from({ length: 7 }, (_, i) => `2026-08-${String(18 + i).padStart(2, "0")}`);
+    expect(runMarkers(run, TODAY).weekAt).toBeNull();
   });
 });

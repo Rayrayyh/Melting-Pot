@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { checkRecord, type RecordCheck } from "@/app/actions/record";
+import { StillStirring } from "@/components/streak/still-stirring";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -215,6 +217,9 @@ export function StudyWorkspace({
   // Every kind is set up before it is built, so all three open on the setup
   // screen rather than only the test.
   const [settingUp, setSettingUp] = useState(true);
+  // Set only for the round or hand-in that was the first thing to count today.
+  const [record, setRecord] = useState<RecordCheck | null>(null);
+  const [celebrating, setCelebrating] = useState(false);
   const [tab, setTab] = useState<"new" | "previous">("new");
   const firstLook = useRef(true);
 
@@ -475,14 +480,24 @@ export function StudyWorkspace({
           explanation: mark.explanation,
         };
       }
+      // Asked after the attempt has landed, so the sentence it earns is true.
+      // The hand-in is already recorded; a failed check must not undo that.
+      const check = await checkRecord().catch(() => null);
+      const countedNow = Boolean(check?.countedNow);
+      if (countedNow) {
+        setRecord(check);
+        setCelebrating(true);
+        router.refresh();
+      }
       return {
         firstPass: returned.firstPass === true,
         correct: returned.correct ?? 0,
         total: returned.total ?? order.length,
         marks,
+        countedToday: countedNow,
       };
     },
-    [opened],
+    [opened, router],
   );
 
   const recordRun = useCallback(
@@ -490,14 +505,34 @@ export function StudyWorkspace({
       if (!opened?.studySetId) return;
       // Best effort on purpose: the round is over and the summary is on
       // screen; a dropped record must not take either away.
-      void supabaseBrowser().rpc("record_flashcard_run", {
-        p_attempt_id: crypto.randomUUID(),
-        p_set_id: opened.studySetId,
-        p_known: known,
-        p_learning: learning,
-      });
+      const setId = opened.studySetId;
+      // Every round starts unproven: the moment belongs to the one round
+      // that was the first thing to count today, never to the ones after it.
+      setRecord(null);
+      setCelebrating(false);
+      void (async () => {
+        try {
+          const { error } = await supabaseBrowser().rpc("record_flashcard_run", {
+            p_attempt_id: crypto.randomUUID(),
+            p_set_id: setId,
+            p_known: known,
+            p_learning: learning,
+          });
+          if (error) return;
+          // Asked after the run has landed, so the sentence it earns is true.
+          const check = await checkRecord();
+          if (check.countedNow) {
+            setRecord(check);
+            setCelebrating(true);
+            // Home may hold a cached copy of the card from before this round.
+            router.refresh();
+          }
+        } catch {
+          /* The summary stays; the record catches up on Home. */
+        }
+      })();
     },
-    [opened],
+    [opened, router],
   );
 
   const showTabs = savedSets.length > 0;
@@ -507,6 +542,14 @@ export function StudyWorkspace({
   return (
     <div className="mx-auto w-full max-w-3xl px-6 py-10 space-y-6">
       <LoadingScreen open={generating} message={waiting[kind]} />
+      {record?.countedNow ? (
+        <StillStirring
+          open={celebrating}
+          days={record.days}
+          week={record.week}
+          onClose={() => setCelebrating(false)}
+        />
+      ) : null}
       <Button variant="quiet" size="sm" href={`/p/${potId}`}>
         <ArrowLeft className="size-4" /> Back to {potTitle}
       </Button>
@@ -714,6 +757,7 @@ export function StudyWorkspace({
                 onRegenerate={() => void generate(true)}
                 regenerating={busy}
                 onFinished={recordRun}
+                dayCounted={Boolean(record?.countedNow)}
               />
             </div>
           ) : null}

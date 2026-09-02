@@ -1,6 +1,8 @@
 "use client";
 
 import { getClientAuth } from "@/lib/auth/client";
+import { checkRecord, type RecordCheck } from "@/app/actions/record";
+import { StillStirring } from "@/components/streak/still-stirring";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -136,6 +138,9 @@ export function ContributeFlow({
   const [editing, setEditing] = useState(false);
   const [confirmReorganize, setConfirmReorganize] = useState(false);
   const [sharedNoteId, setSharedNoteId] = useState<string | null>(null);
+  // True only when this share was the first thing to count today.
+  const [record, setRecord] = useState<RecordCheck | null>(null);
+  const [celebrating, setCelebrating] = useState(false);
   const [busy, setBusy] = useState(false);
   const [errorNote, setErrorNote] = useState<string | null>(null);
   const [errorLink, setErrorLink] = useState<{ href: string; label: string } | null>(null);
@@ -553,6 +558,11 @@ export function ContributeFlow({
       return;
     }
     setSharedNoteId(data);
+    // Asked after the share has landed and before the screen paints, so the
+    // sentence arrives with the screen rather than reflowing it.
+    const check = await checkRecord().catch(() => null);
+    setRecord(check);
+    setCelebrating(Boolean(check?.countedNow));
     setStep("shared");
     setBusy(false);
     releaseDraftUrl();
@@ -1075,6 +1085,14 @@ export function ContributeFlow({
   if (step === "shared" && organized) {
     return (
       <div className="mx-auto w-full max-w-xl px-6 py-12 space-y-6">
+        {record?.countedNow ? (
+          <StillStirring
+            open={celebrating}
+            days={record.days}
+            week={record.week}
+            onClose={() => setCelebrating(false)}
+          />
+        ) : null}
         <Settle className="flex flex-col items-center text-center gap-3">
           <span className="inline-flex size-16 items-center justify-center rounded-full bg-success-soft">
             <CheckCircle weight="fill" className="size-8 text-success" />
@@ -1083,6 +1101,7 @@ export function ContributeFlow({
             <h1 className="text-2xl font-semibold tracking-tight">Shared with the class</h1>
             <p className="text-sm text-ink-muted">
               Your contribution is live and credited to you.
+              {record?.countedNow ? " Today is on your record." : ""}
             </p>
           </div>
         </Settle>
@@ -1124,6 +1143,8 @@ export function ContributeFlow({
               setOrganizedBy(null);
               setAttachments([]);
               setSharedNoteId(null);
+              setRecord(null);
+              setCelebrating(false);
               setSaved("idle");
               setErrorNote(null);
               setErrorLink(null);

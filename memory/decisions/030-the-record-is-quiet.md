@@ -1,0 +1,15 @@
+# The record is quiet
+
+Chosen 2026-09-02 by the owner, from the three directions in docs/STREAK_RESEARCH.md: "add in the quiet part in contributions".
+
+The private record of days no longer has a moment. The on-load modal (a Plant in a circle, a numeral counting up from zero, an eight-dot burst, a Keep going button) is deleted along with its once-a-day storage gate and the shell plumbing that fed it. Nothing about the record ever opens on its own.
+
+What carries the feature is the card, on Home and at the top of the person's Contributions page, since that is the page the sidebar's Contributions link opens. One row: a Fraunces numeral with "days in a row" beside it, or "days, your longest run" during a quiet stretch, and on the right the calendar week Monday to Sunday with weekday initials, filled for a day that counted, ringed for today, hairline for a day that did not, dimmer for a day still ahead. No day is ever marked with a cross, and a week with nothing in it yet is left off rather than drawn empty. Below it the cells: Notes shared, Longest run (only while a better run than the current one exists), and the dated markers "First week in a row, 14 Aug" and "First month in a row, 6 Sep", which are permanent. The note-count marker block is unchanged. The footer, "Today is on your record. Only you see this.", appears only when today counted and is otherwise absent; no sentence ever names what is missing.
+
+A day counts for a share or a study run, and both surfaces read the same union now, which repairs the contradiction the research found between "Shared or studied today" on the modal and "Longest streak" on the card. Days are cut where the reader is: the inline theme script leaves the reader's time zone in a cookie, and the server places every timestamp on its day in that zone (so a share at 11:30 pm in Los Angeles stays on that day in winter and summer alike), falling back to UTC when the cookie is absent or unknown. A share is dated by the moment it was shared, not by the draft's first autosave, which can be days earlier.
+
+The completion screens gain one sentence and nothing else. After a share, the subline reads "Your contribution is live and credited to you. Today is on your record."; the flashcard results and the practice results add the same sentence. Each asks the server, after its write has landed, whether that write was the first thing to count today, so the sentence is true at the moment it is read and a second action on the same day gets nothing.
+
+The word streak is gone from the interface: the marketing card on /contributions says "your run of days" under a Plant rather than a Flame, and the privacy page says "your record of days". Direction 1 (the moment on the completion screens, with the numeral rolling) and Direction 3 (weeks as the unit) stay recorded in the research document for later.
+
+Amended 2026-09-02: the owner put a moment back, in the still stirring shape, on the completion screens only. Decision 032 records it. Everything else here stands: nothing opens on page load, the card carries the record, and a quiet stretch never shows a zero.
