@@ -13,13 +13,13 @@ import { PotMark } from "@/components/brand/pot-mark";
  */
 export function RouteLoader({ caption = "Warming the pot" }: { caption?: string }) {
   return (
-    <div className="mp-route-loader flex w-full flex-1 flex-col items-center justify-center gap-4 py-24">
-      <span className="relative inline-flex size-24 items-center justify-center" aria-hidden>
+    <div className="mp-route-loader flex w-full flex-1 flex-col items-center justify-center gap-6 py-24">
+      <span className="relative inline-flex size-48 items-center justify-center" aria-hidden>
         <span className="absolute inset-0 rounded-full border border-edge" />
         <span className="mp-route-loader-arc absolute inset-0 rounded-full border-2 border-transparent border-t-primary" />
-        <PotMark className="size-11" />
+        <PotMark className="size-22" />
       </span>
-      <p role="status" className="text-[13px] text-ink-faint">
+      <p role="status" className="text-base text-ink-faint">
         {caption}
       </p>
     </div>

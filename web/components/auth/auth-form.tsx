@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardSection } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import { PasswordChecklist } from "@/components/auth/password-checklist";
 import { AuthError, getClientAuth } from "@/lib/auth/client";
@@ -274,9 +275,8 @@ export function AuthForm({
           <div>
             <Field label="Password">
               {(props) => (
-                <Input
+                <PasswordInput
                   {...props}
-                  type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete={mode === "signup" ? "new-password" : "current-password"}

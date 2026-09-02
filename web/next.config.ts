@@ -33,6 +33,18 @@ const csp = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  experimental: {
+    // Keep visited pages in the browser's router cache. Without this, every
+    // page in the app is dynamic, so clicking back to a tab you were just on
+    // refetches it from the server and shows the loading boundary again.
+    // Two minutes of reuse covers moving between tabs within a sitting; the
+    // flows that change data already call router.refresh() afterwards, so a
+    // fresh copy still arrives where it matters.
+    staleTimes: {
+      dynamic: 120,
+      static: 300,
+    },
+  },
   compiler: {
     removeConsole:
       process.env.NODE_ENV === "production"

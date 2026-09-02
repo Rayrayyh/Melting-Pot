@@ -85,6 +85,10 @@ export const supabaseClientAuth: ClientAuthProvider = {
     const { data, error } = await supabase.auth.mfa.enroll({
       factorType: "totp",
       friendlyName: SETUP_NAME,
+      // The name an authenticator app files the entry under. Without it
+      // Supabase falls back to the site host, so people saw "localhost:3000"
+      // or the Netlify hostname instead of the product.
+      issuer: "MeltingPot",
     });
     if (error || !data) throw new AuthError("unknown", error?.message);
     return { factorId: data.id, qrCode: data.totp.qr_code, secret: data.totp.secret };
