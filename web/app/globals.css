@@ -59,8 +59,8 @@
   --focus-ring: #e0761a;
   --shadow-card: 0 1px 2px rgba(36, 34, 44, 0.05);
   --shadow-raised: 0 4px 16px rgba(36, 34, 44, 0.08);
-  --scrollbar: #d9ccac;
-  --scrollbar-hover: #bfae86;
+  --scrollbar: var(--primary);
+  --scrollbar-hover: var(--primary-hover);
   /*
     Avatar tints. Decorative identity only: one pair per person, picked by a
     hash of their name. Kept apart from the functional colors so a green
@@ -142,8 +142,8 @@
   --focus-ring: #f19a44;
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-raised: 0 4px 16px rgba(0, 0, 0, 0.4);
-  --scrollbar: #4d4433;
-  --scrollbar-hover: #6b5e45;
+  --scrollbar: var(--primary);
+  --scrollbar-hover: var(--primary-hover);
   --avatar-1: #f0a055;
   --avatar-1-soft: #3c2612;
   --avatar-2: #e79274;
@@ -216,8 +216,8 @@
     --focus-ring: #f19a44;
     --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
     --shadow-raised: 0 4px 16px rgba(0, 0, 0, 0.4);
-    --scrollbar: #4d4433;
-    --scrollbar-hover: #6b5e45;
+    --scrollbar: var(--primary);
+    --scrollbar-hover: var(--primary-hover);
     --avatar-1: #f0a055;
     --avatar-1-soft: #3c2612;
     --avatar-2: #e79274;
@@ -335,9 +335,10 @@ blockquote {
 
 /*
  * The scrollbar is drawn by the app where the browser allows it: a slim pill
- * in the paper's own tan, floating in a clear gutter with no track and no
- * arrow buttons, that fills in under the pointer and turns brand orange while
- * it is being dragged. Chromium ignores the ::-webkit-scrollbar rules the
+ * in brand orange, floating in a clear gutter with no track and no arrow
+ * buttons, that widens and deepens under the pointer and takes the active
+ * tone while it is being dragged (the owner's pick from six states). Chromium
+ * ignores the ::-webkit-scrollbar rules the
  * moment scrollbar-color is set, so the standard properties are reserved for
  * browsers that do not understand the pseudo-elements, which today means
  * Firefox, where thin and tinted is as far as the drawing goes.
@@ -379,7 +380,7 @@ blockquote {
 }
 
 ::-webkit-scrollbar-thumb:active {
-  background-color: var(--primary);
+  background-color: var(--primary-active);
   border-width: 2px;
 }
 
