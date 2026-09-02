@@ -154,12 +154,13 @@ function CollapseToggle() {
       onClick={() => applyNavCollapsed(!collapsed)}
       aria-expanded={!collapsed}
       title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-      className="mp-nav-row mb-3 hidden h-8 items-center gap-2 rounded-(--radius-control) px-3 text-[13px] text-ink-faint transition-colors hover:bg-sunken hover:text-ink-muted lg:flex"
+      className="mp-nav-row mb-2 hidden h-9 items-center gap-2 rounded-(--radius-control) px-3 text-[13px] text-ink-faint transition-colors hover:bg-sunken hover:text-ink-muted lg:flex"
     >
-      <CaretDoubleLeft
-        aria-hidden
-        className={cn("mp-nav-chevrons size-4 shrink-0", collapsed && "rotate-180")}
-      />
+      {/* Same box as a nav row's icon, so the chevrons sit exactly where the
+          house and the pot sit below them. */}
+      <span aria-hidden className="me-0.5 shrink-0 [&>svg]:size-[18px]">
+        <CaretDoubleLeft className={cn("mp-nav-chevrons", collapsed && "rotate-180")} />
+      </span>
       <span className="mp-nav-label">Collapse</span>
       <span className="sr-only">{collapsed ? "Expand sidebar" : "Collapse sidebar"}</span>
     </button>
