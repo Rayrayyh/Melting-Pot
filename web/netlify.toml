@@ -20,4 +20,6 @@
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
     X-Content-Type-Options = "nosniff"
     Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Resource-Policy = "same-origin"
+    Cross-Origin-Embedder-Policy = "credentialless"
     X-XSS-Protection = "1; mode=block"

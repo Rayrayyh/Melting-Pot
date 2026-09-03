@@ -63,6 +63,9 @@ export const clerkClientAuth: ClientAuthProvider = {
   async signOut(): Promise<void> {
     return notConfigured();
   },
+  async changePassword(): Promise<void> {
+    return notConfigured();
+  },
   async verifySecondFactor(): Promise<void> {
     return notConfigured();
   },

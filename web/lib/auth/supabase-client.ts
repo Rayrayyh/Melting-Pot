@@ -60,6 +60,15 @@ export const supabaseClientAuth: ClientAuthProvider = {
     return { status: "signed-in" };
   },
 
+  async changePassword({ password }): Promise<void> {
+    const supabase = supabaseBrowser();
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) throw new AuthError(codeFor(error.message), error.message);
+    // Supabase leaves other sessions signed in after a password change, so
+    // this session keeps working and every other one is revoked.
+    await supabase.auth.signOut({ scope: "others" });
+  },
+
   async signOut(): Promise<void> {
     await supabaseBrowser().auth.signOut();
   },

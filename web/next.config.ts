@@ -78,6 +78,14 @@ const nextConfig: NextConfig = {
           },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+          // Our own documents and assets are not for other origins to embed.
+          { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
+          // credentialless rather than require-corp: avatars come from the
+          // Supabase storage bucket, which sends no CORP header of its own,
+          // and require-corp would block them. credentialless fetches those
+          // cross-origin images without credentials instead, which is what a
+          // public bucket wants anyway.
+          { key: "Cross-Origin-Embedder-Policy", value: "credentialless" },
           // Legacy header every modern browser ignores; external scanners
           // still look for it, and it costs nothing to carry.
           { key: "X-XSS-Protection", value: "1; mode=block" },

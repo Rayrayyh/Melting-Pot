@@ -101,6 +101,13 @@ export interface ClientAuthProvider {
 
   signOut(): Promise<void>;
 
+  /**
+   * Set a new password and end every other session. A password change is
+   * often the answer to somebody else having the old one, so the sessions
+   * that old password opened must not survive it.
+   */
+  changePassword(input: { password: string }): Promise<void>;
+
   /** Finish a sign in that stopped for a code. Throws AuthError. */
   verifySecondFactor(input: { factorId: string; code: string }): Promise<void>;
 
