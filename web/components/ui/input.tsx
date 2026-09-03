@@ -1,12 +1,25 @@
 import type { ComponentProps, ReactNode } from "react";
 import { useId } from "react";
+import { SmoothCaretInput } from "@/components/ui/smooth-caret";
 import { cn } from "@/lib/cn";
 
 const controlBase =
   "w-full bg-surface border border-edge-strong rounded-(--radius-control) text-ink placeholder:text-ink-faint focus:border-primary focus:outline-none focus-visible:outline-none transition-colors";
 
+/**
+ * Every single-line field in the product, so the drawn caret is the caret
+ * everywhere: sign in, the class code, search, profile, all of it. Types that
+ * have no text cursor to draw keep the plain element, because a checkbox with
+ * a caret is a bug rather than a flourish.
+ */
+const NO_CARET = new Set(["checkbox", "radio", "file", "range", "color", "hidden", "submit", "button", "image", "reset"]);
+
 export function Input({ className, ...rest }: ComponentProps<"input">) {
-  return <input className={cn(controlBase, "h-10 px-3.5 text-sm", className)} {...rest} />;
+  const classes = cn(controlBase, "h-10 px-3.5 text-sm", className);
+  if (rest.type && NO_CARET.has(rest.type)) {
+    return <input className={classes} {...rest} />;
+  }
+  return <SmoothCaretInput className={classes} {...rest} />;
 }
 
 /**

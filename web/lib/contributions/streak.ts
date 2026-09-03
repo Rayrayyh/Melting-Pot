@@ -104,3 +104,123 @@ export function contributionMilestone(total: number): ContributionMilestone | nu
   }
   return reached ? { label: reached.label, nextAt } : null;
 }
+
+const formatters = new Map<string, Intl.DateTimeFormat>();
+
+function dayFormatter(zone: string): Intl.DateTimeFormat {
+  let formatter = formatters.get(zone);
+  if (!formatter) {
+    // en-CA writes a numeric date as YYYY-MM-DD, which is the key everything
+    // else here slices on.
+    formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: zone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    formatters.set(zone, formatter);
+  }
+  return formatter;
+}
+
+/** Whether a string names a zone the runtime knows. */
+export function isZone(zone: string): boolean {
+  try {
+    dayFormatter(zone);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Days are counted where the reader is. Timestamps arrive in UTC; naming the
+ * reader's zone rather than an offset lets each moment fall on the day it was
+ * lived even across a daylight saving change, so a 6 pm study session in
+ * Los Angeles is Tuesday in August and in December alike. An unknown zone
+ * falls back to the UTC day, which is where days were cut before the
+ * reader's zone was known.
+ */
+export function localDate(value: string | number, zone: string): string {
+  const ms = typeof value === "number" ? value : Date.parse(value);
+  if (Number.isNaN(ms)) return "";
+  try {
+    return dayFormatter(zone).format(new Date(ms));
+  } catch {
+    return new Date(ms).toISOString().slice(0, 10);
+  }
+}
+
+/** A day of the calendar week the strip draws. */
+export type WeekDay = {
+  day: string;
+  /** Weekday initial, Monday first. */
+  label: string;
+  counted: boolean;
+  today: boolean;
+  /** Later than today, drawn dimmer so it never reads as a miss. */
+  future: boolean;
+};
+
+const INITIALS = ["M", "T", "W", "T", "F", "S", "S"];
+
+/**
+ * The Monday to Sunday week containing today, marked with the days that
+ * counted. A calendar week rather than the last seven days, because that is
+ * how a course runs and how every product read for this feature draws it.
+ */
+export function weekStrip(dates: string[], today: string): WeekDay[] {
+  const todayIndex = dayIndex(today);
+  if (todayIndex === null) return [];
+  const counted = new Set<number>();
+  for (const date of dates) {
+    const index = dayIndex(date);
+    if (index !== null) counted.add(index);
+  }
+  // Day zero of the epoch was a Thursday, so shifting by three makes Monday zero.
+  const monday = todayIndex - (((todayIndex + 3) % 7) + 7) % 7;
+  return INITIALS.map((label, i) => {
+    const index = monday + i;
+    return {
+      day: new Date(index * DAY_MS).toISOString().slice(0, 10),
+      label,
+      counted: counted.has(index) && index <= todayIndex,
+      today: index === todayIndex,
+      future: index > todayIndex,
+    };
+  });
+}
+
+export type RunMarkers = {
+  /** The first day a run reached seven, or null until one has. */
+  weekAt: string | null;
+  /** The first day a run reached thirty, or null until one has. */
+  monthAt: string | null;
+};
+
+/**
+ * Day markers as dates rather than badges: once a run has reached a week or a
+ * month, the day it happened is kept for good. A later quiet stretch cannot
+ * take it away, which is the whole point of recording it as a date.
+ */
+export function runMarkers(dates: string[], today: string): RunMarkers {
+  const todayIndex = dayIndex(today);
+  const days = new Set<number>();
+  for (const date of dates) {
+    const index = dayIndex(date);
+    if (index === null) continue;
+    if (todayIndex !== null && index > todayIndex) continue;
+    days.add(index);
+  }
+  const ordered = [...days].sort((a, b) => a - b);
+  let weekAt: string | null = null;
+  let monthAt: string | null = null;
+  let run = 0;
+  for (let i = 0; i < ordered.length; i += 1) {
+    run = i > 0 && ordered[i] === ordered[i - 1] + 1 ? run + 1 : 1;
+    const day = new Date(ordered[i] * DAY_MS).toISOString().slice(0, 10);
+    if (run === 7 && weekAt === null) weekAt = day;
+    if (run === 30 && monthAt === null) monthAt = day;
+  }
+  return { weekAt, monthAt };
+}

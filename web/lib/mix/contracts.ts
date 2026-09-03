@@ -237,3 +237,59 @@ export function normalizeStudyResult(
     }).filter((question) => question.prompt && question.choices.length === 4),
   };
 }
+
+/**
+ * What a teaching readout is allowed to say back.
+ *
+ * `holding` comes first on purpose. A readout that opens on failures reads as
+ * a report card for a class, which is the thing this product has refused to
+ * build from the start; opening on what has landed makes the gaps read as work
+ * to do rather than a verdict.
+ */
+export const teachingReadoutSchema = {
+  type: "object",
+  properties: {
+    holding: { type: "array", items: { type: "string" } },
+    revisit: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          topic: { type: "string" },
+          reading: { type: "string" },
+          tryThis: { type: "string" },
+        },
+        required: ["topic", "reading", "tryThis"],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ["holding", "revisit"],
+  additionalProperties: false,
+} as const;
+
+export type TeachingReadout = {
+  holding: string[];
+  revisit: { topic: string; reading: string; tryThis: string }[];
+};
+
+/**
+ * Trims a readout to what the page will render. The model is asked for two to
+ * four items and given the topic titles verbatim, but nothing downstream
+ * depends on it having obeyed either instruction.
+ */
+export function normalizeTeachingReadout(value: unknown): TeachingReadout {
+  const item = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  const revisit = Array.isArray(item.revisit) ? item.revisit : [];
+  return {
+    holding: textList(item.holding, 3, 200),
+    revisit: revisit.slice(0, 4).map((entry) => {
+      const row = entry && typeof entry === "object" ? entry as Record<string, unknown> : {};
+      return {
+        topic: text(row.topic, 160),
+        reading: text(row.reading, 400),
+        tryThis: text(row.tryThis, 400),
+      };
+    }).filter((entry) => entry.topic && entry.reading),
+  };
+}

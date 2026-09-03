@@ -19,7 +19,7 @@ describe("normalizePracticeOptions", () => {
     expect(normalizePracticeOptions({ questionCount: 400 }).questionCount).toBe(20);
     expect(normalizePracticeOptions({ questionCount: 15 }).questionCount).toBe(15);
     expect(normalizePracticeOptions({ questionCount: "12" }).questionCount).toBe(12);
-    expect(normalizePracticeOptions({ questionCount: NaN }).questionCount).toBe(10);
+    expect(normalizePracticeOptions({ questionCount: NaN }).questionCount).toBe(5);
   });
 
   it("only accepts a difficulty it knows", () => {
@@ -110,7 +110,7 @@ describe("difficultyBrief", () => {
 
 describe("describeOptions", () => {
   it("reads as a sentence, naming only what was chosen", () => {
-    expect(describeOptions(DEFAULT_PRACTICE_OPTIONS)).toBe("10 questions, standard");
+    expect(describeOptions(DEFAULT_PRACTICE_OPTIONS)).toBe("5 questions, standard");
     expect(
       describeOptions(
         {
@@ -127,6 +127,6 @@ describe("describeOptions", () => {
   it("leaves out a section it cannot name", () => {
     expect(
       describeOptions({ ...DEFAULT_PRACTICE_OPTIONS, sectionIds: ["gone"] }),
-    ).toBe("10 questions, standard");
+    ).toBe("5 questions, standard");
   });
 });

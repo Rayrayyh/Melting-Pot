@@ -60,6 +60,15 @@ export const supabaseClientAuth: ClientAuthProvider = {
     return { status: "signed-in" };
   },
 
+  async changePassword({ password }): Promise<void> {
+    const supabase = supabaseBrowser();
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) throw new AuthError(codeFor(error.message), error.message);
+    // Supabase leaves other sessions signed in after a password change, so
+    // this session keeps working and every other one is revoked.
+    await supabase.auth.signOut({ scope: "others" });
+  },
+
   async signOut(): Promise<void> {
     await supabaseBrowser().auth.signOut();
   },
@@ -85,6 +94,10 @@ export const supabaseClientAuth: ClientAuthProvider = {
     const { data, error } = await supabase.auth.mfa.enroll({
       factorType: "totp",
       friendlyName: SETUP_NAME,
+      // The name an authenticator app files the entry under. Without it
+      // Supabase falls back to the site host, so people saw "localhost:3000"
+      // or the Netlify hostname instead of the product.
+      issuer: "MeltingPot",
     });
     if (error || !data) throw new AuthError("unknown", error?.message);
     return { factorId: data.id, qrCode: data.totp.qr_code, secret: data.totp.secret };

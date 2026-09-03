@@ -1,7 +1,13 @@
 import type { ProposedNote } from "@/lib/organizer/types";
 
 export type OrganizeRequestResult =
-  | { note: ProposedNote }
+  /**
+   * `provider` names the engine that actually did the work: a model name, or
+   * "deterministic" when the rule-based organizer stood in for it. The caller
+   * shows it, because a reader cannot tell the two apart from the output alone
+   * and should not have to.
+   */
+  | { note: ProposedNote; provider: string | null }
   | { error: "rate_limited" | "failed" };
 
 /**
@@ -28,6 +34,7 @@ export async function organizeNote(
     });
     const payload = (await response.json().catch(() => null)) as {
       result?: ProposedNote;
+      provider?: string;
       error?: string;
     } | null;
     if (response.status === 429 || payload?.error === "rate_limited") {
@@ -35,7 +42,10 @@ export async function organizeNote(
     }
     if (!response.ok || !payload?.result?.blocks?.length) return { error: "failed" };
     const { title, summary, blocks, takeaways } = payload.result;
-    return { note: { title, summary, blocks, takeaways: takeaways ?? [] } };
+    return {
+      note: { title, summary, blocks, takeaways: takeaways ?? [] },
+      provider: payload.provider ?? null,
+    };
   } catch {
     return { error: "failed" };
   }

@@ -49,12 +49,10 @@ export function ScrollStopper() {
             trigger: sectionRef.current,
             start: "top top",
             end: "+=1700",
-            // Lenis already smooths the wheel, and GSAP's own scrub stacks on
-            // top of it. At 0.6 the melt trails the gesture far enough to feel
-            // mushy, so the scrub gives up most of its share.
+            // Scrolling is native, so the scrub is the only smoothing layer.
+            // At 0.6 the melt trails the gesture far enough to feel mushy,
+            // so it stays short.
             scrub: 0.3,
-            pin: true,
-            anticipatePin: 1,
           },
         });
 
@@ -82,9 +80,15 @@ export function ScrollStopper() {
       ref={sectionRef}
       aria-label="How organizing works"
       data-testid="scroll-stopper"
-      className="relative bg-paper"
+      // Sticky, not ScrollTrigger's pin: pinning flips the section between
+      // in-flow and position fixed, and each flip forced the entire document
+      // to re-rasterize for several frames, a traced scroll hitch at both
+      // boundaries. The section owns its scroll span in layout instead, and
+      // the inner viewport sticks natively. The extra height and stickiness
+      // exist only where the scrub timeline does: md and up, motion allowed.
+      className="relative bg-paper motion-safe:md:h-[calc(100dvh+1700px)]"
     >
-      <div className="min-h-dvh flex flex-col justify-center px-6 py-16">
+      <div className="min-h-dvh flex flex-col justify-center px-6 py-16 motion-safe:md:sticky motion-safe:md:top-0">
         <div className="mx-auto w-full max-w-5xl space-y-10">
           <div className="flex flex-wrap items-end justify-between gap-6">
             <div className="space-y-2 max-w-md">

@@ -13,10 +13,13 @@ const variants: Record<Variant, string> = {
   primary:
     "bg-primary text-on-primary hover:bg-primary-hover active:bg-(--primary-active)",
   secondary:
-    "border border-edge-strong bg-surface text-ink hover:bg-sunken active:bg-sunken",
-  quiet: "text-ink-muted hover:text-ink hover:bg-sunken",
-  danger: "bg-danger text-(--danger-soft) hover:opacity-90",
-  clay: "bg-clay text-on-clay hover:opacity-90",
+    "border border-edge-strong bg-surface text-ink hover:bg-sunken active:bg-edge",
+  // Four states each, per R38: default, hover, pressed, disabled. The last is
+  // on the base class; the pressed state was missing on these three, so a
+  // click on a destructive button gave no feedback at all.
+  quiet: "text-ink-muted hover:text-ink hover:bg-sunken active:bg-edge",
+  danger: "bg-danger text-(--danger-soft) hover:opacity-90 active:opacity-80",
+  clay: "bg-clay text-on-clay hover:opacity-90 active:opacity-80",
 };
 
 const sizes: Record<Size, string> = {

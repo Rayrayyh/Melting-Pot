@@ -14,19 +14,20 @@ async function settleScroll(page: Page) {
 test.describe("brand landing", () => {
   test("the brand hero leads and code entry still validates in place", async ({ page }) => {
     await page.goto("/");
-    // Lenis marks the root when it is running; without this a dynamic import
-    // that silently failed would still pass every other assertion here.
-    await expect(page.locator("html")).toHaveClass(/(^|\s)lenis(\s|$)/);
+    // The landing scrolls natively: the Lenis wheel hijack was removed on
+    // 2026-08-29 because owner testing found it made scrolling feel jittery.
+    // Nothing may reintroduce a scroll takeover silently.
+    await expect(page.locator("html")).not.toHaveClass(/(^|\s)lenis(\s|$)/);
     await expect(
       page.getByRole("heading", { name: "Everyone takes notes. Meltingpot brings them together." }),
     ).toBeVisible();
-    // The nav offers both paths: sign in and the dark get-started pill.
+    // The nav offers both paths: sign in and the orange get-started pill.
     await expect(page.getByRole("link", { name: "Get started" }).first()).toBeVisible();
-    // The join path stays one anchor away, and the code validates in place.
+    // The join door stays one anchor away, and the code validates in place.
     await expect(page.getByLabel("Enter class code")).toBeVisible();
 
     await page.getByLabel("Enter class code").fill("zzzzzz");
-    await page.getByRole("button", { name: "Join Pot" }).click();
+    await page.getByRole("button", { name: "See the Pot" }).click();
     await expect(
       page.getByText("We couldn't find that Pot. Check the code and try again."),
     ).toBeVisible();
@@ -139,8 +140,8 @@ test.describe("brand landing", () => {
     const page = await context.newPage();
     await page.goto("/");
 
-    // Smooth scroll is never constructed under the preference, not merely
-    // constructed and disabled.
+    // No scroll takeover exists under any preference; the class must stay
+    // absent here too.
     await expect(page.locator("html")).not.toHaveClass(/(^|\s)lenis(\s|$)/);
 
     // Everything is readable immediately, no scroll choreography required.

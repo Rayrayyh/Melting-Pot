@@ -22,8 +22,8 @@ export default async function TermsPage() {
         <h2>What MeltingPot is</h2>
         <p>
           MeltingPot is a shared space where a class builds one set of notes
-          together. It was built by students for the Pixel Forge AI Hackathon
-          and is provided free, as is, while we keep it running. It is a
+          together. It was built by students for the Prometheus August AI
+          Challenge and is provided free, as is, while we keep it running. It is a
           student project, not a commercial service, and it may change or
           pause without notice.
         </p>

@@ -29,8 +29,20 @@ export function SiteHeader({
 }) {
   return (
     <header className="w-full">
+      {/* Invisible until focused, first in the tab order. The nav is short but
+          a reader should still be able to step over it. */}
+      <a
+        href="#main"
+        className="sr-only focus-visible:not-sr-only focus-visible:absolute focus-visible:left-4 focus-visible:top-4 focus-visible:z-50 focus-visible:rounded-full focus-visible:bg-ink focus-visible:px-4 focus-visible:py-2 focus-visible:text-sm focus-visible:font-medium focus-visible:text-paper"
+      >
+        Skip to content
+      </a>
       <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-12 h-20 sm:h-24 flex items-center justify-between gap-3">
-        <Wordmark size="lg" className="min-w-0 shrink" />
+        {/* The landing reticle skips the brand mark: framing the logo makes
+            it read as a control, and the wordmark speaks for itself. */}
+        <span data-cursor-nolock className="min-w-0 shrink">
+          <Wordmark size="lg" />
+        </span>
         {/* Every label here is nowrap: the pill has a fixed height, so a
             wrapped label spills out of it rather than growing the button. */}
         <nav className="flex shrink-0 items-center gap-4 sm:gap-6 lg:gap-10 text-[14px] sm:text-[15px]">
@@ -40,7 +52,7 @@ export function SiteHeader({
               href={item.href}
               aria-current={active === item.href ? "page" : undefined}
               className={cn(
-                "hidden md:block whitespace-nowrap transition-colors hover:text-primary",
+                "hidden lg:block whitespace-nowrap transition-colors hover:text-primary",
                 active === item.href ? "text-primary font-medium" : "text-ink",
               )}
             >
@@ -66,9 +78,11 @@ export function SiteHeader({
               >
                 Sign in
               </Link>
+              {/* Orange like the hero's Join a class button on purpose: the
+                  two go to the same place, and matching color says so. */}
               <a
                 href={getStartedHref}
-                className="group/roll inline-flex h-11 shrink-0 items-center whitespace-nowrap rounded-full bg-ink px-4 sm:px-6 text-[14px] sm:text-[15px] font-medium text-paper transition-opacity hover:opacity-90"
+                className="group/roll inline-flex h-11 shrink-0 items-center whitespace-nowrap rounded-full bg-primary px-4 sm:px-6 text-[14px] sm:text-[15px] font-medium text-on-primary transition-opacity hover:opacity-90"
               >
                 <RollText>Get started</RollText>
               </a>

@@ -1,7 +1,6 @@
 import { getAuthUser } from "@/lib/auth/server";
 import { redirect } from "next/navigation";
 import { BrandLanding } from "@/components/landing/brand-landing";
-import { SmoothScroll } from "@/components/landing/smooth-scroll";
 import { INVALID_CODE_MESSAGE } from "@/components/landing/join-card";
 
 const LANDING_ERRORS: Record<string, string> = {
@@ -32,7 +31,6 @@ export default async function LandingPage({ searchParams }: PageProps<"/">) {
       <BrandLanding initialCode={code} initialError={message} signedIn={Boolean(user)} />
       {/* Smooth scrolling is the landing's alone. The signed-in shell has its
           own scrolling panes and would fight it. */}
-      <SmoothScroll />
     </>
   );
 }

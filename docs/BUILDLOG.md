@@ -286,3 +286,64 @@ Known follow-ups, documented not built (feature gaps or minor polish, no securit
 - Three defects were caught by review before any of this landed: the new replaceState carried a student off the success screen when the post-share refresh re-navigated to the canonical URL; the section's height floor covered the record but not the paragraph above it, so the page jumped 24 to 48px on every name click; and the decided list sorted by creation time while displaying decision time.
 - Verified: 138 unit and 56 end-to-end green, lint, typecheck, production build, deployed and probed live.
 - Production data note: the dev seed was dropped again after this round. Final state is four real accounts, the one real Pot with its four shared notes and eight contributions, zero test data, and dev_seed and dev_reseed absent. The end-to-end suite cannot run against production again until the seed is restored, which is deliberate.
+
+## Security boundaries, removals that stay recoverable, and the maintainer's record (2026-08-21)
+
+- Closed the audit round: removals leave the feed but never delete history, Pot governance settings landed, the maintainer got the Pot's own record, and the organizer learned to keep its doubts beside the note instead of correcting the writer.
+- The 404 was rebuilt from the supplied design, and platform call cutoffs stopped eating long organize waits.
+
+## Landing rework, profile, study setup, and a hardening round (2026-08-22)
+
+- New landing with the join and create paths one scroll down, a changeable profile, and a setup screen in front of every study kind.
+- Hardening: rate limits stopped trusting caller-supplied headers, the answer-key boundary moved marking fully server side, attempts became durable rows, and save_study_set revalidates ownership.
+
+## Light by default, and a public root (2026-08-23)
+
+- Light became the default theme for everyone without a stored choice, stamped before first paint, with the landing carrying a one-tap switch.
+- The repo root was cleared of working papers, and the study tab learned to show the score.
+
+## The Prometheus retarget (2026-08-24)
+
+- Entered the Prometheus August AI Challenge; deadline and framing recorded in CLAUDE.md and decision 021.
+- The mix layer now names the engine that produced every organized note and study set, so the deterministic fallback can never pass as AI.
+- The teaching readout landed: SQL aggregates first-pass misses by source note, the model only interprets the table, the counts print underneath, and it stays silent below twenty answers from two students.
+- A sixty-rule UI pass produced RULES.md and CHECKLIST.md and the seven fixes they forced.
+
+## One nav for the whole product (2026-08-26 to 2026-08-27)
+
+- The account-level nav landed everywhere: search, Home, a My Pots disclosure, Study, Calendar, Contributions, with bare-letter and Control-number shortcuts and the notification card above the profile.
+- Crawling every route at three widths surfaced five defects, all fixed; the owner's app icon became the favicon and tab icon.
+
+## Hero product shot, native scroll, and submission media (2026-08-29 to 2026-08-30)
+
+- The illustration hero gave way to a cropped, gently tilted product shot of a Pot page built from the shipped components; it now renders static, with the real mark at full resolution and a two-layer shadow that stays natural in both themes.
+- Scrolling jitter was traced, not guessed: the Lenis wheel hijack went, the melt pin became position sticky, and the hero shadow lost three gaussian passes; decision 025 carries the numbers.
+- Submission media re-shot from a real account walked through the product; the README's live link was found pointing at an obsolete site and now points at meltingpot-prometheus; the deadline moved to Monday 11:45 AM Pacific per the owner.
+- Every empty state in the app now offers the next action, which surfaced and fixed a real bug: the desktop Add contribution button had been dead code since the nav rework.
+
+## The scanner round and two borrowed touches (2026-08-30)
+
+- The live site went through vibecodesecure.com: 80/100 before, 95/100 after, with must-have checks at 100. A production CSP, X-XSS-Protection, nosniff and COOP everywhere, X-Powered-By gone, console stripped from the bundle, robots.txt and security.txt added, and the dead lenis dependency finally removed. The one remaining fail is Netlify's own Server header, which is not ours to remove. Decision 026.
+- Signup grew the familiar password checklist: five rules that tick as you type (the owner added one symbol after the first cut), enforced identically in register_student by migrations 0041 and 0042.
+- Two interactions arrived by translation, not imitation. A pot ring loader now fills the route gaps behind seven new loading boundaries, invisible for its first 150ms. And the landing got a lock-on reticle: four rounded orange corners that glide out to frame whatever the pointer can click, native cursor untouched. Decision 027 records what was deliberately left behind.
+- The join preview stopped claiming membership before it exists: You found, and the button says Join Pot.
+
+## Section two, the icon greetings, and Gemini goes live (2026-08-31)
+
+- The landing's second section stopped being a code form nobody could fill in. It opens on the owner's chosen headline and three doors (demo Pot, class code, create a Pot), with the hero CTAs retargeted to land on them. Decision 028.
+- Nav icons got one hover routine each, built on the existing Phosphor glyphs and off entirely under reduced motion.
+- The hero CTA row moved to the mid band gap after four measured spacing presets were compared side by side.
+- The owner set the model environment variables on Netlify; the deployed site now generates study material with gemini-3.6-flash, verified end to end against the demo Pot.
+
+## The sidebar folds and the controls are ours (2026-09-02)
+
+- The sidebar collapses to its icons on the kolejain.com curve, remembers the choice before first paint, and the notification card pops out and back in around the fold. Decision 029.
+- The My Pots list stopped cutting to closed when a click left a Pot: it now slides shut, and slides open on the way in, whichever sidebar mounts next.
+- The browser's select is gone from the app. Search filters, sort and the contribution section picker use the product's own dropdown, built from the account menu's card with full keyboard reach.
+- Notification rows gained a layered hover, and the scrollbar is drawn by the app in Chromium and Safari.
+- The collapse control lost the dead band above it (the aside's overflow clip had made it the sticky column's scroll container) and now matches a nav row; the scrollbar thumb rests in brand orange, the owner's pick from six states.
+- Four research agents read sixteen products each on streaks and a lead critic measured the current modal; the record is in docs/STREAK_RESEARCH.md. The owner chose the quiet direction: the on-load modal is deleted, the card carries the record on Home and Contributions with a labelled calendar week and dated markers, days are cut in the reader's own zone, and the completion screens add one true sentence. Decision 030.
+- The Contributions page took the shape of the owner's Figma file: a twelve month stream of weekly droplet clusters across term islands, the current run boxed, a column of counts, and a six step journey band. The owner lifted the comparison rule on the same day: each person now sees where they stand in each class, said as what they are ahead of, computed by one server function that never lets a classmate's counts out. Decision 031.
+- The owner chose the still stirring celebration from four mockups, so the moment is back in both themes: the pot mid stir, the day count, the week as dots, one button. It fires only where a day is earned, on the three completion screens, never on a page load. Decision 032.
+- The celebration draws its wording from a pool: eight everyday pairs, its own first day line, and named milestones at a week, a fortnight, a month, fifty and a hundred, picked by the date so a day always says the same thing and consecutive days do not.
+

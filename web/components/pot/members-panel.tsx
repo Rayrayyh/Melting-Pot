@@ -83,11 +83,16 @@ export function MembersPanel({
               member.role !== "owner" &&
               (isOwner || (isMaintainer && member.role === "member"));
             return (
-              <div key={member.userId} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+              // The row wraps rather than scrolling the page: at 320px the
+              // name, the role and two actions do not fit on one line.
+              <div
+                key={member.userId}
+                className="flex flex-wrap items-center gap-x-3 gap-y-2 py-3 first:pt-0 last:pb-0"
+              >
                 <AttributionRow
                   name={member.name}
                   meta={`Joined ${relativeTime(member.joinedAt)}${isSelf ? " · You" : ""}`}
-                  className="flex-1 min-w-0"
+                  className="min-w-0 flex-1 basis-40"
                 />
                 <RolePill role={member.role} />
                 {canPromote ? (

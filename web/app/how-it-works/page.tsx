@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, ChatCircleText, ClockCounterClockwise, Sparkle } from "@phosphor-icons/react/dist/ssr";
+import {
+  ArrowRight,
+  ChalkboardTeacher,
+  ChatCircleText,
+  ClockCounterClockwise,
+  Sparkle,
+} from "@phosphor-icons/react/dist/ssr";
 import { SiteFooter } from "@/components/landing/site-footer";
 import { SiteHeader } from "@/components/landing/site-header";
 import { PRINCIPLES, STEPS } from "@/components/landing/site-content";
@@ -120,6 +126,10 @@ export default async function HowItWorksPage() {
                   chain along the inner membrane. Aerobic respiration yields
                   roughly 36 ATP per glucose; anaerobic yields 2.
                 </p>
+              <p className="mt-3 border-t border-edge pt-3 text-[11px] text-ink-faint">
+                Worth checking: the ATP count, flagged from your &quot;36ish
+                ... i think&quot;. The organizer never smooths a doubt over.
+              </p>
               </div>
             </div>
           </div>
@@ -165,7 +175,42 @@ export default async function HowItWorksPage() {
         </Reveal>
       </section>
 
+      {/* The teacher's half. Everything above this point is written for the
+          student; a class has someone running it, and they get one screen. */}
       <section className="px-6 sm:px-10 py-20 sm:py-28">
+        <Reveal className="mx-auto w-full max-w-5xl space-y-8">
+          <div className="max-w-xl space-y-3">
+            <p className="text-[12px] font-semibold tracking-[0.14em] uppercase text-clay">
+              For the person teaching
+            </p>
+            <h2 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-ink">
+              Find out what to go over again.
+            </h2>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2">
+            <div className="space-y-4">
+              <ChalkboardTeacher className="size-7 text-primary" weight="duotone" aria-hidden />
+              <p className="text-sm text-ink-muted leading-relaxed">
+                Whoever runs the Pot can read what the class has answered,
+                grouped by the note each question came from, and get back the
+                two to four topics worth revisiting with one concrete thing to
+                try for each.
+              </p>
+            </div>
+            <div className="space-y-4">
+              <Sparkle className="size-7 text-primary" weight="duotone" aria-hidden />
+              <p className="text-sm text-ink-muted leading-relaxed">
+                The counting is the database&apos;s work and the reading is the
+                model&apos;s, so no figure is ever invented. It stays quiet
+                until enough people have practiced to mean anything, and it is
+                about the material: no student is named, counted, or compared.
+              </p>
+            </div>
+          </div>
+        </Reveal>
+      </section>
+
+      <section className="px-6 sm:px-10 py-20 sm:py-28 bg-surface border-y border-edge">
         <Reveal className="mx-auto w-full max-w-5xl space-y-14">
           <div className="max-w-lg space-y-3">
             <p className="text-[12px] font-semibold tracking-[0.14em] uppercase text-clay">

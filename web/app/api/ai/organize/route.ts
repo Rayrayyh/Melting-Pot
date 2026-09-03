@@ -78,8 +78,19 @@ export async function POST(request: Request) {
 
   const sectionOptions = sections ?? [];
   if (!mixingConfigured()) {
+    // Same shape as the outage path below. These two used to disagree: this
+    // one sent `warning` and no `fallback`, so a build with no model key
+    // organized every note with the rule-based fallback and told nobody. The
+    // browser now reads `provider` either way, and `fallback` is here so an
+    // older client still gets the notice.
     const result = await deterministicOrganizer.organize({ rawText, sections: sectionOptions });
-    return NextResponse.json({ result, analyses: [], provider: "deterministic", warning: "mixing_unavailable" });
+    return NextResponse.json({
+      result,
+      analyses: [],
+      provider: "deterministic",
+      fallback: "ai_unavailable",
+      warning: "mixing_unavailable",
+    });
   }
 
   const rate = await supabase.rpc("consume_ai_generation", { p_kind: "organizer" });

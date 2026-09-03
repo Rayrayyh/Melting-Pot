@@ -1,5 +1,6 @@
 import { getVerifiedSecondFactorId } from "@/lib/auth/server";
 import { UserShell } from "@/components/shell/user-shell";
+import { PasswordPanel } from "@/components/settings/password-panel";
 import { ProfilePanel } from "@/components/settings/profile-panel";
 import { ThemeChoice } from "@/components/settings/theme-choice";
 import { TwoFactorPanel } from "@/components/settings/two-factor-panel";
@@ -31,6 +32,8 @@ export default async function AccountSettingsPage() {
           initialName={user.displayName}
           initialAvatarPath={user.avatarPath}
         />
+
+        <PasswordPanel />
 
         <Card>
           <CardSection className="space-y-4">

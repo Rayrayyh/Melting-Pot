@@ -6,7 +6,7 @@ test.describe("joining a Pot", () => {
   test("invalid code shows the error and keeps the input", async ({ page }) => {
     await page.goto("/");
     await page.getByLabel("Enter class code").fill("zzzzzz");
-    await page.getByRole("button", { name: "Join Pot" }).click();
+    await page.getByRole("button", { name: "See the Pot" }).click();
     await expect(page.getByText(INVALID_MESSAGE)).toBeVisible();
     await expect(page.getByLabel("Enter class code")).toHaveValue("ZZZZZZ");
     await expect(page).toHaveURL("/");
@@ -21,7 +21,7 @@ test.describe("joining a Pot", () => {
 
     // Pot preview before any authentication.
     await expect(page).toHaveURL(/\/join\/BIO101/);
-    await expect(page.getByText("You joined")).toBeVisible();
+    await expect(page.getByText("You found")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Biology 101" })).toBeVisible();
     await expect(page.getByText(/\d+ members/)).toBeVisible();
 

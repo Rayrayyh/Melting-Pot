@@ -8,3 +8,18 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+# These rules reach only statically-served files; SSR responses get the same
+# set (plus the Content-Security-Policy, which only matters on documents)
+# from headers() in next.config.ts.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "DENY"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    X-Content-Type-Options = "nosniff"
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Resource-Policy = "same-origin"
+    Cross-Origin-Embedder-Policy = "credentialless"
+    X-XSS-Protection = "1; mode=block"

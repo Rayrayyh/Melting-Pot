@@ -1,6 +1,8 @@
 "use client";
 
 import { getClientAuth } from "@/lib/auth/client";
+import { checkRecord, type RecordCheck } from "@/app/actions/record";
+import { StillStirring } from "@/components/streak/still-stirring";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -15,7 +17,9 @@ import {
 } from "@phosphor-icons/react";
 import { NoteBody, TakeawaysCard } from "@/components/pot/note-body";
 import { NoteChecks } from "@/components/contribute/note-checks";
+import { OrganizedBy } from "@/components/mix/organized-by";
 import type { NoteCheck } from "@/lib/mix/contracts";
+import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -128,10 +132,15 @@ export function ContributeFlow({
   const [linkDraft, setLinkDraft] = useState<string | null>(null);
   const [stageStates, setStageStates] = useState<StageState[]>([]);
   const [organized, setOrganized] = useState<EditableOrganized | null>(initialOrganized);
-  const [organizedFallback, setOrganizedFallback] = useState(false);
+  // Which engine organized the current draft: a model name, "deterministic",
+  // or null before anything has been organized.
+  const [organizedBy, setOrganizedBy] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [confirmReorganize, setConfirmReorganize] = useState(false);
   const [sharedNoteId, setSharedNoteId] = useState<string | null>(null);
+  // True only when this share was the first thing to count today.
+  const [record, setRecord] = useState<RecordCheck | null>(null);
+  const [celebrating, setCelebrating] = useState(false);
   const [busy, setBusy] = useState(false);
   const [errorNote, setErrorNote] = useState<string | null>(null);
   const [errorLink, setErrorLink] = useState<{ href: string; label: string } | null>(null);
@@ -407,7 +416,7 @@ export function ContributeFlow({
         analyses?: Array<{ id: string; caption: string; extractedText: string }>;
         error?: string;
         detail?: string;
-        fallback?: string;
+        provider?: string;
         visionWarning?: string | null;
       } | null;
       if (!response.ok || !payload?.result) {
@@ -417,7 +426,7 @@ export function ContributeFlow({
         throw new Error(message);
       }
       const result = payload.result;
-      setOrganizedFallback(payload.fallback === "ai_unavailable");
+      setOrganizedBy(payload.provider ?? null);
       if (payload.visionWarning) {
         setErrorNote(`The note was organized, but one image could not be captioned: ${payload.visionWarning}`);
       }
@@ -549,6 +558,11 @@ export function ContributeFlow({
       return;
     }
     setSharedNoteId(data);
+    // Asked after the share has landed and before the screen paints, so the
+    // sentence arrives with the screen rather than reflowing it.
+    const check = await checkRecord().catch(() => null);
+    setRecord(check);
+    setCelebrating(Boolean(check?.countedNow));
     setStep("shared");
     setBusy(false);
     releaseDraftUrl();
@@ -843,23 +857,26 @@ export function ContributeFlow({
 
           <div className="flex flex-wrap items-center gap-2">
             <Eyebrow>Suggested placement</Eyebrow>
-            <select
+            <Select
+              size="sm"
+              align="start"
+              label="Section"
               value={sectionChoice ?? ""}
-              onChange={(e) => {
-                setSectionChoice(e.target.value || null);
+              options={[
+                { value: "", label: "No section yet" },
+                ...sections.map((section) => ({
+                  value: section.id,
+                  label:
+                    section.id === organized.suggestedSectionId
+                      ? `${section.title} (suggested)`
+                      : section.title,
+                })),
+              ]}
+              onChange={(next) => {
+                setSectionChoice(next || null);
                 markReviewDirty();
               }}
-              aria-label="Section"
-              className="h-8 rounded-(--radius-control) border border-edge-strong bg-surface px-2.5 text-[13px] text-ink focus:border-primary focus:outline-none"
-            >
-              <option value="">No section yet</option>
-              {sections.map((section) => (
-                <option key={section.id} value={section.id}>
-                  {section.title}
-                  {section.id === organized.suggestedSectionId ? " (suggested)" : ""}
-                </option>
-              ))}
-            </select>
+            />
             {viewerName ? (
               <span className="ml-auto text-[13px] text-ink-muted">
                 Shared as <span className="font-medium text-ink">{viewerName}</span>
@@ -884,12 +901,7 @@ export function ContributeFlow({
                   {editing ? "Done editing" : "Edit"}
                 </Button>
               </div>
-              {organizedFallback ? (
-                <p className="text-[12px] text-warning">
-                  The AI organizer was not available, so this was organized with simple
-                  formatting. Read it closely before sharing.
-                </p>
-              ) : null}
+              <OrganizedBy provider={organizedBy} />
               <Card>
                 <CardSection className="space-y-4">
                   {editing ? (
@@ -1073,6 +1085,14 @@ export function ContributeFlow({
   if (step === "shared" && organized) {
     return (
       <div className="mx-auto w-full max-w-xl px-6 py-12 space-y-6">
+        {record?.countedNow ? (
+          <StillStirring
+            open={celebrating}
+            days={record.days}
+            week={record.week}
+            onClose={() => setCelebrating(false)}
+          />
+        ) : null}
         <Settle className="flex flex-col items-center text-center gap-3">
           <span className="inline-flex size-16 items-center justify-center rounded-full bg-success-soft">
             <CheckCircle weight="fill" className="size-8 text-success" />
@@ -1081,6 +1101,7 @@ export function ContributeFlow({
             <h1 className="text-2xl font-semibold tracking-tight">Shared with the class</h1>
             <p className="text-sm text-ink-muted">
               Your contribution is live and credited to you.
+              {record?.countedNow ? " Today is on your record." : ""}
             </p>
           </div>
         </Settle>
@@ -1119,9 +1140,11 @@ export function ContributeFlow({
               setOrganized(null);
               lastOrganized.current = null;
               reviewDirty.current = false;
-              setOrganizedFallback(false);
+              setOrganizedBy(null);
               setAttachments([]);
               setSharedNoteId(null);
+              setRecord(null);
+              setCelebrating(false);
               setSaved("idle");
               setErrorNote(null);
               setErrorLink(null);

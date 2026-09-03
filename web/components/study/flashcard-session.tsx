@@ -87,12 +87,15 @@ export function FlashcardSession({
   onRegenerate,
   regenerating,
   onFinished,
+  dayCounted = false,
 }: {
   cards: StudyCard[];
   onRegenerate: () => void;
   regenerating: boolean;
   /** Called once when a round ends, with how the cards were sorted. */
   onFinished?: (known: number, learning: number) => void;
+  /** Whether this round was the first thing to count today on their record. */
+  dayCounted?: boolean;
 }) {
   const [tag, setTag] = useState<string | null>(null);
   const [session, dispatch] = useReducer(
@@ -156,6 +159,7 @@ export function FlashcardSession({
         onStudyLearning={() => dispatch({ type: "studyLearning" })}
         onRegenerate={onRegenerate}
         regenerating={regenerating}
+        dayCounted={dayCounted}
       />
     );
   }
@@ -319,6 +323,7 @@ function Results({
   onStudyLearning,
   onRegenerate,
   regenerating,
+  dayCounted,
 }: {
   progress: ReturnType<typeof flashcardProgress>;
   onReview: () => void;
@@ -326,6 +331,7 @@ function Results({
   onStudyLearning: () => void;
   onRegenerate: () => void;
   regenerating: boolean;
+  dayCounted: boolean;
 }) {
   return (
     <Card>
@@ -337,6 +343,7 @@ function Results({
           </p>
           <p className="text-sm text-ink-muted">
             {progress.percentage}% of this round, this time through.
+            {dayCounted ? " Today is on your record." : ""}
           </p>
         </div>
 

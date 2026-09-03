@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -86,12 +87,22 @@ export function PotManager({ pots }: { pots: ManagedPot[] }) {
       <PotGroup
         title="Pots you run"
         empty="You do not own or maintain a Pot yet."
+        emptyAction={
+          <Button href="/pots/new" variant="secondary" size="sm">
+            Create a Pot
+          </Button>
+        }
         pots={running}
         onAct={setPending}
       />
       <PotGroup
         title="Pots you are in"
         empty="You have not joined anyone else's Pot."
+        emptyAction={
+          <Button href="/join" variant="secondary" size="sm">
+            Join a Pot
+          </Button>
+        }
         pots={joined}
         onAct={setPending}
       />
@@ -149,11 +160,13 @@ export function PotManager({ pots }: { pots: ManagedPot[] }) {
 function PotGroup({
   title,
   empty,
+  emptyAction,
   pots,
   onAct,
 }: {
   title: string;
   empty: string;
+  emptyAction?: ReactNode;
   pots: ManagedPot[];
   onAct: (pending: Pending) => void;
 }) {
@@ -163,7 +176,10 @@ function PotGroup({
         {title}
       </h2>
       {pots.length === 0 ? (
-        <p className="text-sm text-ink-faint">{empty}</p>
+        <div className="space-y-3">
+          <p className="text-sm text-ink-faint">{empty}</p>
+          {emptyAction}
+        </div>
       ) : (
         <div className="space-y-2.5">
           {pots.map((pot) => (

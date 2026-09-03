@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { checkRecord, type RecordCheck } from "@/app/actions/record";
+import { StillStirring } from "@/components/streak/still-stirring";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -131,11 +133,15 @@ const waiting = {
   ],
 } as const;
 
-function message(error: string | undefined, detail: string | undefined): string {
+function message(
+  error: string | undefined,
+  detail: string | undefined,
+): string {
   if (error === "mixing_unavailable") {
     return "Mixing is not set up on this server yet, so nothing new can be built. Anything the Pot already has still opens.";
   }
-  if (error === "no_notes") return "Share at least one note before building study material.";
+  if (error === "no_notes")
+    return "Share at least one note before building study material.";
   if (error === "no_notes_in_sections") {
     return "Nothing has been shared in the parts you picked. Choose another part, or the whole Pot.";
   }
@@ -147,7 +153,8 @@ function message(error: string | undefined, detail: string | undefined): string 
   if (error === "rate_limited") {
     return "You have built several study sets recently. Wait a little and try again.";
   }
-  if (error === "not_pot_member") return "You need to be in this Pot to study from it.";
+  if (error === "not_pot_member")
+    return "You need to be in this Pot to study from it.";
   if (error === "generation_closed") {
     return "This Pot is set so only maintainers build new study material. Anything the class has already built still opens.";
   }
@@ -161,6 +168,7 @@ export function StudyWorkspace({
   sections,
   canModerate,
   savedSets,
+  archived = false,
 }: {
   potId: string;
   potTitle: string;
@@ -171,8 +179,17 @@ export function StudyWorkspace({
   canModerate: boolean;
   /** Everything of this kind the Pot has already built, newest first. */
   savedSets: SavedStudySet[];
+  /** An archived Pot takes no new notes, so the no_notes action hides. */
+  archived?: boolean;
 }) {
   const router = useRouter();
+  // "Share at least one note" names the next step; this hands it over.
+  const noNotesAction =
+    !archived ? (
+      <Button href={`/p/${potId}/contribute`} variant="secondary" size="sm">
+        Share a note
+      </Button>
+    ) : null;
   // What the reader has opened, and what the store happens to hold for the
   // settings on screen, are two different things. Keeping them apart is what
   // lets the lookup run quietly: it can learn there is a saved test without
@@ -188,44 +205,54 @@ export function StudyWorkspace({
   // generation earns the full screen; anything shorter would just flash.
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [asking, setAsking] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [options, setOptions] = useState<PracticeOptions>(DEFAULT_PRACTICE_OPTIONS);
+  const [options, setOptions] = useState<PracticeOptions>(
+    DEFAULT_PRACTICE_OPTIONS,
+  );
   // A test is set up before it is written, so the settings are a screen of
   // their own that the reader can come back to.
   // Every kind is set up before it is built, so all three open on the setup
   // screen rather than only the test.
   const [settingUp, setSettingUp] = useState(true);
+  // Set only for the round or hand-in that was the first thing to count today.
+  const [record, setRecord] = useState<RecordCheck | null>(null);
+  const [celebrating, setCelebrating] = useState(false);
   const [tab, setTab] = useState<"new" | "previous">("new");
   const firstLook = useRef(true);
 
   const mode = copy[kind];
   const Icon = mode.icon;
   const optionsKey = practiceOptionsKey(options);
-  const sectionTitles = new Map(sections.map((section) => [section.id, section.title]));
+  const sectionTitles = new Map(
+    sections.map((section) => [section.id, section.title]),
+  );
 
   const load = useCallback(
-    async (request: { peek?: boolean; regenerate?: boolean; options?: PracticeOptions }) => {
+    async (request: {
+      peek?: boolean;
+      regenerate?: boolean;
+      options?: PracticeOptions;
+    }) => {
       const { options: chosen, ...flags } = request;
       const response = await fetch("/api/ai/study", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ potId, kind, ...flags, options: chosen }),
       });
-      const payload = (await response.json().catch(() => null)) as
-        | {
-            result?: StudyResult;
-            cached?: boolean;
-            generatedAt?: string;
-            studySetId?: string | null;
-            fingerprint?: string | null;
-            model?: string | null;
-            secured?: boolean;
-            error?: string;
-            detail?: string;
-          }
-        | null;
+      const payload = (await response.json().catch(() => null)) as {
+        result?: StudyResult;
+        cached?: boolean;
+        generatedAt?: string;
+        studySetId?: string | null;
+        fingerprint?: string | null;
+        model?: string | null;
+        secured?: boolean;
+        error?: string;
+        detail?: string;
+      } | null;
       if (!response.ok || !payload?.result) {
         return { failure: payload?.error, detail: payload?.detail };
       }
@@ -280,6 +307,7 @@ export function StudyWorkspace({
     setBusy(true);
     setGenerating(true);
     setError(null);
+    setErrorCode(null);
     // The finally is what makes the full screen safe to use here. `load` calls
     // fetch, which rejects outright when the network drops, and a flag that
     // only ever cleared on the happy path would leave the cover up with no way
@@ -306,6 +334,7 @@ export function StudyWorkspace({
           return;
         }
         setError(message(outcome.failure, outcome.detail));
+        setErrorCode(outcome.failure ?? null);
         return;
       }
       setOpened(outcome.loaded);
@@ -317,6 +346,7 @@ export function StudyWorkspace({
       router.refresh();
     } catch {
       setError("The connection dropped while this was being built. Try again.");
+      setErrorCode(null);
     } finally {
       setBusy(false);
       setGenerating(false);
@@ -328,6 +358,7 @@ export function StudyWorkspace({
     if (busy) return;
     setBusy(true);
     setError(null);
+    setErrorCode(null);
     const { data } = await supabaseBrowser()
       .from("study_sets")
       .select("id, payload, created_at, options, secured")
@@ -337,6 +368,7 @@ export function StudyWorkspace({
     setBusy(false);
     if (!data) {
       setError("That test could not be opened. It may have been removed.");
+      setErrorCode(null);
       return;
     }
     setOpened({
@@ -364,17 +396,22 @@ export function StudyWorkspace({
     if (!opened || opened.studySetId || !opened.fingerprint || saving) return;
     setSaving(true);
     setError(null);
-    const { data, error: rpcError } = await supabaseBrowser().rpc("save_study_set", {
-      p_pot_id: potId,
-      p_kind: kind,
-      p_fingerprint: opened.fingerprint,
-      p_payload: opened.result as unknown as Json,
-      p_model: opened.model,
-      p_options: options as unknown as Json,
-    });
+    setErrorCode(null);
+    const { data, error: rpcError } = await supabaseBrowser().rpc(
+      "save_study_set",
+      {
+        p_pot_id: potId,
+        p_kind: kind,
+        p_fingerprint: opened.fingerprint,
+        p_payload: opened.result as unknown as Json,
+        p_model: opened.model,
+        p_options: options as unknown as Json,
+      },
+    );
     setSaving(false);
     if (rpcError || !data) {
       setError("That set could not be saved to the Pot. Try again.");
+      setErrorCode(null);
       return;
     }
     setOpened({ ...opened, studySetId: data });
@@ -384,13 +421,17 @@ export function StudyWorkspace({
   async function removeSet() {
     if (!opened?.studySetId || deleting) return;
     setDeleting(true);
-    const { error: rpcError } = await supabaseBrowser().rpc("delete_study_set", {
-      p_study_set_id: opened.studySetId,
-    });
+    const { error: rpcError } = await supabaseBrowser().rpc(
+      "delete_study_set",
+      {
+        p_study_set_id: opened.studySetId,
+      },
+    );
     setDeleting(false);
     setAsking(false);
     if (rpcError) {
       setError("That set could not be removed. Try again.");
+      setErrorCode(null);
       return;
     }
     setOpened(null);
@@ -400,16 +441,23 @@ export function StudyWorkspace({
   }
 
   const markTest = useCallback(
-    async (order: number[], answers: Record<number, number>): Promise<PracticeMarking> => {
-      const questions = (opened?.result as PracticeResult | undefined)?.questions ?? [];
+    async (
+      order: number[],
+      answers: Record<number, number>,
+    ): Promise<PracticeMarking> => {
+      const questions =
+        (opened?.result as PracticeResult | undefined)?.questions ?? [];
       if (!opened?.secured || !opened.studySetId) {
         return markLocally(questions, order, answers);
       }
-      const { data, error: rpcError } = await supabaseBrowser().rpc("submit_practice_test", {
-        p_attempt_id: crypto.randomUUID(),
-        p_set_id: opened.studySetId,
-        p_answers: { order, choices: answers } as unknown as Json,
-      });
+      const { data, error: rpcError } = await supabaseBrowser().rpc(
+        "submit_practice_test",
+        {
+          p_attempt_id: crypto.randomUUID(),
+          p_set_id: opened.studySetId,
+          p_answers: { order, choices: answers } as unknown as Json,
+        },
+      );
       if (rpcError || !data) throw new Error("submit_failed");
       const returned = data as {
         firstPass?: boolean;
@@ -432,14 +480,24 @@ export function StudyWorkspace({
           explanation: mark.explanation,
         };
       }
+      // Asked after the attempt has landed, so the sentence it earns is true.
+      // The hand-in is already recorded; a failed check must not undo that.
+      const check = await checkRecord().catch(() => null);
+      const countedNow = Boolean(check?.countedNow);
+      if (countedNow) {
+        setRecord(check);
+        setCelebrating(true);
+        router.refresh();
+      }
       return {
         firstPass: returned.firstPass === true,
         correct: returned.correct ?? 0,
         total: returned.total ?? order.length,
         marks,
+        countedToday: countedNow,
       };
     },
-    [opened],
+    [opened, router],
   );
 
   const recordRun = useCallback(
@@ -447,14 +505,34 @@ export function StudyWorkspace({
       if (!opened?.studySetId) return;
       // Best effort on purpose: the round is over and the summary is on
       // screen; a dropped record must not take either away.
-      void supabaseBrowser().rpc("record_flashcard_run", {
-        p_attempt_id: crypto.randomUUID(),
-        p_set_id: opened.studySetId,
-        p_known: known,
-        p_learning: learning,
-      });
+      const setId = opened.studySetId;
+      // Every round starts unproven: the moment belongs to the one round
+      // that was the first thing to count today, never to the ones after it.
+      setRecord(null);
+      setCelebrating(false);
+      void (async () => {
+        try {
+          const { error } = await supabaseBrowser().rpc("record_flashcard_run", {
+            p_attempt_id: crypto.randomUUID(),
+            p_set_id: setId,
+            p_known: known,
+            p_learning: learning,
+          });
+          if (error) return;
+          // Asked after the run has landed, so the sentence it earns is true.
+          const check = await checkRecord();
+          if (check.countedNow) {
+            setRecord(check);
+            setCelebrating(true);
+            // Home may hold a cached copy of the card from before this round.
+            router.refresh();
+          }
+        } catch {
+          /* The summary stays; the record catches up on Home. */
+        }
+      })();
     },
-    [opened],
+    [opened, router],
   );
 
   const showTabs = savedSets.length > 0;
@@ -464,6 +542,14 @@ export function StudyWorkspace({
   return (
     <div className="mx-auto w-full max-w-3xl px-6 py-10 space-y-6">
       <LoadingScreen open={generating} message={waiting[kind]} />
+      {record?.countedNow ? (
+        <StillStirring
+          open={celebrating}
+          days={record.days}
+          week={record.week}
+          onClose={() => setCelebrating(false)}
+        />
+      ) : null}
       <Button variant="quiet" size="sm" href={`/p/${potId}`}>
         <ArrowLeft className="size-4" /> Back to {potTitle}
       </Button>
@@ -471,7 +557,9 @@ export function StudyWorkspace({
       <header className="flex items-start justify-between gap-5">
         <div className="space-y-1.5">
           <Eyebrow>Study from the full Pot</Eyebrow>
-          <h1 className="text-2xl font-semibold tracking-tight">{mode.title}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {mode.title}
+          </h1>
           <p className="text-sm text-ink-muted">{mode.description}</p>
         </div>
         <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary">
@@ -480,7 +568,10 @@ export function StudyWorkspace({
       </header>
 
       {showTabs ? (
-        <nav aria-label="Practice tests" className="flex gap-1.5 border-b border-edge">
+        <nav
+          aria-label="Practice tests"
+          className="flex gap-1.5 border-b border-edge"
+        >
           {(
             [
               [
@@ -492,7 +583,11 @@ export function StudyWorkspace({
               [
                 "previous",
                 `${
-                  kind === "summary" ? "Previous summaries" : kind === "flashcards" ? "Previous decks" : "Previous tests"
+                  kind === "summary"
+                    ? "Previous summaries"
+                    : kind === "flashcards"
+                      ? "Previous decks"
+                      : "Previous tests"
                 } (${savedSets.length})`,
               ],
             ] as const
@@ -534,6 +629,7 @@ export function StudyWorkspace({
           checking={checking}
           busy={busy}
           error={error}
+          errorAction={errorCode === "no_notes" ? noNotesAction : null}
           onBuild={() => void generate(true)}
           onOpenSaved={() => {
             setOpened(peeked);
@@ -543,16 +639,18 @@ export function StudyWorkspace({
       ) : !settled ? (
         <Card>
           <CardSection className="py-12 text-center">
-            <p className="text-sm text-ink-muted">Looking for what this Pot already has.</p>
+            <p className="text-sm text-ink-muted">
+              Looking for what this Pot already has.
+            </p>
           </CardSection>
         </Card>
       ) : !opened ? (
         <Card>
           <CardSection className="flex flex-col items-center gap-4 py-12 text-center">
             <p className="max-w-md text-sm leading-relaxed text-ink-muted">
-              This is mixed from the latest shared notes and the captions your class
-              reviewed. Nothing outside the Pot goes in, and the class shares what you
-              build here until someone shares a new note.
+              This is mixed from the latest shared notes and the captions your
+              class reviewed. Nothing outside the Pot goes in, and the class
+              shares what you build here until someone shares a new note.
             </p>
             <Button onClick={() => void generate(false)} disabled={busy}>
               <Sparkle className="size-4" weight="fill" />
@@ -566,9 +664,12 @@ export function StudyWorkspace({
               )}
             </Button>
             {error ? (
-              <p role="alert" className="text-[13px] text-danger">
-                {error}
-              </p>
+              <div className="flex flex-col items-center gap-3">
+                <p role="alert" className="text-[13px] text-danger">
+                  {error}
+                </p>
+                {errorCode === "no_notes" ? noNotesAction : null}
+              </div>
             ) : null}
           </CardSection>
         </Card>
@@ -608,13 +709,26 @@ export function StudyWorkspace({
                   Saved to this Pot
                 </span>
               ) : (
-                <Button variant="secondary" size="sm" onClick={() => void saveSet()} disabled={saving}>
-                  {saving ? <Stir size={16} /> : <FloppyDisk className="size-4" />}
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => void saveSet()}
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <Stir size={16} />
+                  ) : (
+                    <FloppyDisk className="size-4" />
+                  )}
                   {saving ? "Saving" : "Save to this Pot"}
                 </Button>
               )}
               {canModerate && opened.studySetId ? (
-                <Button variant="quiet" size="sm" onClick={() => setAsking(true)}>
+                <Button
+                  variant="quiet"
+                  size="sm"
+                  onClick={() => setAsking(true)}
+                >
                   <TrashSimple className="size-4" />
                   Remove this set
                 </Button>
@@ -628,27 +742,37 @@ export function StudyWorkspace({
             </p>
           ) : null}
 
-          {kind === "summary" ? <SummaryView result={opened.result as SummaryResult} /> : null}
+          {kind === "summary" ? (
+            <SummaryView result={opened.result as SummaryResult} />
+          ) : null}
+          {/* A run in progress claims the bare keys. The sidebar's letter
+              shortcuts are global, and losing a half finished deck to a
+              stray S would be the worst thing they could do. */}
           {kind === "flashcards" ? (
-            <FlashcardSession
-              // A rebuilt deck is a new session, not the old one with new cards.
-              key={opened.studySetId ?? opened.generatedAt ?? "deck"}
-              cards={(opened.result as FlashcardResult).cards}
-              onRegenerate={() => void generate(true)}
-              regenerating={busy}
-              onFinished={recordRun}
-            />
+            <div data-no-shortcuts>
+              <FlashcardSession
+                // A rebuilt deck is a new session, not the old one with new cards.
+                key={opened.studySetId ?? opened.generatedAt ?? "deck"}
+                cards={(opened.result as FlashcardResult).cards}
+                onRegenerate={() => void generate(true)}
+                regenerating={busy}
+                onFinished={recordRun}
+                dayCounted={Boolean(record?.countedNow)}
+              />
+            </div>
           ) : null}
           {kind === "practice" ? (
-            <PracticeSession
-              key={opened.studySetId ?? `${opened.generatedAt}:${optionsKey}`}
-              title={(opened.result as PracticeResult).title}
-              questions={(opened.result as PracticeResult).questions}
-              onRegenerate={() => setSettingUp(true)}
-              regenerating={busy}
-              mark={markTest}
-              recorded={opened.secured && Boolean(opened.studySetId)}
-            />
+            <div data-no-shortcuts>
+              <PracticeSession
+                key={opened.studySetId ?? `${opened.generatedAt}:${optionsKey}`}
+                title={(opened.result as PracticeResult).title}
+                questions={(opened.result as PracticeResult).questions}
+                onRegenerate={() => setSettingUp(true)}
+                regenerating={busy}
+                mark={markTest}
+                recorded={opened.secured && Boolean(opened.studySetId)}
+              />
+            </div>
           ) : null}
         </div>
       )}
@@ -692,15 +816,22 @@ function PreviousSets({
   openedId: string | null;
   onOpen: (set: SavedStudySet) => void;
 }) {
-  const noun = kind === "summary" ? "summary" : kind === "flashcards" ? "deck" : "test";
+  const noun =
+    kind === "summary" ? "summary" : kind === "flashcards" ? "deck" : "test";
   const plural = kind === "summary" ? "summaries" : `${noun}s`;
-  const open = kind === "summary" ? "Read this summary" : kind === "flashcards" ? "Practice this deck" : "Take this test";
+  const open =
+    kind === "summary"
+      ? "Read this summary"
+      : kind === "flashcards"
+        ? "Practice this deck"
+        : "Take this test";
   if (sets.length === 0) {
     return (
       <Card>
         <CardSection className="py-12 text-center">
           <p className="text-sm text-ink-muted">
-            No {plural} yet. The first one built is kept here for the whole class.
+            No {plural} yet. The first one built is kept here for the whole
+            class.
           </p>
         </CardSection>
       </Card>
@@ -715,7 +846,9 @@ function PreviousSets({
         <Card key={set.id}>
           <CardSection className="flex flex-wrap items-center justify-between gap-3 py-4">
             <div className="min-w-0 space-y-1">
-              <p className="truncate text-sm font-medium text-ink">{set.title}</p>
+              <p className="truncate text-sm font-medium text-ink">
+                {set.title}
+              </p>
               <p className="text-[12px] text-ink-faint">
                 {set.options
                   ? describeOptions(set.options, sectionTitles, kind)
@@ -745,7 +878,9 @@ function SummaryView({ result }: { result: SummaryResult }) {
     <div className="space-y-4">
       <Card>
         <CardSection>
-          <p className="text-[15px] leading-relaxed text-ink">{result.overview}</p>
+          <p className="text-[15px] leading-relaxed text-ink">
+            {result.overview}
+          </p>
         </CardSection>
       </Card>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -753,7 +888,9 @@ function SummaryView({ result }: { result: SummaryResult }) {
           <Card key={topic.title}>
             <CardSection className="space-y-1.5">
               <h2 className="font-semibold">{topic.title}</h2>
-              <p className="text-sm leading-relaxed text-ink-muted">{topic.explanation}</p>
+              <p className="text-sm leading-relaxed text-ink-muted">
+                {topic.explanation}
+              </p>
             </CardSection>
           </Card>
         ))}

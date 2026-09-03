@@ -74,9 +74,14 @@ fold. The art's box was also extended past the pot's base (viewBox height
 visible on first paint at every viewport tested: 1024x768, 1280x720,
 1440x900, 1920x1080.
 
-## Hackathon credit
+## Challenge credit
 
-The footer names the Pixel Forge AI Hackathon and carries its mark, linked
-to the Devpost page. The logo is the hackathon's own artwork at its own
-colors, trimmed of transparent padding, kept small enough to read as a
-credit rather than a design element.
+The footer names the challenge this was entered in, linked to its Devpost
+page, sitting beside the repository link because both make the same claim:
+this is a real thing you can go and look at.
+
+Originally that was the Pixel Forge AI Hackathon, carrying its own artwork.
+When the project was entered in the Prometheus August AI Challenge the mark
+became a drawn icon in the app's own type and colour rather than a borrowed
+logo. A logo we do not own is a file that can go missing and a mark we have
+no licence to. See `memory/decisions/021`.

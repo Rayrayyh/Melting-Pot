@@ -32,6 +32,8 @@ export type PracticeMarking = {
   correct: number;
   total: number;
   marks: Record<number, PracticeMark>;
+  /** True when handing this test in was the first thing to count today. */
+  countedToday?: boolean;
 };
 
 /**

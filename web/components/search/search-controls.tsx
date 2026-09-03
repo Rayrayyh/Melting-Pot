@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, type FormEvent, type MouseEvent } from "react";
+import { useId, useRef, type FormEvent, type MouseEvent } from "react";
 import { MagnifyingGlass } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { SectionPill } from "@/components/ui/pills";
+import { Select } from "@/components/ui/select";
 import type { SearchCounts, SearchPot, SearchSort, SearchType } from "@/lib/data/search";
 
 const TYPES: Array<{ key: SearchType; label: string }> = [
@@ -27,9 +28,6 @@ const SORTS: Array<{ key: SearchSort; label: string; hint: string }> = [
   { key: "title", label: "Title A to Z", hint: "Alphabetical by title." },
   { key: "title-desc", label: "Title Z to A", hint: "Reverse alphabetical by title." },
 ];
-
-const SELECT =
-  "h-9 rounded-(--radius-control) border border-edge-strong bg-surface px-2 text-[13px] text-ink focus:border-primary focus:outline-none transition-colors";
 
 type Overrides = {
   q?: string;
@@ -61,6 +59,9 @@ export function SearchControls({
 }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const ids = useId();
+  const potLabelId = `${ids}-pot`;
+  const sortLabelId = `${ids}-sort`;
 
   const scopedPot = pots.find((pot) => pot.id === potId);
   const activeSort = SORTS.find((option) => option.key === sort) ?? SORTS[0];
@@ -144,47 +145,31 @@ export function SearchControls({
 
         <div className="ml-auto flex flex-wrap items-center gap-x-4 gap-y-2">
           {pots.length > 1 ? (
-            <label className="flex items-center gap-2 text-[13px] text-ink-muted">
-              Pot
-              <select
-                key={potId ?? "all"}
-                defaultValue={potId ?? ""}
-                onChange={(event) =>
-                  router.push(
-                    buildHref({ pot: event.target.value || null, q: typedQuery() }),
-                  )
+            <div className="flex items-center gap-2 text-[13px] text-ink-muted">
+              <span id={potLabelId}>Pot</span>
+              <Select
+                labelledBy={potLabelId}
+                value={potId ?? ""}
+                options={[
+                  { value: "", label: "All your Pots" },
+                  ...pots.map((pot) => ({ value: pot.id, label: pot.title })),
+                ]}
+                onChange={(next) =>
+                  router.push(buildHref({ pot: next || null, q: typedQuery() }))
                 }
-                className={SELECT}
-              >
-                <option value="">All your Pots</option>
-                {pots.map((pot) => (
-                  <option key={pot.id} value={pot.id}>
-                    {pot.title}
-                  </option>
-                ))}
-              </select>
-            </label>
+              />
+            </div>
           ) : null}
 
-          <label className="flex items-center gap-2 text-[13px] text-ink-muted">
-            Sort
-            <select
-              key={sort}
-              defaultValue={sort}
-              onChange={(event) =>
-                router.push(
-                  buildHref({ sort: event.target.value as SearchSort, q: typedQuery() }),
-                )
-              }
-              className={SELECT}
-            >
-              {SORTS.map((option) => (
-                <option key={option.key} value={option.key}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="flex items-center gap-2 text-[13px] text-ink-muted">
+            <span id={sortLabelId}>Sort</span>
+            <Select
+              labelledBy={sortLabelId}
+              value={sort}
+              options={SORTS.map(({ key, label }) => ({ value: key, label }))}
+              onChange={(next) => router.push(buildHref({ sort: next, q: typedQuery() }))}
+            />
+          </div>
         </div>
       </div>
 

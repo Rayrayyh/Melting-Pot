@@ -3,7 +3,7 @@ import Link from "next/link";
 import {
   ArrowRight,
   CheckCircle,
-  Flame,
+  Plant,
   PaperPlaneTilt,
   PencilSimple,
   Signature,
@@ -106,12 +106,12 @@ export default async function ContributionsPage() {
             </p>
           </div>
           <div className="bg-surface border border-edge rounded-(--radius-card) p-8 space-y-4 shadow-(--shadow-card)">
-            <Flame className="size-7 text-primary" weight="duotone" aria-hidden />
+            <Plant className="size-7 text-primary" weight="duotone" aria-hidden />
             <h3 className="text-lg font-semibold text-ink">A private record of your days</h3>
             <p className="text-sm text-ink-muted leading-relaxed">
-              Your contribution streak is yours alone. It is never shown to
-              anyone else and never compared, and a quiet stretch shows the
-              run you already managed rather than a zero.
+              Your run of days is yours alone. Nobody else sees it, where you
+              stand in a class is shown only to you, and a quiet stretch shows
+              the run you already managed rather than a zero.
             </p>
           </div>
         </Reveal>

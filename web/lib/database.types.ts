@@ -688,6 +688,7 @@ export type Database = {
         Args: { p_pot_id: string };
         Returns: number;
       };
+      own_standing: { Args: never; Returns: Json };
       lookup_pot_by_code: { Args: { p_code: string }; Returns: Json };
       regenerate_class_code: { Args: { p_pot_id: string }; Returns: string };
       register_student: {
@@ -765,6 +766,7 @@ export type Database = {
         Returns: undefined;
       };
       admin_study_overview: { Args: { p_pot_id: string }; Returns: Json };
+      class_topic_evidence: { Args: { p_pot_id: string }; Returns: Json };
       update_my_profile: {
         Args: { p_display_name: string; p_avatar_url?: string | null };
         Returns: undefined;

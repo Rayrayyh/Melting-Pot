@@ -40,25 +40,47 @@ test.describe("account and landing for signed-in people", () => {
     await page.goto("/me/settings");
 
     const root = page.locator("html");
-    await expect(page.getByRole("radio", { name: "System" })).toHaveAttribute(
-      "aria-checked",
-      "true",
-    );
-
-    await page.getByRole("radio", { name: "Dark" }).click();
-    await expect(root).toHaveAttribute("data-theme", "dark");
-
-    // The choice survives a reload, applied before paint.
-    await page.reload();
-    await expect(root).toHaveAttribute("data-theme", "dark");
+    // Dark is what someone who has never chosen gets, and it is stamped on the
+    // document rather than left to the device. The browser here runs in the
+    // default light scheme, so the attribute is what proves it: a page
+    // following the device would carry no data-theme at all.
     await expect(page.getByRole("radio", { name: "Dark" })).toHaveAttribute(
       "aria-checked",
       "true",
     );
+    await expect(root).toHaveAttribute("data-theme", "dark");
 
-    // And System hands control back to the device.
+    await page.getByRole("radio", { name: "Light" }).click();
+    await expect(root).toHaveAttribute("data-theme", "light");
+
+    // The choice survives a reload, applied before paint.
+    await page.reload();
+    await expect(root).toHaveAttribute("data-theme", "light");
+    await expect(page.getByRole("radio", { name: "Light" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+
+    // And System hands control back to the device, which is the one state that
+    // leaves the attribute off.
     await page.getByRole("radio", { name: "System" }).click();
     await expect(root).not.toHaveAttribute("data-theme", "dark");
+    await expect(root).not.toHaveAttribute("data-theme", "light");
+  });
+
+  test("one tap on the landing header flips the theme", async ({ page }) => {
+    await page.goto("/");
+    const root = page.locator("html");
+    await expect(root).toHaveAttribute("data-theme", "dark");
+
+    // The icon says where the tap leads, not where you already are.
+    await page.getByRole("button", { name: "Switch to light theme" }).click();
+    await expect(root).toHaveAttribute("data-theme", "light");
+
+    await page.reload();
+    await expect(root).toHaveAttribute("data-theme", "light");
+    await page.getByRole("button", { name: "Switch to dark theme" }).click();
+    await expect(root).toHaveAttribute("data-theme", "dark");
   });
 
   test("two-step sign in is offered to the person who runs the Pot", async ({ page }) => {
@@ -110,11 +132,11 @@ test.describe("account and landing for signed-in people", () => {
     await expect(page).toHaveURL(/\/home/);
   });
 
-  test("the footer credits the hackathon the project was built for", async ({ page }) => {
+  test("the footer credits the challenge the project was entered in", async ({ page }) => {
     await page.goto("/");
-    const credit = page.getByRole("link", { name: /Pixel Forge AI/ });
+    const credit = page.getByRole("link", { name: /Prometheus August AI Challenge/ });
     await expect(credit).toBeVisible();
     await expect(credit).toHaveAttribute("href", /devpost\.com/);
-    await expect(page.getByText("Made for the Pixel Forge AI Hackathon")).toBeVisible();
+    await expect(page.getByText("Built for the Prometheus August AI Challenge")).toBeVisible();
   });
 });

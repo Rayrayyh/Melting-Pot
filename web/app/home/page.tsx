@@ -7,7 +7,7 @@ import {
   ReviewQueueModule,
   RevisionRequestedModule,
 } from "@/components/home/attention-modules";
-import { ContributionStreak } from "@/components/home/contribution-streak";
+import { ContributionRecord } from "@/components/home/contribution-record";
 import { HomeJoinCard } from "@/components/home/home-join-card";
 import { PotStatCard } from "@/components/home/pot-stat-card";
 import { UserShell } from "@/components/shell/user-shell";
@@ -157,7 +157,10 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
                   with what their classes are doing. */}
               {dashboard.isMaintainerAnywhere ? (
                 <>
-                  <ActivityList items={dashboard.activity} />
+                  <ActivityList
+                    items={dashboard.activity}
+                    contributeHref={`/p/${dashboard.pots[0].id}/contribute`}
+                  />
                   <Card>
                     <CardSection className="space-y-2.5">
                       <p className="text-sm font-semibold text-ink">Have a class code?</p>
@@ -173,13 +176,16 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
                       <HomeJoinCard initialCode={joinCode} initialError={joinError} />
                     </CardSection>
                   </Card>
-                  <ActivityList items={dashboard.activity} />
+                  <ActivityList
+                    items={dashboard.activity}
+                    contributeHref={`/p/${dashboard.pots[0].id}/contribute`}
+                  />
                 </>
               )}
               {/* Personal recognition sits last and streams on its own, so its
                   query never delays what needs the reader's attention. */}
               <Suspense fallback={null}>
-                <ContributionStreak
+                <ContributionRecord
                   userId={user.id}
                   contributeHref={`/p/${dashboard.pots[0].id}/contribute`}
                 />

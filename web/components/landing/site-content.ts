@@ -11,7 +11,7 @@ import {
 /** Shared copy for the public pages, so the landing and the standalone
  *  pages describe the product in exactly the same words. */
 
-export const REPO_URL = "https://github.com/Rayrayyh/Meltingpot";
+export const REPO_URL = "https://github.com/Rayrayyh/Melting-Pot";
 
 export const STEPS: { number: string; icon: Icon; title: string; body: string }[] = [
   {
