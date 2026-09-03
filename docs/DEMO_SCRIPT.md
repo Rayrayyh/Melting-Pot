@@ -1,109 +1,189 @@
-# Two minute demo script
+# The demo video: rubric and script
 
-For the Prometheus August AI Challenge. The cap is hard: the rules say
-anything past 2:00 is not watched. The first draft carried 279 narration
-words, which is two minutes of continuous speech before a single pause, so
-this cut holds the narration near 210 words and lands at about 1:50 with
-the mandated silences included. Read it aloud against a stopwatch before
-recording; if the table read passes 1:45, cut more, do not talk faster.
+Two minutes, hard cap. Everything below is written against the state of the
+live demo Pot on 2026-09-02, checked in the database rather than remembered:
+class code HXU863, five live notes, one correction waiting for review, one
+saved flashcard deck, three saved practice tests, twenty first pass answers
+from two students, and a teaching readout that returns five real topics with
+osmosis and tonicity missed four times out of four. Every beat in the script
+is a thing the recording can actually reach today.
 
-The rubric gives 25 points to the pitch and 25 to "AI is core to the
-functionality, not just an afterthought". Both are won in the same place, by
-showing the model doing work rather than saying that it does.
+## Part one: the rubric
 
-## Shape
+Grade your own cut before anyone else does. Four sections of 25, the same
+four the challenge scores, plus a craft section that costs nothing but
+decides whether the other four land. Mark each line yes or no. A no is a
+reshoot, not a note for next time.
 
-Four beats. Problem, student, teacher, close. No logo animation, no feature
-tour, no talking head over slides. Screen recording with voiceover throughout.
+### Educational impact, 25
+
+| Points | What earns them |
+|---|---|
+| 8 | A real student problem is named in the first fifteen seconds, in one sentence, without the product in it |
+| 7 | The video shows a class getting something it did not have before, not a person using an app |
+| 6 | A teacher outcome appears: something a teacher would act on tomorrow morning |
+| 4 | The learning stays with people. Nothing in the video suggests the machine decides what is true |
+
+### Creative use of AI, 25
+
+| Points | What earns them |
+|---|---|
+| 9 | The model does visible work on screen, in real time, on input the viewer watched being typed |
+| 6 | The output is not a summary. It is structured, placed, and reusable by the class |
+| 6 | The two refusals are shown, not claimed: an uncertain passage flagged for a person, and the engine named on the note |
+| 4 | A second AI surface appears (study material built from the shared notes, or the readout reading real answers) |
+
+### Technical execution, 25
+
+| Points | What earns them |
+|---|---|
+| 8 | It is the live site, not a local build. The URL is visible at least once |
+| 7 | Nothing breaks, hangs past its loading state, or shows a placeholder |
+| 5 | Two accounts and two roles appear, so the permission model is visible rather than described |
+| 5 | The interface reads as one product: same type, same orange, same spacing in every shot |
+
+### Pitch and demo, 25
+
+| Points | What earns them |
+|---|---|
+| 8 | One story from start to finish, no feature tour, no menu wandering |
+| 7 | Narration and picture agree at every moment. Nothing is described before or after it happens |
+| 6 | It ends on the class, not on the product, and the last sentence is the one worth quoting |
+| 4 | Under 2:00 with room to spare, and the first five seconds hold attention on their own |
+
+### Craft, pass or fail
+
+Not scored by anyone, and it sinks the rest if it fails.
+
+- 1920 by 1080, 30fps or better, browser at 100 percent zoom, no bookmarks bar, no notifications, no dev tools.
+- One voice, one take per beat, no music bed louder than the voice. If there is no voiceover, captions carry every narration line.
+- Cursor moves deliberately. No hunting, no overshoot, no clicking twice.
+- Dark theme throughout, or light throughout. Not both.
+- Every wait is either real and under three seconds, or cut. Never speed ramp a model call and never fake one.
+- Nobody's real name or email is on screen except the demo accounts.
+
+**Pass bar: 85.** Under that, the weakest section is the reshoot.
+
+## Part two: the script
+
+Narration is 214 words, which is about 95 seconds of speech. The rest is
+silence over the picture, on purpose. Read it aloud against a stopwatch
+before recording. If the table read runs past 1:45, cut a sentence. Do not
+talk faster.
 
 | Beat | Runs | Ends at |
 |---|---|---|
-| 1. The problem | 0:14 | 0:14 |
-| 2. A student writes and shares | 0:44 | 0:58 |
-| 3. The teacher finds out what to reteach | 0:38 | 1:36 |
-| 4. Close | 0:14 | 1:50 |
+| 1. The problem | 0:12 | 0:12 |
+| 2. A student writes badly on purpose | 0:40 | 0:52 |
+| 3. The class corrects it | 0:30 | 1:22 |
+| 4. The teacher finds out what to reteach | 0:24 | 1:46 |
+| 5. Close | 0:12 | 1:58 |
 
----
+### Beat 1: the problem (0:00 to 0:12)
 
-## Beat 1: the problem (0:00 to 0:15)
+**On screen:** the live landing, cold, at the hero. Hold five seconds with no
+scrolling, then one slow scroll to the three doors and stop.
 
-**On screen:** open cold on the landing hero: the headline over the tilted
-Human Biology product shot. Hold it five seconds, no scrolling. The melt
-moved down the page; the hero now makes the argument on its own.
-
-> Every class produces knowledge all day, and almost none of it survives.
-> Good notes nobody sees. Answers forty scrolls up in the group chat.
+> Every class produces knowledge all day. Almost none of it survives.
+> Good notes nobody else sees. The answer, forty scrolls up in a group chat.
 >
-> Meltingpot is where a class keeps it all.
+> Meltingpot is where a class keeps it.
 
-## Beat 2: a student writes and shares (0:15 to 1:00)
+### Beat 2: a student writes badly on purpose (0:12 to 0:52)
 
-**On screen:** join with a class code, land in the Pot without an account
-wall. Then Add contribution. Paste something genuinely messy: lowercase, no
-punctuation, an "i think" that is not certain.
+**On screen:** enter HXU863, land on the Pot preview before any account
+wall, then sign in as the student. Open Add contribution and type, live, a
+messy paragraph with no capitals and one honest doubt, for example: `osmosis
+is water moving to where there's more solute i think. hypertonic = cell
+shrinks?? never remember which way`.
 
-> A student joins with a six character code and sees the class
-> before making an account. Then they write, badly, on purpose.
+> A six character code, and you see the class before you make an account.
+> Then you write, badly, on purpose.
 
-**On screen:** hit the organize button. Let the wait screen run. When it
-lands, hold on the split view for a beat, then point at two things.
+**On screen:** press the organize button. Let the real wait run. When it
+lands, hold on the split view: original on one side, organized on the other.
+Point the cursor at the flagged line, then at the engine name.
 
-> The model rebuilds it: title, structure, takeaways. The original never
-> changes.
+> The model rebuilds it. Title, structure, takeaways, placed in the right
+> section. Your original is never touched.
 >
-> Two refusals, on purpose. A claim it doubts is never fixed quietly, it is
-> flagged for a person. And it names the engine that wrote this, so you
-> always know what you are reading.
+> Two refusals matter here. The part you were unsure about is flagged for a
+> person rather than quietly fixed. And the note says which engine wrote it,
+> so nobody has to guess what they are reading.
 
-**On screen:** Share with class. Then the note in the feed.
+**On screen:** Share with class. The stirring card appears if this is the
+first thing counted today. Let it play, click Back to it, then show the note
+live in the feed.
 
 > Nothing publishes itself. The student decides.
 
-## Beat 3: the teacher finds out what to reteach (1:00 to 1:40)
+### Beat 3: the class corrects it (0:52 to 1:22)
 
-**On screen:** cut to the owner's account. Pot, then Admin, then the Study
-tab. Scroll past the per-member record to the readout. Click "Read the
-results". Hold while it thinks, then let the result sit on screen long
-enough to actually read one item.
+**On screen:** as the second student, open a shared note, select the wrong
+sentence, and send a correction with a reason. Then switch to the maintainer
+account and open the review queue with the correction waiting in it.
 
-> Now the teacher. The class has been sitting practice tests built from
-> their own notes.
+> A classmate spots something wrong. They select the sentence and send a fix
+> with their reasoning attached.
+
+**On screen:** accept it. Land on the updated note, then open the version
+history and hold on the three names.
+
+> A maintainer decides, not the model. The note updates, and the history
+> keeps every version and all three people: who wrote it, who fixed it, who
+> approved the fix.
+
+### Beat 4: the teacher finds out what to reteach (1:22 to 1:46)
+
+**On screen:** still as the maintainer, open the Pot's admin page and the
+teaching readout. Hold on the topic it names and the counts underneath.
+
+> The same shared notes become flashcards and practice tests, and the class
+> sits them. Those answers become the one thing a teacher cannot get any
+> other way.
 >
-> The database counts the misses by note. The model reads those counts and
-> says what to reteach, with one concrete thing to try.
+> Twenty first attempts from this class say osmosis and tonicity was missed
+> four times out of four. Not a guess about the class. Their own work,
+> counted.
 
-**On screen:** scroll to the counts table underneath.
+### Beat 5: close (1:46 to 1:58)
 
-> The numbers are the database's, not the model's, printed underneath so
-> the claim can be checked. No student is named or ranked anywhere.
+**On screen:** the Pot feed with five notes and two contributors, then the
+live URL held still for the last three seconds.
 
-## Beat 4: close (1:40 to 1:52)
-
-**On screen:** the Pot feed with several notes, then hold on the landing.
-
-> One class, one set of notes worth revising from, and a teacher who knows
-> what to say on Monday.
+> One class, one code, and a vault that gets better every time somebody
+> corrects it.
 >
-> Meltingpot. Open source, and live now.
+> Meltingpot. Everything your class knows, in one Pot.
 
----
+## Before you record
 
-## Recording notes
+Check each of these in the live site, in this order. Fifteen minutes.
 
-- **Record at 1920x1080.** The app is desktop first and the admin tables need
-  the width.
-- **Dark theme.** It is the default now, so record in it unless you flip the header toggle on camera; the light theme reads better compressed if you do.
-- **Set the model key before recording.** The whole of beat 2 depends on the
-  organizer being the model and not the fallback, and the on-screen credit
-  will say which one it was. This is the exact failure that spoiled the last
-  recording; now it is visible rather than silent, which is better but only
-  if you check it before you press record.
-- **Have the practice results in place first.** The readout will refuse to
-  say anything under twenty first-pass answers from two people, and that
-  refusal on camera would cost the whole beat.
-- **Do not speed up the model waits.** A visible two second wait is evidence
-  that something is being computed. Cutting it looks like a mock.
-- **Cut on action, not on silence.** Every cut here lands on a click.
-- **Say the sentence about the counts.** "The numbers are the database's, not
-  the model's" is the one line that separates this from a project that asks a
-  chatbot for an opinion, and it is worth a quarter of the score.
+1. Sign out entirely and load the landing. The hero renders, the three doors
+   render, the demo code shows HXU863.
+2. Enter HXU863 signed out. The preview appears with no account wall.
+3. Sign in as the student and open Add contribution. The composer loads and
+   the organize button is enabled.
+4. Confirm the model is live: organize a throwaway note and check the engine
+   name appears. Delete the draft afterwards.
+5. Confirm one correction is waiting in the maintainer's review queue. If
+   there is none, send one from the second account before recording.
+6. Open the admin page and confirm the readout names a topic with counts.
+7. Set the theme once and leave it. Collapse nothing, dismiss the
+   notification card, and clear any half finished drafts from the sidebar.
+8. Record beat 2's model call last if you are worried about time. It is the
+   only shot that depends on a live call finishing.
+
+## What to cut first if it runs long
+
+In this order, and no further:
+
+1. The scroll to the three doors in beat 1.
+2. The stirring card in beat 2. It is a flourish, not evidence.
+3. The version history hold in beat 3, down from four seconds to two.
+4. The first sentence of beat 4's narration.
+
+Never cut: the organize call, the flagged line, the engine name, the
+maintainer accepting the correction, or the readout's counts. Those five are
+the video.
