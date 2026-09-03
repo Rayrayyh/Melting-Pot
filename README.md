@@ -52,13 +52,17 @@ It refuses a few things on purpose. No student is named, counted, or compared: t
 
 The dashboard is role aware. Students land on their own unfinished drafts and any corrections that came back asking for revision. Maintainers land on the queue of corrections waiting for their review across every Pot they maintain. Pot cards carry live member, note, and correction counts and a continue link back to the last note you read.
 
+The Contributions page is one person's own year. A stream draws every week of the last twelve months as a cluster of droplets across the four terms, each droplet a day and its size how much landed, with the run so far boxed at the right hand end. Beside it are the counts that have anything in them, and underneath, a band of six steps that follows a note from a rough draft to the class and through the corrections that come after it.
+
+The record behind that stream counts the days somebody put something in or took something out: a note shared, a study round finished, a correction accepted or one reviewed, a resource attached to a shared note. Days are cut where the reader is rather than in UTC, the week runs Monday to Sunday with today ringed and no day ever marked as missed, and a quiet stretch shows the longest run already managed instead of a zero. It is private, and nothing about it opens by itself. The single exception is the first action that counts on a given day, which ends with a card of the pot mid stir and a line that will be different tomorrow.
+
 Search reaches notes, sections, study summaries, and flashcards across every Pot you belong to, filtered by kind and by Pot and ordered by recency or by how many times a note has been corrected.
 
 Maintainers can take a note out of a Pot with a reason and put it back, delete a generated set, and delete cards. Removal is not deletion: the note leaves the feed, search, and study material, its page says who removed it and why, and every version and everyone credited stays on the record. Pot settings lists what is out with a way back. Deleting or archiving the Pot itself stays with the owner.
 
 Inside a Pot: a shared feed with section filters, full text search across titles, content, contributors, and attachments, file uploads (images including phone camera HEIC, PDFs, documents) and links that stay connected from draft through publication, version history with the complete attribution trail, and maintainer tools for sections, roles, class code regeneration, and archiving with a way back. Light and dark themes throughout, reduced motion respected, and a landing page whose scroll sequence melts a messy note into an organized one.
 
-Account settings hold the theme (dark by default, light, or follow your device) with a one tap switch in the public header, and, for the people who run a Pot, two-step sign in with an authenticator app such as Google Authenticator. That one is enforced rather than advertised: turning it on adds a code step to every later sign in, and the test suite proves it by playing the authenticator itself.
+Account settings hold the theme (dark by default, light, or follow your device) with a one tap switch in the public header, and, for the people who run a Pot, two-step sign in with an authenticator app such as Google Authenticator. That one is enforced rather than advertised: turning it on adds a code step to every later sign in, and the test suite proves it by playing the authenticator itself. A password can be changed there too, against the same five rules signup applies, and changing it ends every other session, so a password somebody else has learned stops working everywhere rather than only on the device that noticed.
 
 Sign in is an email and a password, behind a provider seam in `web/lib/auth`: everything the app needs from an identity provider is described in the product's own words, so moving to a hosted provider such as Clerk is an implementation behind that interface rather than a rewrite of every page. `docs/AUTH.md` explains the contract and what a swap actually costs.
 
@@ -84,9 +88,13 @@ Pot settings with maintainer section management, in the dark theme:
 
 ![Settings in dark theme](docs/screenshots/settings-dark.png)
 
-Account settings: theme, and two-step sign in for the person who runs the Pot:
+Account settings: theme, a password change that ends every other session, and two-step sign in for the person who runs the Pot:
 
 ![Account settings](docs/screenshots/account-settings.png)
+
+The Contributions page: a year of one person's own work as a stream, the counts beside it, and the journey a note takes underneath:
+
+![Contributions](docs/screenshots/contributions.png)
 
 ## How this was built
 
@@ -98,7 +106,11 @@ Entered in the [Prometheus August AI Challenge](https://august-ai-challenge-3105
 
 Next.js 16 (App Router, TypeScript, Tailwind) in `web/`, on Supabase for Postgres, auth, and file storage, hosted on Netlify. Security is enforced in the database, not the client: row level security on every table, privileged transitions through security definer functions that re-validate the caller at time of use, database enforced rate limiting on every sensitive operation (sized so an entire class behind one school network can sign up together), and an API surface closed down to exactly what the app uses. Anonymous visitors can reach two functions: look up a class code and register. Shared notes and their versions can only be written through the reviewed publish paths.
 
-The build is covered by 186 unit tests and 53 Playwright end to end tests over every core flow, plus two adversarial review passes whose confirmed findings, from access control holes to a diff that could hang a browser tab, were all fixed and are documented in the build log. Both study sessions are written as reducers, so how a deck is walked and how a test is marked are unit tests rather than browser tests. A Checks workflow runs lint, types, unit tests, and a production build on every push and pull request.
+What a maintainer does to somebody else's work is on the record. Accepting or declining a correction, changing a role, removing a member, taking a note or a study set out and putting it back: each one writes a row to an audit table, and the writing is done by database triggers rather than by the app, so a code path that forgets to log cannot exist. Maintainers read their own Pot's entries and nobody else's. Nobody writes one, because the table has no insert policy at all.
+
+Server actions check their input against a schema before the database sees it. That is a second line and not the first: the definer functions still re-validate everything, and this only means a malformed call fails with a sentence instead of a database error. An outside scan of the live site through vibecodesecure.com returned 100 out of 100 with no failed checks on its third run, up from 80 on the first, and `docs/ARCHITECTURE.md` writes out the four trust boundaries and what each component can read.
+
+The build is covered by 275 unit tests across 21 files and 55 Playwright end to end tests over every core flow, plus several adversarial review passes whose confirmed findings, from access control holes to a diff that could hang a browser tab, were all fixed and are documented in the build log. Twenty of those unit tests are not unit tests in the usual sense: they point a real anonymous client at the live project and assert that all sixteen tables holding a class's work return nothing, so the boundary is measured from outside rather than inferred from the policy text. Both study sessions are written as reducers, so how a deck is walked and how a test is marked are unit tests rather than browser tests. A Checks workflow runs lint, types, unit tests, and a production build on every push and pull request.
 
 ## Running it locally
 
@@ -168,11 +180,15 @@ demo. The key is only ever read on the server and never reaches the browser.
 ## Repo map
 
 - `docs/SPEC.md`: the authoritative product spec
+- `docs/ARCHITECTURE.md`: the trust boundaries, what each component can read, and how one class is kept out of another
 - `docs/PLAN.md`: the execution plan with per step status
 - `docs/BUILDLOG.md`: what was built, found, and fixed, step by step
 - `docs/AUTH.md`: the authentication seam and how to swap the provider
-- `memory/`: decisions and lessons recorded as they happened
-- `supabase/migrations/`: the full schema, security, and function history
+- `docs/DEMO_SCRIPT.md`: the rubric the demo video was graded against, and the script it follows
+- `docs/UI_RULES.md` and `docs/UI_CHECKLIST.md`: the interface rules this build holds itself to, and the pass over them
+- `docs/STREAK_RESEARCH.md`: background, not required reading. What sixteen products do about streaks, and what this one refuses to copy
+- `memory/`: 36 decisions and 12 lessons, recorded as they happened
+- `supabase/migrations/`: 50 files numbered 0001 to 0045, the full schema, security, and function history
 - `web/`: the app
 
 ## License
