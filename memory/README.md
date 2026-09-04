@@ -31,8 +31,20 @@ This directory is the project's knowledge base. It makes the repo, not chat hist
 - 010 Orange brand rework: cream paper, orange primary, pot-and-m mark, Fraunces display, pill buttons; supersedes the green palette
 - 011 Account surface and two-step sign in: profile at the foot of the nav, theme and security in /me/settings, enrolment paired with a real login challenge, landing open to signed-in people, mark with no tile
 - 012 Google sign in on Supabase Auth rather than Firebase (asked for, declined with reasons), gated behind an env flag; contributor activity on the Pot home; restrained landing motion
+- 012 Maintainers see study results by owner decision: first passes only, alphabetical, no ranking and no single overall score
 - 013 Auth seam in lib/auth: Google OAuth removed, provider selection by env, Clerk slot present and unimplemented, one marked exception in proxy.ts
-
+- 014 Generated study material is stored per Pot keyed by a fingerprint of its sources; removal is never deletion
+- 015 The light-mode brand orange had to darken to be readable, measured rather than guessed
+- 016 A correction is organized before it is sent, not when it is accepted, so the proposer sees their own work first
+- 017 The product says mixing and never the model's name; identifiers live in configuration only
+- 017 The loading mark is the pot, stirring, drawn as a pure function of one clock
+- 018 Changing a setting looks things up quietly and never rebuilds the page
+- 018 The maintainer's page is the Pot's record, not just its queue: Review, Contributions, History, Removed
+- 019 A flashcard is one card with two faces turning on its axis, not two cards crossfading
+- 019 The organizer may disagree with a note, but never edit it
+- 020 Dark is the default theme, and one stored choice covers every surface
+- 021 The project is entered in the Prometheus August AI Challenge, and the earlier record is not rewritten
+- 022 The teacher gets a readout of what the class is shaky on, and the model never touches the numbers
 - 023 A demo Pot and a guided walkthrough for brand new accounts (idea, not built)
 - 024 The landing hero shows the product: cropped tilted Pot page mock replaces the illustration
 - 025 The landing scrolls natively: the Lenis wheel hijack removed after owner testing found it jittery
@@ -51,3 +63,16 @@ This directory is the project's knowledge base. It makes the repo, not chat hist
 - 005 RLS is authorization, not a query filter; queries still filter user_id themselves
 - 006 E2e suites reseed via guarded dev_reseed in global setup; lazily-created resources need in-flight guards
 - 007 Re-check authorization at time of use: RPC membership guards, WITH CHECK on mutable columns, matching policy pairs, server-side staleness checks
+- 008 One flag driving two buttons takes the way out away; cancel is never the thing to disable
+- 009 An identity transform still captures `position: fixed`, so a full-screen overlay rendered in place is not full screen
+- 010 The left of X-Forwarded-For belongs to the caller, not to you
+- 011 Re-emitting a plpgsql function body discards every guard you did not look at
+- 012 A rebuild under a running server looks exactly like an app bug
+
+## A note on the numbering
+
+The rule above says numbers are never reused. Four were, on days when two
+decisions were written in parallel: 012, 017, 018 and 019 each name two files.
+They are listed twice above, in filename order, and the files are not being
+renumbered because other documents already cite them by number. The rule
+stands; these four are the exceptions, recorded rather than tidied away.

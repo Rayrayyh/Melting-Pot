@@ -212,6 +212,8 @@ Feel: calm, modern, academic, collaborative, human, fast.
 
 Use: Inter typography, Lucide-style icons, white, gray, and black, simple borders, minimal shadows, rounded cards, clear spacing, strong information hierarchy.
 
+Superseded in part. Icons are Phosphor, not Lucide (`memory/decisions/005`), and the ground is cream paper rather than white, gray and black (`memory/decisions/010`). Inter still carries the interface, joined by Fraunces for display headlines, Baloo 2 for the lowercase wordmark and Source Serif 4 for note bodies. Borders, shadows, cards, spacing and hierarchy are as written.
+
 Functional color only for success, warnings, errors, additions, removals, and pending review. Do not establish a permanent brand color system yet.
 
 Avoid: gradients, glowing AI effects, purple AI branding, dense control panels, developer terminology, childish gamification, social-media styling, large chatbot interfaces.
@@ -221,6 +223,8 @@ Do not use emojis. Do not use em dashes.
 ### Front-End Design Direction
 
 Warm, academic feel. Off-white paper-like background, white surfaces, dark charcoal text, deep forest green for primary actions, small clay accents for contribution-related moments. Persistent left navigation, spacious central content area, optional contextual side panels. Inter for interface elements, optionally Source Serif 4 for long-form shared notes. Flat cards with subtle borders, restrained shadows, rounded corners, generous whitespace, strong hierarchy. AI appears through simple progress states and organized previews. The final interface should feel like a calm digital study room combined with a serious collaborative productivity tool.
+
+Superseded on the palette only, by the owner on 2026-08-19 (`memory/decisions/010`): deep forest green primary was replaced by brand orange on cream, #ab5a14 in light and #f19a44 in dark, darkened from the first orange for contrast by `memory/decisions/015`. Everything else in this paragraph still holds, and the one sanctioned gradient is the one inside the brand mark SVGs.
 
 ## Copy Direction
 

@@ -4,6 +4,13 @@ Audited 2026-08-24 against `docs/UI_RULES.md`. Every row was checked by reading
 the code or the rendered page, not assumed. Seven failed. All seven are fixed;
 each says what changed and where.
 
+**This is a dated measurement, not a current claim.** Everything recorded in
+`memory/decisions/024` through `032` landed after this audit: the hero product
+shot, native scroll on the landing, the three doors in section two, the folding
+sidebar, the app's own select and scrollbar, the record card, the class
+standing and the stir. None of it has been run against the sixty rules. Treat
+the score below as what was true on 2026-08-24.
+
 Legend: **Pass** already held. **Fixed** failed the audit and was corrected in
 this pass. **N/A** does not apply to this product.
 
@@ -127,6 +134,9 @@ this pass. **N/A** does not apply to this product.
 | Passed as built | 53 |
 | Failed and fixed | 7 |
 | Still failing | 0 |
+
+Counted on 2026-08-24, against the build of that date. Screens added since have
+not been checked against the list.
 
 The seven: R12 settings placement, R21 number alignment, R38 button states,
 R44 empty state, R57 missing landmark, R58 missing skip link, R60 the honesty
