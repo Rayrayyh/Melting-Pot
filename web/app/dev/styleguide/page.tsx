@@ -40,7 +40,7 @@ export default function StyleguidePage() {
 
   return (
     <AppShell
-      displayName="Ada Lovelace"
+      displayName="Adam"
       email="ada@example.com"
       nav={
         <MainNav
@@ -55,7 +55,7 @@ export default function StyleguidePage() {
           id: "review-1",
           kind: "review",
           title: "Osmosis and tonicity",
-          detail: "Priya Patel sent a correction",
+          detail: "Adam sent a correction",
           potTitle: "Biology 101",
           href: "#",
           at: new Date().toISOString(),
@@ -66,7 +66,7 @@ export default function StyleguidePage() {
           id: "note-1",
           kind: "note",
           title: "Membrane transport summary",
-          detail: "Omar Haddad shared a note",
+          detail: "Ibrahim shared a note",
           potTitle: "Biology 101",
           href: "#",
           at: new Date().toISOString(),
@@ -218,12 +218,12 @@ export default function StyleguidePage() {
           <Eyebrow>Attribution</Eyebrow>
           <Card>
             <CardSection className="space-y-4">
-              <AttributionRow name="Ava Morgan" meta="Shared 2 hours ago in Week 2: Cell cycle" />
-              <AttributionRow name="Omar Haddad" meta="Correction accepted yesterday" size="sm" />
+              <AttributionRow name="Rayyan" meta="Shared 2 hours ago in Week 2: Cell cycle" />
+              <AttributionRow name="Ibrahim" meta="Correction accepted yesterday" size="sm" />
               <div className="flex items-center gap-2">
-                <Avatar name="Ada Lovelace" size="lg" />
-                <Avatar name="Grace Hopper" size="md" />
-                <Avatar name="Mae Jemison" size="sm" />
+                <Avatar name="Adam" size="lg" />
+                <Avatar name="Ahmad" size="md" />
+                <Avatar name="Amy" size="sm" />
               </div>
             </CardSection>
           </Card>
