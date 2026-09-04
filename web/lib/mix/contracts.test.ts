@@ -108,4 +108,25 @@ describe("normalizeOrganizedNote checks", () => {
     );
     expect(result.checks).toHaveLength(6);
   });
+
+  it("strips the prompt's own SOURCE NOTE label out of a source title", () => {
+    const out = normalizeStudyResult("practice", {
+      title: "Biology Practice Test",
+      questions: [{
+        prompt: "What happens to a cell in a hypertonic solution?",
+        choices: ["It shrinks", "It swells", "It stays the same", "It divides"],
+        answerIndex: 0,
+        explanation: "Water leaves the cell.",
+        sourceNoteTitle: "SOURCE NOTE 8: Osmosis and tonicity",
+      }],
+    }, 5) as { questions: { sourceNoteTitle: string }[] };
+    expect(out.questions[0].sourceNoteTitle).toBe("Osmosis and tonicity");
+  });
+
+  it("leaves a title that merely mentions a source alone", () => {
+    const out = normalizeStudyResult("flashcards", {
+      cards: [{ front: "f", back: "b", sourceNoteTitle: "Sources of ATP", tags: [] }],
+    }) as { cards: { sourceNoteTitle: string }[] };
+    expect(out.cards[0].sourceNoteTitle).toBe("Sources of ATP");
+  });
 });
