@@ -3,7 +3,6 @@ import type { Json } from "@/lib/database.types";
 import { normalizeStudyResult, studySchemas, type StudyKind } from "@/lib/mix/contracts";
 import {
   FAST_MODEL,
-  REASONING_MODEL,
   MixError,
   generateStructured,
   mixingConfigured,
@@ -35,7 +34,22 @@ const NO_STORE = { "Cache-Control": "no-store, no-cache, must-revalidate" };
  */
 export const maxDuration = 26;
 
+/**
+ * When the model call must be finished by, measured from the start of the
+ * request rather than from the start of the call.
+ *
+ * The mixing budget in lib/mix/server.ts counts from the moment mixing begins,
+ * which is several seconds after the request arrives: reading the session,
+ * checking membership, and loading the notes all happen first. 24 seconds of
+ * mixing on top of that overran the 26 above, so the platform severed the call
+ * and the caller got a gateway error instead of the sentence this route means
+ * to send. Deadlining from the request start keeps the give-up inside this
+ * code, which is what the comment above always claimed.
+ */
+const MIX_DEADLINE_MS = 22_000;
+
 export async function POST(request: Request) {
+  const startedAt = Date.now();
   const supabase = await supabaseServer();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "not_authenticated" }, { status: 401 });
@@ -167,10 +181,19 @@ export async function POST(request: Request) {
     : kind === "flashcards"
       ? "Create 12-20 useful recall flashcards. Avoid duplicates and trivia."
       : `Create a ${options.questionCount}-question multiple-choice practice test. Use exactly four plausible choices per question and explain the correct answer. ${difficultyBrief(options.difficulty)}`;
-  const model = kind === "practice" ? REASONING_MODEL : FAST_MODEL;
+  // Every study kind is written by the fast model. The practice test used the
+  // reasoning model until a live check showed it could not finish inside the
+  // platform's 26 second ceiling at any Pot size tried, including the five
+  // notes it had been working at: three separate settings all returned a
+  // gateway error at about 25.5 seconds. A test the class can actually build
+  // beats a stronger model that never returns one. The reasoning tier is now
+  // reserved for the teaching readout, which is the one call with no
+  // rule-based fallback and the one that must never invent a reading.
+  const model = FAST_MODEL;
   try {
     const generated = await generateStructured<unknown>({
       model,
+      deadlineAt: startedAt + MIX_DEADLINE_MS,
       instruction: [
         task,
         "Use only the supplied class notes. Do not add outside facts.",
