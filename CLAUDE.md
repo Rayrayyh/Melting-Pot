@@ -2,7 +2,7 @@
 
 meltingpot.io is a responsive desktop-first web app where students in a class collaboratively build a shared vault of knowledge. A class space is a Pot. Students join with a six-character class code, write completely unformatted notes, an organizer structures them, and the student approves before anything is shared. Corrections to shared notes go through maintainer review. Entered in the Prometheus August AI Challenge, which asks for an educational tool where AI/ML is core to how people learn, teach, or absorb information, and requires an open-source repo (MIT license present), a hosted live URL, and a demo video.
 
-**Submission deadline: Monday 2026-08-31, 11:45 AM Pacific** (18:45 UTC), per the owner on 2026-08-30; this supersedes the Saturday 11:45pm wall recorded earlier. Scope decisions bend toward shipping before it.
+**Deadline:** originally Monday 2026-08-31, 11:45 AM Pacific (18:45 UTC), extended since. The entry is in and judging follows, so anything changed now is changed on a project being reviewed. Prefer a verified small change over an unverified large one.
 
 The judging rubric is 100 points in four equal parts: Educational Impact, Creative Use of AI/ML (their words: "AI is core to the functionality, not just an afterthought"), Technical Execution (codebase, UI, UX), and Pitch & Demo. The demo video is capped at two minutes and anything longer is not watched. `memory/decisions/021` records how this project came to be entered here.
 
@@ -17,7 +17,7 @@ The four historical vision PDFs and the pasted rules text were removed from the 
 
 ## Stack
 
-Next.js (App Router, TypeScript, Tailwind) in `web/`, Supabase (Postgres + Auth + Storage) with RLS enabled on every table, Netlify for hosting, Framer Motion (+ GSAP where a timeline helps) for restrained animation. The AI organizer is a deterministic provider behind an interface (`memory/decisions/003-ai-organizer.md`); no live model calls in the MVP.
+Next.js (App Router, TypeScript, Tailwind) in `web/`, Supabase (Postgres + Auth + Storage) with RLS enabled on every table, Netlify for hosting, Framer Motion (+ GSAP where a timeline helps) for restrained animation. The AI runs on Google's Gemini API through `web/lib/mix/server.ts`, called only from authenticated server routes, with schema-constrained output and a hand-written normalizer per capability. The deterministic organizer (`memory/decisions/003-ai-organizer.md`) remains as the fallback when no key is configured, and the interface always names which one did the work (`memory/decisions/017-mixing-not-a-model-name.md`).
 
 ## Commands
 
@@ -54,8 +54,8 @@ Cream paper background (#faf4e6), warm white surfaces, near-black ink, brand ora
 
 ## Working agreements
 
-- Follow `docs/PLAN.md` step order; each step ends with lint + typecheck + build green, a commit, and a push to `claude/prometheus-august-challenge`.
-- All work stays on `claude/prometheus-august-challenge` until the project is finished. Do not merge it into `main`, do not open follow-up pull requests to move it there, and do not ask again each round: the owner merges when they decide the project is done. `main` being behind is expected, not a problem to solve.
+- Follow `docs/PLAN.md` step order; each step ends with lint + typecheck + build green, a commit, and a push to `claude/unified-nav`.
+- Work happens on `claude/unified-nav`. It has been merged to `main` twice, by pull requests #1 and #2, so `main` now carries the current build rather than trailing it. The owner decides when to merge again and opens the pull request themselves; do not open one without being asked.
 - Do not schedule recurring pull request check-ins or any other self-firing routine. Report on a PR when the owner asks, or when a GitHub event actually needs a decision.
 - When something breaks, check `memory/lessons/` first, and record any new lesson worth keeping.
 - Log every architectural or scope decision in `memory/decisions/` at the moment it is made.

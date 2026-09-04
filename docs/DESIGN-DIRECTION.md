@@ -10,6 +10,8 @@ The subject is a shared class vault: students pour rough knowledge in, the class
 
 Warm off-white paper, white surfaces, charcoal ink, deep forest green primary, small clay accents, functional color only with text labels, Inter UI type, Source Serif 4 for long-form note bodies, flat cards, subtle borders, restrained shadows, rounded corners, no gradients, no purple AI branding, no glowing effects, no chatbot UI, sentence case, no emojis, no em dashes. The skill flags warm-cream-plus-serif as a common AI default; here it is the brief's explicit direction, so it stays, and distinctiveness is earned elsewhere.
 
+Two of those pins moved after this file was written, on the owner's call rather than the skill's: the primary is brand orange on cream, not deep forest green (`memory/decisions/010`, darkened by `015`), and display headlines are Fraunces while Inter keeps the interface (`memory/decisions/005`). Every other pin in the paragraph above is still in force.
+
 ## Where the distinctiveness lives
 
 1. **Type as structure.** Inter carries the interface at a tight scale (11px eyebrows with wide tracking, 13px meta, 14px body, semibold titles). Source Serif 4 appears ONLY inside shared-note reading surfaces, so the moment of reading organized class knowledge feels physically different from operating the tool. The contrast between the two faces is the visual signal for "this is the vault itself".
