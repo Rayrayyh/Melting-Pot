@@ -24,21 +24,21 @@ const ADDED = "rounded px-0.5 bg-added-soft text-added no-underline";
 const PEOPLE = [
   {
     id: "ava",
-    name: "Ava Morgan",
+    name: "Rayyan",
     railDetail: "Wrote it and shared it with the class",
     owner: false,
     tone: "neutral",
     status: "Version 1",
     sentence: AS_WRITTEN,
     label: null,
-    credit: "First shared by Ava Morgan",
+    credit: "First shared by Rayyan",
     detail: null,
     reviewer: null,
-    footer: "This is how Ava wrote it. This version never goes away.",
+    footer: "This is how Rayyan wrote it. This version never goes away.",
   },
   {
     id: "omar",
-    name: "Omar Haddad",
+    name: "Ibrahim",
     railDetail: "Corrected one sentence",
     owner: false,
     tone: "pending",
@@ -50,7 +50,7 @@ const PEOPLE = [
       </>
     ),
     label: "Struck through is removed. Tinted is added.",
-    credit: "Correction proposed by Omar Haddad",
+    credit: "Correction proposed by Ibrahim",
     detail: {
       reason: "Incomplete",
       explanation:
@@ -59,25 +59,25 @@ const PEOPLE = [
     },
     reviewer: null,
     footer:
-      "The note has not changed yet. It stays as Ava wrote it until a maintainer decides.",
+      "The note has not changed yet. It stays as Rayyan wrote it until a maintainer decides.",
   },
   {
     id: "maya",
-    name: "Maya Chen",
+    name: "Adam",
     railDetail: "Read the correction and accepted it",
     owner: true,
     tone: "success",
     status: "Current",
     sentence: <mark className={ADDED}>{AS_CORRECTED}</mark>,
-    label: "Tinted words arrived in version 2, from Omar's correction.",
-    credit: "Correction by Omar Haddad, approved by Maya Chen",
+    label: "Tinted words arrived in version 2, from Ibrahim's correction.",
+    credit: "Correction by Ibrahim, approved by Adam",
     detail: null,
-    reviewer: "Maya wrote: Good catch, this matches the textbook.",
-    footer: "Version 1 is still here, exactly as Ava wrote it.",
+    reviewer: "Adam wrote: Good catch, this matches the textbook.",
+    footer: "Version 1 is still here, exactly as Rayyan wrote it.",
   },
 ] as const;
 
-// Maya last: the note as the class actually finds it, correction in and a
+// Adam last: the note as the class actually finds it, correction in and a
 // person's name on the approval. Everything before it is how it got there.
 const RESTING_STATE = 2;
 
@@ -155,7 +155,7 @@ export function NamesOnTheNote() {
                   Mitosis vs meiosis
                 </h3>
                 <AttributionRow
-                  name="Ava Morgan"
+                  name="Rayyan"
                   meta="Wrote this note"
                   size="sm"
                 />

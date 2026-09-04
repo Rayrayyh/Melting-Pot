@@ -190,6 +190,17 @@ export function normalizeOrganizedNote(value: unknown, validSectionIds: Set<stri
   };
 }
 
+/**
+ * The source notes are numbered "SOURCE NOTE 1: <title>" in the prompt so a
+ * question can point at one. A model may copy that whole label back into
+ * sourceNoteTitle, and a reader would then see "From SOURCE NOTE 2: Osmosis
+ * and tonicity" under their answer. The label is ours, not the note's, so it
+ * is stripped here rather than hoped away in the prompt.
+ */
+function sourceTitle(value: unknown): string {
+  return text(value, 160).replace(/^\s*SOURCE\s+NOTE\s*\d*\s*[:.\-]\s*/i, "").trim();
+}
+
 export function normalizeStudyResult(
   kind: StudyKind,
   value: unknown,
@@ -215,7 +226,7 @@ export function normalizeStudyResult(
       return {
         front: text(row.front, 500),
         back: text(row.back, 900),
-        sourceNoteTitle: text(row.sourceNoteTitle, 160),
+        sourceNoteTitle: sourceTitle(row.sourceNoteTitle),
         // Lower cased and deduplicated so a filter chip matches every card
         // that means the same thing, however the model capitalised it.
         tags: [...new Set(textList(row.tags, 6, 40).map((tag) => tag.toLowerCase()))],
@@ -232,7 +243,7 @@ export function normalizeStudyResult(
       return {
         prompt: text(row.prompt, 900), choices,
         answerIndex: answerIndex >= 0 && answerIndex < choices.length ? answerIndex : 0,
-        explanation: text(row.explanation, 900), sourceNoteTitle: text(row.sourceNoteTitle, 160),
+        explanation: text(row.explanation, 900), sourceNoteTitle: sourceTitle(row.sourceNoteTitle),
       };
     }).filter((question) => question.prompt && question.choices.length === 4),
   };

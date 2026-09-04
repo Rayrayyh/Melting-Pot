@@ -41,12 +41,12 @@ export function HeroDashboard() {
     ["US History", "73 notes"],
   ];
   const CONTRIBUTORS: [string, string][] = [
-    ["Ava Morgan", "12 notes"],
-    ["Omar Reyes", "9 notes"],
-    ["Priya Patel", "14 notes"],
-    ["Dan Whitfield", "7 notes"],
-    ["Lena Fischer", "6 notes"],
-    ["Sam Okafor", "5 notes"],
+    ["Rayyan", "12 notes"],
+    ["Ibrahim", "9 notes"],
+    ["Adam", "14 notes"],
+    ["Ahmad", "7 notes"],
+    ["Paul", "6 notes"],
+    ["Amy", "5 notes"],
   ];
   const SECTIONS = [
     "All sections",
@@ -58,10 +58,10 @@ export function HeroDashboard() {
   const NOTES: [string, string, string, string, string, string | null][] = [
     ["How cells make ATP",
      "The mitochondria produce ATP in stages, and the electron transport chain produces the most by far.",
-     "Ava Morgan", "2h ago", "Cellular respiration", "v2"],
+     "Rayyan", "2h ago", "Cellular respiration", "v2"],
     ["Osmosis and tonicity",
      "Water moves toward the higher solute concentration, so a hypertonic surrounding shrinks the cell.",
-     "Omar Reyes", "5h ago", "Membrane transport", null],
+     "Ibrahim", "5h ago", "Membrane transport", null],
   ];
   return (
     <div className="w-[1240px] overflow-hidden rounded-[20px] border border-edge-strong bg-surface">
@@ -118,8 +118,8 @@ export function HeroDashboard() {
                 <X className="ml-auto size-3 text-ink-faint" aria-hidden />
               </div>
               {[
-                ["Membrane transport summ...", "Priya shared a note"],
-                ["Osmosis and tonicity", "Priya sent a correction"],
+                ["Membrane transport summ...", "Rayyan shared a note"],
+                ["Osmosis and tonicity", "Rayyan sent a correction"],
               ].map(([t, d]) => (
                 <div key={t} className="flex gap-1.5 py-0.5">
                   <Notebook className="mt-px size-3 shrink-0 text-ink-faint" aria-hidden />
@@ -135,10 +135,10 @@ export function HeroDashboard() {
           <div className="flex-1" />
 
           <div className="flex items-center gap-2 border-t border-edge p-2">
-            <Avatar name="Maya Chen" size="md" />
+            <Avatar name="Adam" size="md" />
             <span className="min-w-0">
-              <span className="block truncate text-[12px] font-medium text-ink">Maya Chen</span>
-              <span className="block truncate text-[10px] text-ink-faint">maya@meltingpot.io</span>
+              <span className="block truncate text-[12px] font-medium text-ink">Adam</span>
+              <span className="block truncate text-[10px] text-ink-faint">adam@meltingpot.io</span>
             </span>
           </div>
         </div>

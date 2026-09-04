@@ -24,7 +24,7 @@ A class space is called a Pot. A teacher creates one and gets a six character cl
 
 Organization is the product, not a feature bolted onto it. Rough text is mixed into a structured note, and image attachments are captioned or transcribed when that helps. Every model call runs through authenticated server routes, treats note and attachment contents as untrusted source material, and returns schema-constrained data for normalization before the student sees it. The student's original remains untouched and nothing is shared without approval.
 
-The Pot home is also a study hub: raw notes, a class-wide summary, flashcards, and a practice test generated from shared material. A fast model handles organization, vision, summaries, and cards; a stronger one is reserved for writing practice tests. Both are named in configuration rather than in source. The deterministic organizer remains as a local fallback when neither is configured.
+The Pot home is also a study hub: raw notes, a class-wide summary, flashcards, and a practice test generated from shared material. A fast model handles organization, vision, summaries, cards, and practice tests; a stronger one is reserved for the teaching readout, which is the one call with no rule-based fallback. Both are named in configuration rather than in source. The deterministic organizer remains as a local fallback when neither is configured.
 
 Which engine did the work is always on screen. A note organized by the model says so and names it; a note the rule-based fallback had to finish says that instead, in plain words. The two produce visibly different writing and a reader cannot tell them apart from the output alone, so the app does not make them guess.
 
@@ -152,8 +152,8 @@ the AI not being set up at all, so check all three before hunting for a bug.
 
 | Variable | What it drives | Why that tier |
 | --- | --- | --- |
-| `FAST_MODEL` | organizing a note, reading image attachments, class summaries, flashcards | nearly every call goes here, so it wants something fast and cheap |
-| `REASONING_MODEL` | writing practice tests | question quality and the answer keys are where a stronger model earns its keep |
+| `FAST_MODEL` | organizing a note, reading image attachments, class summaries, flashcards, practice tests | nearly every call goes here, so it wants something fast and cheap, and it has to finish inside the host's 26 second ceiling |
+| `REASONING_MODEL` | the teaching readout | the only call with no rule-based fallback, so it is where a stronger model earns its keep |
 
 The code never hardcodes a model name, because provider identifiers change on
 their own schedule. The two above were current when this was written, so if
