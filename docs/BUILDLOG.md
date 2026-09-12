@@ -367,3 +367,7 @@ Known follow-ups, documented not built (feature gaps or minor polish, no securit
 
 - Flashcards print now, from a saved deck or from the hand-written cards on a note. Three sizes per sheet, Letter or A4, fronts page then backs page with every row reversed so a printer that flips on the long edge lands each back behind its front, dashed cut lines, corner crop marks and fold guides at the row centres. The print page renders the paper, not the app, and no answer key can reach it. Decision 036.
 
+## The day's quiz (2026-09-12)
+
+- Every Pot now has one quiz a day: five questions from the class's notes, the same for everyone, brought in by whoever opens the page first and spent from their own build quota. The fingerprint is the day itself, cut in UTC, so the store's existing uniqueness enforces the "one per day" without a new table. Taken once per person, marked on the server, and its answers feed what the class is shaky on. Decision 037.
+

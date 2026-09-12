@@ -764,6 +764,10 @@ export type Database = {
         Args: { p_attempt_id: string; p_set_id: string; p_answers: Json };
         Returns: Json;
       };
+      submit_daily_quiz: {
+        Args: { p_attempt_id: string; p_set_id: string; p_answers: Json };
+        Returns: Json;
+      };
       record_flashcard_run: {
         Args: {
           p_attempt_id: string;
