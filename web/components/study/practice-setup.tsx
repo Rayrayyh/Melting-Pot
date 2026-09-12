@@ -1,7 +1,7 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { Clock } from "@phosphor-icons/react";
+import { useState, type ReactNode } from "react";
+import { Check, Clock, MagnifyingGlass } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Stir } from "@/components/brand/stir";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
@@ -29,6 +29,7 @@ export function PracticeSetup({
   options,
   onChange,
   sections,
+  notes = [],
   hasSaved,
   checking,
   busy,
@@ -47,6 +48,8 @@ export function PracticeSetup({
   options: PracticeOptions;
   onChange: (next: PracticeOptions) => void;
   sections: Array<{ id: string; title: string }>;
+  /** The Pot's notes by title, for building from particular notes. */
+  notes?: Array<{ id: string; title: string }>;
   /** True when a test with exactly these settings is already in the Pot. */
   hasSaved: boolean;
   /** True while the store is being asked about the settings on screen. */
@@ -58,12 +61,26 @@ export function PracticeSetup({
   onBuild: () => void;
   onOpenSaved: () => void;
 }) {
+  const [noteQuery, setNoteQuery] = useState("");
+  // Notes and sections never hold a choice at the same time, so what the
+  // reader picked always means one thing when the request arrives.
+  function toggleNote(id: string) {
+    const noteIds = options.noteIds.includes(id)
+      ? options.noteIds.filter((noteId) => noteId !== id)
+      : [...options.noteIds, id].sort();
+    onChange({ ...options, noteIds, sectionIds: noteIds.length > 0 ? [] : options.sectionIds });
+  }
   function toggleSection(id: string) {
     const next = options.sectionIds.includes(id)
       ? options.sectionIds.filter((sectionId) => sectionId !== id)
       : [...options.sectionIds, id].sort();
-    onChange({ ...options, sectionIds: next });
+    onChange({ ...options, sectionIds: next, noteIds: next.length > 0 ? [] : options.noteIds });
   }
+
+  const query = noteQuery.trim().toLowerCase();
+  const matches = notes.filter((note) => note.title.toLowerCase().includes(query));
+  const visibleNotes = matches.slice(0, 30);
+  const pickedCount = options.noteIds.length;
 
   return (
     <Card>
@@ -130,17 +147,83 @@ export function PracticeSetup({
           </p>
         </fieldset>
 
-        {sections.length > 0 ? (
+        {notes.length > 0 ? (
           <fieldset className="space-y-2">
+            <legend className="text-[13px] font-medium text-ink">Which notes</legend>
+            <p className="text-[12px] text-ink-faint">
+              Build from particular notes, or leave this empty and choose by part below.
+            </p>
+            {notes.length > 8 ? (
+              <div className="relative">
+                <MagnifyingGlass
+                  className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-ink-faint"
+                  aria-hidden
+                />
+                <Input
+                  value={noteQuery}
+                  onChange={(event) => setNoteQuery(event.target.value)}
+                  placeholder="Search the notes"
+                  aria-label="Search the notes"
+                  className="pl-9"
+                />
+              </div>
+            ) : null}
+            {pickedCount > 0 ? (
+              <p className="text-[12px] text-ink-faint">
+                {pickedCount} {pickedCount === 1 ? "note" : "notes"} picked.{" "}
+                <button
+                  type="button"
+                  onClick={() => onChange({ ...options, noteIds: [] })}
+                  className="font-medium text-primary underline-offset-2 hover:underline"
+                >
+                  Clear
+                </button>
+              </p>
+            ) : null}
+            <div className="max-h-56 space-y-1 overflow-y-auto rounded-(--radius-control) border border-edge bg-surface p-1.5">
+              {visibleNotes.map((note) => {
+                const on = options.noteIds.includes(note.id);
+                return (
+                  <button
+                    key={note.id}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => toggleNote(note.id)}
+                    className={cn(
+                      "flex w-full items-center justify-between gap-2 rounded-full px-3.5 py-1.5 text-left text-[13px] transition-colors",
+                      on
+                        ? "bg-primary-soft font-medium text-primary"
+                        : "text-ink-muted hover:bg-sunken hover:text-ink",
+                    )}
+                  >
+                    <span className="truncate">{note.title}</span>
+                    {on ? <Check weight="bold" className="size-3.5 shrink-0" aria-hidden /> : null}
+                  </button>
+                );
+              })}
+              {matches.length === 0 ? (
+                <p className="px-2.5 py-1.5 text-[12px] text-ink-faint">No notes match that.</p>
+              ) : null}
+              {matches.length > visibleNotes.length ? (
+                <p className="px-2.5 py-1 text-[12px] text-ink-faint">
+                  And {matches.length - visibleNotes.length} more. Search to narrow it.
+                </p>
+              ) : null}
+            </div>
+          </fieldset>
+        ) : null}
+
+        {sections.length > 0 ? (
+          <fieldset className={cn("space-y-2", pickedCount > 0 && "opacity-50")}>
             <legend className="text-[13px] font-medium text-ink">Which parts</legend>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                aria-pressed={options.sectionIds.length === 0}
-                onClick={() => onChange({ ...options, sectionIds: [] })}
+                aria-pressed={options.sectionIds.length === 0 && pickedCount === 0}
+                onClick={() => onChange({ ...options, sectionIds: [], noteIds: [] })}
                 className={cn(
                   CHOICE,
-                  options.sectionIds.length === 0
+                  options.sectionIds.length === 0 && pickedCount === 0
                     ? "border-primary bg-primary-soft text-primary"
                     : "border-edge-strong bg-surface text-ink-muted hover:bg-sunken",
                 )}

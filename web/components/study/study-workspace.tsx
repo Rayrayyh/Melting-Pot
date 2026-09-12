@@ -145,6 +145,9 @@ function message(
   if (error === "no_notes_in_sections") {
     return "Nothing has been shared in the parts you picked. Choose another part, or the whole Pot.";
   }
+  if (error === "no_notes_matched") {
+    return "The notes you picked are not in this Pot any more, or were never shared in it. Choose again from the list.";
+  }
   // A timeout is the one failure with a next step the reader can actually
   // take, so it says what that is rather than naming the machinery.
   if (detail?.includes("timed out")) {
@@ -166,6 +169,7 @@ export function StudyWorkspace({
   potTitle,
   kind,
   sections,
+  notes,
   canModerate,
   savedSets,
   archived = false,
@@ -175,6 +179,9 @@ export function StudyWorkspace({
   kind: StudyKind;
   /** The Pot's sections, so a test can be asked for from named parts. */
   sections: Array<{ id: string; title: string }>;
+  /** The Pot's shared notes by title, so material can be asked for from named
+   *  notes rather than whole parts. */
+  notes: Array<{ id: string; title: string }>;
   /** Maintainers can take a bad set away so the class stops being served it. */
   canModerate: boolean;
   /** Everything of this kind the Pot has already built, newest first. */
@@ -625,6 +632,7 @@ export function StudyWorkspace({
           options={options}
           onChange={setOptions}
           sections={sections}
+          notes={notes}
           hasSaved={Boolean(peeked)}
           checking={checking}
           busy={busy}

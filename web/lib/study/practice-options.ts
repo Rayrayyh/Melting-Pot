@@ -14,6 +14,9 @@ export type PracticeOptions = {
   emphasis: string;
   /** Sections to draw from. Empty means the whole Pot. */
   sectionIds: string[];
+  /** Notes to draw from. When non-empty, these replace the section choice
+   *  entirely: the two never combine, so a choice always means what it says. */
+  noteIds: string[];
 };
 
 export const QUESTION_COUNTS = [5, 10, 15, 20] as const;
@@ -32,6 +35,7 @@ export const DIFFICULTIES: ReadonlyArray<{
 ];
 
 export const MAX_SECTIONS = 20;
+export const MAX_NOTES = 50;
 
 // Five by default, not ten: the reasoning model writes a ten-question test
 // in about thirty seconds, and the hosting function is cut off at
@@ -42,6 +46,7 @@ export const DEFAULT_PRACTICE_OPTIONS: PracticeOptions = {
   difficulty: "standard",
   emphasis: "",
   sectionIds: [],
+  noteIds: [],
 };
 
 function isDifficulty(value: unknown): value is PracticeDifficulty {
@@ -72,6 +77,17 @@ export function normalizePracticeOptions(value: unknown): PracticeOptions {
           .sort()
           .slice(0, MAX_SECTIONS)
       : [],
+    // Same discipline as sections: the server re-validates that the named
+    // notes exist in this Pot, so an id here is a request, not an authority.
+    noteIds: Array.isArray(raw.noteIds)
+      ? [
+          ...new Set(
+            raw.noteIds.filter((id): id is string => typeof id === "string" && id.length > 0),
+          ),
+        ]
+          .sort()
+          .slice(0, MAX_NOTES)
+      : [],
   };
 }
 
@@ -83,7 +99,10 @@ export function normalizePracticeOptions(value: unknown): PracticeOptions {
 export function practiceOptionsKey(options: PracticeOptions): string {
   const emphasis = options.emphasis.toLowerCase();
   const sections = options.sectionIds.join(",");
-  return `q${options.questionCount}:${options.difficulty}:${emphasis}:${sections}`;
+  // The variant is hashed by studyFingerprint before it is stored, so the
+  // length of a fifty-note list costs nothing here.
+  const notes = options.noteIds.join(",");
+  return `q${options.questionCount}:${options.difficulty}:${emphasis}:${sections}:n${notes}`;
 }
 
 /** How the chosen difficulty is described to the model. */
@@ -107,18 +126,25 @@ export function describeOptions(
   const sections = options.sectionIds
     .map((id) => sectionTitles.get(id))
     .filter((title): title is string => Boolean(title));
+  // Named notes win over sections, the same rule the generation route applies.
+  // Tolerates options built before the field existed, or by hand in a test.
+  const picked = options.noteIds ?? [];
+  const notes =
+    picked.length > 0
+      ? `from ${picked.length} ${picked.length === 1 ? "note" : "notes"}`
+      : null;
   // Only a test has a length and a difficulty to report; saying "10
   // questions, standard" above a study guide or a deck would be untrue.
   return (
     kind !== "practice"
       ? [
-          sections.length > 0 ? `From ${sections.join(", ")}` : "From the whole Pot",
+          notes ?? (sections.length > 0 ? `From ${sections.join(", ")}` : "From the whole Pot"),
           options.emphasis ? `focused on ${options.emphasis}` : null,
         ]
       : [
           `${options.questionCount} questions`,
           difficulty ? difficulty.label.toLowerCase() : options.difficulty,
-          sections.length > 0 ? `from ${sections.join(", ")}` : null,
+          notes ?? (sections.length > 0 ? `from ${sections.join(", ")}` : null),
           options.emphasis ? `focused on ${options.emphasis}` : null,
         ]
   )

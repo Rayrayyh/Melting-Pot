@@ -41,6 +41,15 @@ describe("normalizePracticeOptions", () => {
     ).toEqual(["a", "b"]);
     expect(normalizePracticeOptions({ sectionIds: "a" }).sectionIds).toEqual([]);
   });
+
+  it("sorts, deduplicates and caps the notes", () => {
+    expect(
+      normalizePracticeOptions({ noteIds: ["n2", "n1", "n2", "", 9, null] }).noteIds,
+    ).toEqual(["n1", "n2"]);
+    expect(normalizePracticeOptions({ noteIds: "n1" }).noteIds).toEqual([]);
+    const fifty = Array.from({ length: 80 }, (_, i) => `note-${i}`);
+    expect(normalizePracticeOptions({ noteIds: fifty }).noteIds).toHaveLength(50);
+  });
 });
 
 describe("practiceOptionsKey", () => {
@@ -68,8 +77,15 @@ describe("practiceOptionsKey", () => {
       practiceOptionsKey({ ...base, difficulty: "gentle" }),
       practiceOptionsKey({ ...base, emphasis: "mitosis" }),
       practiceOptionsKey({ ...base, sectionIds: ["s1"] }),
+      practiceOptionsKey({ ...base, noteIds: ["n1"] }),
     ]);
-    expect(keys.size).toBe(5);
+    expect(keys.size).toBe(6);
+  });
+
+  it("names the same note choice the same way whatever order the notes were ticked in", () => {
+    const a = normalizePracticeOptions({ noteIds: ["n2", "n1"] });
+    const b = normalizePracticeOptions({ noteIds: ["n1", "n2"] });
+    expect(practiceOptionsKey(a)).toBe(practiceOptionsKey(b));
   });
 });
 
@@ -118,6 +134,7 @@ describe("describeOptions", () => {
           difficulty: "demanding",
           emphasis: "osmosis",
           sectionIds: ["s1"],
+          noteIds: [],
         },
         new Map([["s1", "Week 2: Cell structure"]]),
       ),
@@ -128,5 +145,17 @@ describe("describeOptions", () => {
     expect(
       describeOptions({ ...DEFAULT_PRACTICE_OPTIONS, sectionIds: ["gone"] }),
     ).toBe("5 questions, standard");
+  });
+
+  it("says from how many notes when notes were picked, and not the parts", () => {
+    expect(
+      describeOptions(
+        { ...DEFAULT_PRACTICE_OPTIONS, noteIds: ["n1", "n2"], sectionIds: ["s1"] },
+        new Map([["s1", "Week 2: Cell structure"]]),
+      ),
+    ).toBe("5 questions, standard, from 2 notes");
+    expect(describeOptions({ ...DEFAULT_PRACTICE_OPTIONS, noteIds: ["n1"] })).toBe(
+      "5 questions, standard, from 1 note",
+    );
   });
 });

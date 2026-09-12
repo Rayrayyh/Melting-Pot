@@ -36,6 +36,27 @@ function countItems(payload: unknown, kind: StudyKind): number {
 }
 
 /**
+ * The Pot's live notes by title, so a study set can be asked for from named
+ * notes rather than whole parts. Titles only: nothing here needs a body, and
+ * the setup page would otherwise ship the whole feed to fill one picker.
+ */
+export async function listNoteTitles(
+  potId: string,
+): Promise<Array<{ id: string; title: string }>> {
+  const supabase = await supabaseServer();
+  const { data } = await supabase
+    .from("shared_notes")
+    .select("id, current:note_versions!shared_notes_current_version_fk (title)")
+    .eq("pot_id", potId)
+    .is("removed_at", null)
+    .order("shared_at", { ascending: false })
+    .limit(200);
+  return (data ?? [])
+    .map((row) => ({ id: row.id, title: row.current?.title ?? "" }))
+    .filter((note) => note.title.length > 0);
+}
+
+/**
  * Everything of this kind the Pot has built, newest first. A set stays after
  * the notes move on, because its fingerprint names the notes it was built from
  * rather than the notes as they are now: that is what lets someone sit an

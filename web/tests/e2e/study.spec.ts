@@ -354,3 +354,47 @@ test.describe("secured practice tests", () => {
     expect(submitted).toEqual({ order: [0, 1], choices: { "0": 1, "1": 1 } });
   });
 });
+
+test.describe("Picking notes for generation", () => {
+  // Picking notes replaces picking parts rather than combining with them, so
+  // the request that reaches the route must carry noteIds and no section ids.
+  test("sends the picked notes and no sections", async ({ page }) => {
+    await loginAs(page, "ava@meltingpot.dev");
+    const id = await potId(page);
+
+    let captured: { noteIds?: string[]; sectionIds?: string[] } | null = null;
+    await page.route("**/api/ai/study", async (route) => {
+      const body = route.request().postDataJSON() as {
+        peek?: boolean;
+        options?: { noteIds?: string[]; sectionIds?: string[] };
+      };
+      if (body?.peek) {
+        await route.fulfill({ status: 404, json: { error: "not_generated" } });
+        return;
+      }
+      captured = body?.options ?? null;
+      await route.fulfill({
+        status: 200,
+        json: {
+          result: TEST,
+          cached: false,
+          generatedAt: "2026-08-20T10:00:00.000Z",
+          studySetId: "00000000-0000-0000-0000-000000000003",
+        },
+      });
+    });
+
+    await page.goto(`/p/${id}/study/practice`);
+    const notes = page.locator("fieldset").filter({ hasText: "Which notes" });
+    await notes.getByRole("button").first().click();
+    await notes.getByRole("button").nth(1).click();
+    await page.getByRole("button", { name: /Write (the|a new) test/ }).click();
+    await expect(page.getByRole("button", { name: "Start the test" })).toBeVisible({
+      timeout: 15_000,
+    });
+
+    const sent = captured as { noteIds?: string[]; sectionIds?: string[] } | null;
+    expect(sent?.noteIds).toHaveLength(2);
+    expect(sent?.sectionIds).toEqual([]);
+  });
+});

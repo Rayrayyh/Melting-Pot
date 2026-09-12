@@ -84,14 +84,26 @@ export async function POST(request: Request) {
     .select(`id, contribution_id, current_version_id, current:note_versions!shared_notes_current_version_fk (title, summary, body_text, takeaways)`)
     .eq("pot_id", potId)
     .is("removed_at", null);
-  if (options.sectionIds.length > 0) {
+  // Named notes replace the section choice entirely, so a choice always means
+  // what it says. The pot_id filter above still applies: a note id from
+  // another Pot simply matches nothing here.
+  if (options.noteIds.length > 0) {
+    notesQuery = notesQuery.in("id", options.noteIds);
+  } else if (options.sectionIds.length > 0) {
     notesQuery = notesQuery.in("section_id", options.sectionIds);
   }
   const { data: notes } = await notesQuery.order("shared_at", { ascending: false }).limit(50);
   const usable = (notes ?? []).filter((note) => note.current);
   if (usable.length === 0) {
     return NextResponse.json(
-      { error: options.sectionIds.length > 0 ? "no_notes_in_sections" : "no_notes" },
+      {
+        error:
+          options.noteIds.length > 0
+            ? "no_notes_matched"
+            : options.sectionIds.length > 0
+              ? "no_notes_in_sections"
+              : "no_notes",
+      },
       { status: 400, headers: NO_STORE },
     );
   }

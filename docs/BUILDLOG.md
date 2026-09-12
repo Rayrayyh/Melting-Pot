@@ -353,3 +353,8 @@ Known follow-ups, documented not built (feature gaps or minor polish, no securit
 - `record_study_run` is the one way a client records such a run: security definer, closed kind list, idempotent on the client's attempt id, rate limited, first pass meaning the first run of that kind in that Pot.
 - `study_sets` learned two kinds for the phases ahead, `graph` and `daily`, and `save_study_set` was re-emitted whole from 0037 with every guard carried across by hand. `consume_ai_generation` learned their prices. `admin_study_overview` reports the new runs per member beside tests and flashcards.
 
+## From named notes (2026-09-12)
+
+- Study setup can aim a generation at particular notes, not just whole parts. A searchable picker lists the Pot's live note titles, capped and filtered like every other read, and picking any note replaces the section choice in the same breath, so a request always says one thing about scope. Decision 034.
+- The ids ride inside `options` and fold into the options key, so the fingerprint discipline holds: change the notes, change the set. A picked note that has since gone missing is said plainly rather than silently ignored.
+
