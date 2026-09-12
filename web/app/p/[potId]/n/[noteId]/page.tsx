@@ -153,7 +153,11 @@ export default async function NotePage({ params }: PageProps<"/p/[potId]/n/[note
               }
             />
 
-            <NoteCards cards={cards} canModerate={canModerate} />
+            <NoteCards
+              cards={cards}
+              canModerate={canModerate}
+              printHref={`/p/${pot.id}/print?source=note&noteId=${note.id}`}
+            />
 
             <p className="text-center text-[12px] text-ink-faint pt-4">
               Built from notes shared in this Pot. The original is always

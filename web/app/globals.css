@@ -939,3 +939,15 @@ html[data-nav="collapsed"] .mp-side .mp-nav-alerts {
   opacity: 1;
   transform: none;
 }
+
+/* ---- Printing ---- */
+
+/* The card sheet fills the paper edge to edge, so the browser's default
+   margins would shift every cut line inward by an amount each printer
+   decides for itself. Zeroing the page margin puts the grid where the
+   preview showed it. */
+@media print {
+  @page {
+    margin: 0;
+  }
+}

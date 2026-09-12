@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Cards, TrashSimple } from "@phosphor-icons/react";
+import { Cards, Printer, TrashSimple } from "@phosphor-icons/react";
 import { Card, CardSection } from "@/components/ui/card";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import type { NoteFlashcard } from "@/lib/data/pot";
@@ -15,9 +15,12 @@ import type { NoteFlashcard } from "@/lib/data/pot";
 export function NoteCards({
   cards,
   canModerate,
+  printHref,
 }: {
   cards: NoteFlashcard[];
   canModerate: boolean;
+  /** Where the printable sheet for these cards lives, when there is one. */
+  printHref?: string | null;
 }) {
   const router = useRouter();
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -49,6 +52,15 @@ export function NoteCards({
         <p className="flex items-center gap-1.5 text-[13px] font-semibold text-ink">
           <Cards className="size-4" aria-hidden />
           Cards from this note
+          {printHref ? (
+            <a
+              href={printHref}
+              className="ml-auto inline-flex items-center gap-1 text-[12px] font-normal text-ink-muted transition-colors hover:text-ink"
+            >
+              <Printer className="size-3.5" aria-hidden />
+              Print
+            </a>
+          ) : null}
         </p>
         <ul className="space-y-2.5">
           {cards.map((card) => (

@@ -363,3 +363,7 @@ Known follow-ups, documented not built (feature gaps or minor polish, no securit
 - The write step gained Focus: the same box under the draft, drawn over everything else, with the nav, the tabs and the shortcuts out of sight. Esc or Back brings the page back and the draft has not moved, because the cover renders the composer's own controlled box. Decision 035.
 - The study hub gained a timed session: pick ten, twenty, thirty or forty five minutes, work with the screen quiet, and the minutes land on the record when the clock runs out. The countdown reads the clock rather than counting ticks, so a phone that sleeps loses nothing. Leaving early records nothing and says so.
 
+## Cards you can hold (2026-09-12)
+
+- Flashcards print now, from a saved deck or from the hand-written cards on a note. Three sizes per sheet, Letter or A4, fronts page then backs page with every row reversed so a printer that flips on the long edge lands each back behind its front, dashed cut lines, corner crop marks and fold guides at the row centres. The print page renders the paper, not the app, and no answer key can reach it. Decision 036.
+

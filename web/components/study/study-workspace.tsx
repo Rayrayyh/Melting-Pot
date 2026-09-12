@@ -766,6 +766,11 @@ export function StudyWorkspace({
                 regenerating={busy}
                 onFinished={recordRun}
                 dayCounted={Boolean(record?.countedNow)}
+                printHref={
+                  opened.studySetId
+                    ? `/p/${potId}/print?source=set&setId=${opened.studySetId}`
+                    : null
+                }
               />
             </div>
           ) : null}

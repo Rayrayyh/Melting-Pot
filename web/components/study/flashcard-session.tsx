@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Check,
+  Printer,
   Shuffle,
   Sparkle,
 } from "@phosphor-icons/react";
@@ -88,6 +89,7 @@ export function FlashcardSession({
   regenerating,
   onFinished,
   dayCounted = false,
+  printHref,
 }: {
   cards: StudyCard[];
   onRegenerate: () => void;
@@ -96,6 +98,8 @@ export function FlashcardSession({
   onFinished?: (known: number, learning: number) => void;
   /** Whether this round was the first thing to count today on their record. */
   dayCounted?: boolean;
+  /** The printable sheet for this deck, when the deck is saved to the Pot. */
+  printHref?: string | null;
 }) {
   const [tag, setTag] = useState<string | null>(null);
   const [session, dispatch] = useReducer(
@@ -204,8 +208,19 @@ export function FlashcardSession({
               <span className="tabular-nums">
                 {progress.position} / {progress.total}
               </span>
-              <span>
-                {progress.known} know it · {progress.learning} still learning
+              <span className="flex items-center gap-3">
+                <span>
+                  {progress.known} know it · {progress.learning} still learning
+                </span>
+                {printHref ? (
+                  <a
+                    href={printHref}
+                    className="inline-flex items-center gap-1 transition-colors hover:text-ink"
+                  >
+                    <Printer className="size-3.5" aria-hidden />
+                    Print
+                  </a>
+                ) : null}
               </span>
             </div>
             <ProgressBar value={progress.answered} total={progress.total} />
