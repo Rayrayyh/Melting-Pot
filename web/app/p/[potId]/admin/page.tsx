@@ -186,8 +186,15 @@ export default async function AdminPage({
             runs: number;
             latest: { known: number; learning: number; at: string } | null;
           };
+          runs?: { daily: number; game: number; blurt: number; feynman: number; focus: number };
           lastPracticed: string | null;
         }>;
+        // runs arrives with the RPC that carries it. An overview read before
+        // that migration has applied still renders, just without the line.
+        const runTotal = (row: (typeof studyRows)[number]) => {
+          const runs = row.runs ?? { daily: 0, game: 0, blurt: 0, feynman: 0, focus: 0 };
+          return runs.daily + runs.game + runs.blurt + runs.feynman + runs.focus;
+        };
         const practicing = studyRows.filter((row) => row.lastPracticed).length;
 
         const href = (next: { tab?: Tab; sort?: string; who?: string | null }) => {
@@ -458,6 +465,16 @@ export default async function AdminPage({
                                 `${row.flashcards.runs} ${row.flashcards.runs === 1 ? "round" : "rounds"} · latest ${row.flashcards.latest.known} known, ${row.flashcards.latest.learning} still learning`
                               ) : (
                                 `${row.flashcards.runs} rounds`
+                              )}
+                            </dd>
+                          </div>
+                          <div>
+                            <dt className="text-[11px] uppercase tracking-wide text-ink-faint">Runs</dt>
+                            <dd className="tabular-nums text-ink">
+                              {runTotal(row) === 0 ? (
+                                <span className="text-ink-faint">None yet</span>
+                              ) : (
+                                `${runTotal(row)} ${runTotal(row) === 1 ? "run" : "runs"}`
                               )}
                             </dd>
                           </div>

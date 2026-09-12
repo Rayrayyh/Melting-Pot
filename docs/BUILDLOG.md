@@ -347,3 +347,9 @@ Known follow-ups, documented not built (feature gaps or minor polish, no securit
 - The owner chose the still stirring celebration from four mockups, so the moment is back in both themes: the pot mid stir, the day count, the week as dots, one button. It fires only where a day is earned, on the three completion screens, never on a page load. Decision 032.
 - The celebration draws its wording from a pool: eight everyday pairs, its own first day line, and named milestones at a week, a fortnight, a month, fifty and a hundred, picked by the date so a day always says the same thing and consecutive days do not.
 
+## One place for every study run (2026-09-12)
+
+- Eight owner-requested features started, and the plumbing came first. `study_attempts` now records every kind of run, not just marked tests and flashcard rounds: a focus session, a blurt, a Feynman walk-through, a game result, the daily quiz. `set_id` became nullable because four of those have no set behind them, and a small `detail` column carries the kind's own counts. Decision 033.
+- `record_study_run` is the one way a client records such a run: security definer, closed kind list, idempotent on the client's attempt id, rate limited, first pass meaning the first run of that kind in that Pot.
+- `study_sets` learned two kinds for the phases ahead, `graph` and `daily`, and `save_study_set` was re-emitted whole from 0037 with every guard carried across by hand. `consume_ai_generation` learned their prices. `admin_study_overview` reports the new runs per member beside tests and flashcards.
+

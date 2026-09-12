@@ -13,12 +13,18 @@ import { relativeTime } from "@/lib/time";
 export async function MyStudyRecord({
   potId,
   kind,
+  attemptKind,
 }: {
   potId: string;
   kind: StudyKind;
+  /** Overrides the attempt kind this record reads, for a page whose record
+   *  rows carry a kind the study route does not serve, like the daily quiz. */
+  attemptKind?: "practice" | "flashcards" | "daily";
 }) {
   if (kind === "summary") return null;
-  const attemptKind = kind === "practice" ? "practice" : "flashcards";
+  const rows = attemptKind ?? (kind === "practice" ? "practice" : "flashcards");
+  // The daily quiz scores like a test: correct of total, first pass, retries.
+  const scoredLikeTest = rows === "practice" || rows === "daily";
   const supabase = await supabaseServer();
   // Scoped to the reader explicitly rather than left to row level security.
   // The policy lets a maintainer read every attempt in their Pot, which is
@@ -31,7 +37,7 @@ export async function MyStudyRecord({
     .select("id, kind, first_pass, correct, total, known, learning, created_at")
     .eq("pot_id", potId)
     .eq("user_id", user.id)
-    .eq("kind", attemptKind)
+    .eq("kind", rows)
     .order("created_at", { ascending: false })
     .limit(12);
   const attempts = data ?? [];
@@ -48,7 +54,7 @@ export async function MyStudyRecord({
           not a grade: retries count as coming back, never against you.
         </p>
       </div>
-      {kind === "practice" && firstPasses.length < 2 ? (
+      {scoredLikeTest && firstPasses.length < 2 ? (
         <p className="text-[13px] text-ink-muted">
           Not enough here to read anything into yet: trends start after a couple
           of first passes on different tests.
@@ -67,7 +73,7 @@ export async function MyStudyRecord({
                 ) : (
                   <ClockCounterClockwise className="size-4 text-ink-faint" aria-hidden />
                 )}
-                {attempt.kind === "practice"
+                {scoredLikeTest
                   ? attempt.first_pass
                     ? "First pass"
                     : "Retry"
@@ -76,7 +82,7 @@ export async function MyStudyRecord({
                     : "Another round"}
               </span>
               <span className="tabular-nums text-ink">
-                {attempt.kind === "practice"
+                {scoredLikeTest
                   ? `${attempt.correct ?? 0} of ${attempt.total ?? 0}`
                   : `${attempt.known ?? 0} known, ${attempt.learning ?? 0} still learning`}
               </span>

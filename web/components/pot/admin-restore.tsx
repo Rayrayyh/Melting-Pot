@@ -13,6 +13,8 @@ const kindLabel = {
   summary: "Summary",
   flashcards: "Flashcards",
   practice: "Practice test",
+  graph: "Graph",
+  daily: "Daily quiz",
 } as const;
 
 /**

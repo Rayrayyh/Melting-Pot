@@ -32,7 +32,7 @@ export type ProposalEventKind =
   | "comment";
 export type AttachmentKind = "image" | "pdf" | "file" | "link";
 /** Not a Postgres enum: study_sets.kind is a checked text column. */
-export type StudySetKind = "summary" | "flashcards" | "practice";
+export type StudySetKind = "summary" | "flashcards" | "practice" | "graph" | "daily";
 
 /** Not a Postgres enum: pots.study_generation is a checked text column. */
 export type PotStudyGeneration = "members" | "maintainers";
@@ -523,14 +523,22 @@ export type Database = {
         Row: {
           id: string;
           pot_id: string;
-          set_id: string;
+          set_id: string | null;
           user_id: string;
-          kind: "practice" | "flashcards";
+          kind:
+            | "practice"
+            | "flashcards"
+            | "daily"
+            | "game"
+            | "blurt"
+            | "feynman"
+            | "focus";
           first_pass: boolean;
           correct: number | null;
           total: number | null;
           known: number | null;
           learning: number | null;
+          detail: Json | null;
           created_at: string;
         };
         Insert: never;
@@ -764,6 +772,15 @@ export type Database = {
           p_learning: number;
         };
         Returns: undefined;
+      };
+      record_study_run: {
+        Args: {
+          p_attempt_id: string;
+          p_pot_id: string;
+          p_kind: string;
+          p_detail?: Json | null;
+        };
+        Returns: Json;
       };
       admin_study_overview: { Args: { p_pot_id: string }; Returns: Json };
       class_topic_evidence: { Args: { p_pot_id: string }; Returns: Json };
