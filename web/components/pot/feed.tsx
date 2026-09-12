@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Brain, Cards, FileText, Plus, Sparkle, Tray } from "@phosphor-icons/react/dist/ssr";
+import { Brain, Cards, FileText, Plus, Sparkle, Timer, Tray } from "@phosphor-icons/react/dist/ssr";
 import { NoteCard } from "@/components/pot/note-card";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -61,11 +61,12 @@ export function PotFeed({
               <h2 id="study-pot-heading" className="text-[13px] font-medium text-ink-muted">Study this Pot</h2>
               <p className="mt-0.5 text-[12px] text-ink-faint">Browse the source notes or generate material from the full class vault.</p>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <StudyTile href="#raw-notes" title="Raw Notes" description="Shared notes from everyone." icon={<FileText />} />
               <StudyTile href={`/p/${pot.id}/study/summary`} title="Summary" description="Build a fresh study guide." icon={<Sparkle />} />
               <StudyTile href={`/p/${pot.id}/study/flashcards`} title="Flashcards" description="Generate recall cards from the Pot." icon={<Cards />} />
               <StudyTile href={`/p/${pot.id}/study/practice`} title="Practice" description="Set the length and difficulty, then sit it." icon={<Brain />} />
+              <StudyTile href={`/p/${pot.id}/study/focus`} title="Focus" description="A quiet timer for a study run." icon={<Timer />} />
             </div>
           </section>
         </>

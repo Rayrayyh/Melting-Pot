@@ -358,3 +358,8 @@ Known follow-ups, documented not built (feature gaps or minor polish, no securit
 - Study setup can aim a generation at particular notes, not just whole parts. A searchable picker lists the Pot's live note titles, capped and filtered like every other read, and picking any note replaces the section choice in the same breath, so a request always says one thing about scope. Decision 034.
 - The ids ride inside `options` and fold into the options key, so the fingerprint discipline holds: change the notes, change the set. A picked note that has since gone missing is said plainly rather than silently ignored.
 
+## Focus, a cover and a clock (2026-09-12)
+
+- The write step gained Focus: the same box under the draft, drawn over everything else, with the nav, the tabs and the shortcuts out of sight. Esc or Back brings the page back and the draft has not moved, because the cover renders the composer's own controlled box. Decision 035.
+- The study hub gained a timed session: pick ten, twenty, thirty or forty five minutes, work with the screen quiet, and the minutes land on the record when the clock runs out. The countdown reads the clock rather than counting ticks, so a phone that sleeps loses nothing. Leaving early records nothing and says so.
+

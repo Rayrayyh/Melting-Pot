@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
+  ArrowsOutSimple,
   CheckCircle,
   Eye,
   LinkSimple,
@@ -38,6 +39,7 @@ import {
 } from "@/lib/organizer/edit";
 import { suggestSection } from "@/lib/organizer";
 import type { OrganizedResult } from "@/lib/organizer";
+import { countWords } from "@/lib/word-count";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { cn } from "@/lib/cn";
 
@@ -112,6 +114,9 @@ export function ContributeFlow({
   const [step, setStep] = useState<Step>(initialOrganized ? "review" : "write");
   const [contributionId, setContributionId] = useState<string | null>(initial?.id ?? null);
   const [rawText, setRawText] = useState(initial?.rawText ?? "");
+  // The focus cover renders the same controlled box over everything else, so
+  // this flag moves no draft state at all.
+  const [focusing, setFocusing] = useState(false);
   const [saved, setSaved] = useState<"idle" | "saving" | "saved" | "error">(
     initial ? "saved" : "idle",
   );
@@ -578,19 +583,39 @@ export function ContributeFlow({
     const ready = rawText.trim().length >= 20;
     return (
       <div className="flex flex-col flex-1">
+        {focusing ? (
+          <FocusCover
+            value={rawText}
+            onChange={handleRawTextChange}
+            onClose={() => setFocusing(false)}
+          />
+        ) : null}
         <div className="mx-auto w-full max-w-2xl px-6 py-8 space-y-6 flex-1 pb-24">
           <FlowProgress step={1} total={3} label="Write" />
           <header className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">Write anything</h1>
-            <p className="text-sm text-ink-muted">
-              No templates, no formatting, no pressure.
-            </p>
-            {organized ? (
-              <p className="text-[13px] text-ink-faint">
-                You already have an organized version of this. Changing the original
-                organizes it again when you continue.
-              </p>
-            ) : null}
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                <h1 className="text-2xl font-semibold tracking-tight">Write anything</h1>
+                <p className="text-sm text-ink-muted">
+                  No templates, no formatting, no pressure.
+                </p>
+                {organized ? (
+                  <p className="text-[13px] text-ink-faint">
+                    You already have an organized version of this. Changing the original
+                    organizes it again when you continue.
+                  </p>
+                ) : null}
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="shrink-0"
+                onClick={() => setFocusing(true)}
+              >
+                <ArrowsOutSimple className="size-4" />
+                Focus
+              </Button>
+            </div>
           </header>
           <div className="space-y-3">
             <TextArea
@@ -1162,6 +1187,57 @@ export function ContributeFlow({
   }
 
   return null;
+}
+
+/**
+ * The write step with the rest of the app covered over. The same controlled
+ * box renders inside it, so nothing about the draft moves and the autosave
+ * loop never notices. Esc and Back both leave; the words stay either way.
+ */
+function FocusCover({
+  value,
+  onChange,
+  onClose,
+}: {
+  value: string;
+  onChange: (next: string) => void;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div data-no-shortcuts className="fixed inset-0 z-40 flex flex-col bg-surface">
+      <div className="flex items-center justify-between gap-3 border-b border-edge px-5 py-3">
+        <p className="text-[13px] font-medium text-ink">Focus</p>
+        <div className="flex items-center gap-3">
+          <span className="tabular-nums text-[12px] text-ink-faint">
+            {value.trim().length > 0 ? `${countWords(value)} words` : ""}
+          </span>
+          <Button variant="secondary" size="sm" onClick={onClose}>
+            <ArrowLeft className="size-4" />
+            Back
+          </Button>
+        </div>
+      </div>
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-6 py-6">
+        <TextArea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          rows={18}
+          autoFocus
+          aria-label="Your contribution"
+          placeholder="Type whatever you remember, paste rough notes, explain an idea, or share an example. Formatting does not matter."
+          className="text-[15px] min-h-[50vh] flex-1 resize-none"
+        />
+      </div>
+    </div>
+  );
 }
 
 function takeawayLines(draft: string): string[] {

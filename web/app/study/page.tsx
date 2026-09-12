@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Brain, Cards, Sparkle } from "@phosphor-icons/react/dist/ssr";
+import { Brain, Cards, Sparkle, Timer } from "@phosphor-icons/react/dist/ssr";
 import { UserShell } from "@/components/shell/user-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
@@ -13,6 +13,7 @@ const KINDS = [
   { kind: "summary", label: "Summary", blurb: "A study guide from the whole Pot.", icon: <Sparkle weight="fill" /> },
   { kind: "flashcards", label: "Flashcards", blurb: "Recall cards from the shared notes.", icon: <Cards weight="fill" /> },
   { kind: "practice", label: "Practice test", blurb: "Sit a test, marked on the server.", icon: <Brain weight="fill" /> },
+  { kind: "focus", label: "Focus", blurb: "A quiet timed run that lands on your record.", icon: <Timer weight="fill" /> },
 ] as const;
 
 /**
@@ -56,7 +57,7 @@ export default async function StudyPage() {
                   Open the Pot
                 </Link>
               </div>
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {KINDS.map((k) => (
                   <Link key={k.kind} href={`/p/${pot.id}/study/${k.kind}`} className="mp-lift group block">
                     <Card className="h-full group-hover:border-edge-strong transition-colors">
