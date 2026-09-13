@@ -380,3 +380,9 @@ Known follow-ups, documented not built (feature gaps or minor polish, no securit
 
 - A new study kind draws the Pot as a concept map: up to twelve labelled ideas and eighteen labelled connections, rendered as hand-rolled SVG where tapping a box lifts its threads and dims the rest. The setup asks one new question, how carefully to draw it, in words that say what the reader gets rather than what the machinery is. A careful drawing that times out says so instead of quietly becoming a quick one. The layout is layers, not forces, so the same map always draws the same way. Decision 039.
 
+## The room, the race and the buzzer (2026-09-12)
+
+- The Pot's saved practice tests can run live. A maintainer opens a room with a six-character code, the class joins from their own screens, everyone answers the same question at once, and speed breaks the tie. The scoreboard lives in the room and nowhere else: when the room ends, the podium writes each player's own result to their record through the server's count and the room itself keeps nothing. Decisions 040 and 041.
+- Playing a saved test alone runs through the same screens and the same marking path as the practice page, so a sitting is recorded once and never twice.
+- The room's clients react to one row. Answers landing and players joining bump the room's version, push says look again, and a poll runs underneath at all times, which is also how the e2e suite drives the feature in the container where websockets cannot reach.
+

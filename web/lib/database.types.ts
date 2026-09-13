@@ -155,6 +155,103 @@ export type Database = {
           },
         ];
       };
+      game_answers: {
+        Row: {
+          room_id: string;
+          question_index: number;
+          user_id: string;
+          choice: number;
+          ms: number;
+          correct: boolean;
+          answered_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "game_answers_room_id_fkey";
+            columns: ["room_id"];
+            isOneToOne: false;
+            referencedRelation: "game_rooms";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "game_answers_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      game_players: {
+        Row: {
+          room_id: string;
+          user_id: string;
+          display_name: string;
+          joined_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "game_players_room_id_fkey";
+            columns: ["room_id"];
+            isOneToOne: false;
+            referencedRelation: "game_rooms";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "game_players_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      game_rooms: {
+        Row: {
+          id: string;
+          pot_id: string;
+          code: string;
+          host_id: string;
+          set_id: string;
+          format: string;
+          status: string;
+          question_index: number;
+          question_started_at: string | null;
+          seconds_per_question: number;
+          version: number;
+          created_at: string;
+          ended_at: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "game_rooms_host_id_fkey";
+            columns: ["host_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "game_rooms_pot_id_fkey";
+            columns: ["pot_id"];
+            isOneToOne: false;
+            referencedRelation: "pots";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "game_rooms_set_id_fkey";
+            columns: ["set_id"];
+            isOneToOne: false;
+            referencedRelation: "study_sets";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       memberships: {
         Row: {
           created_at: string;
@@ -668,6 +765,22 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      create_game_room: {
+        Args: { p_pot_id: string; p_set_id: string };
+        Returns: Json;
+      };
+      end_game: { Args: { p_room_id: string }; Returns: undefined };
+      game_rooms_touch: { Args: never; Returns: undefined };
+      game_state: { Args: { p_room_id: string }; Returns: Json };
+      join_game_room: { Args: { p_code: string }; Returns: Json };
+      my_game_result: { Args: { p_room_id: string }; Returns: Json };
+      next_question: { Args: { p_room_id: string }; Returns: undefined };
+      reveal_question: { Args: { p_room_id: string }; Returns: undefined };
+      start_game: { Args: { p_room_id: string }; Returns: undefined };
+      submit_game_answer: {
+        Args: { p_choice: number; p_ms: number; p_question_index: number; p_room_id: string };
+        Returns: Json;
+      };
       consume_ai_generation: {
         Args: { p_kind: string };
         Returns: undefined;
