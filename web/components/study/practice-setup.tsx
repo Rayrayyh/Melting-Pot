@@ -15,6 +15,10 @@ import {
   type PracticeDifficulty,
   type PracticeOptions,
 } from "@/lib/study/practice-options";
+import {
+  GRAPH_TIERS,
+  type GraphTier,
+} from "@/lib/study/graph-options";
 
 const CHOICE =
   "inline-flex h-9 items-center justify-center rounded-full border px-4 text-[13px] font-medium transition-colors";
@@ -30,6 +34,8 @@ export function PracticeSetup({
   onChange,
   sections,
   notes = [],
+  tier = "fast",
+  onTier,
   hasSaved,
   checking,
   busy,
@@ -39,17 +45,20 @@ export function PracticeSetup({
   onOpenSaved,
 }: {
   /**
-   * All three are set up on this one screen. A summary and a deck hide the
-   * length and difficulty, which only mean something for questions, and keep
-   * the two choices that matter everywhere: what to build from, and what to
-   * lean on.
+   * Every kind is set up on this one screen. A summary, a deck and a graph
+   * hide the length and difficulty, which only mean something for questions,
+   * and keep the choices that matter everywhere: what to build from, and what
+   * to lean on. A graph swaps them for how carefully it should be drawn.
    */
-  kind?: "practice" | "summary" | "flashcards";
+  kind?: "practice" | "summary" | "flashcards" | "graph";
   options: PracticeOptions;
   onChange: (next: PracticeOptions) => void;
   sections: Array<{ id: string; title: string }>;
   /** The Pot's notes by title, for building from particular notes. */
   notes?: Array<{ id: string; title: string }>;
+  /** How carefully a graph is drawn; ignored by every other kind. */
+  tier?: GraphTier;
+  onTier?: (tier: GraphTier) => void;
   /** True when a test with exactly these settings is already in the Pot. */
   hasSaved: boolean;
   /** True while the store is being asked about the settings on screen. */
@@ -61,6 +70,8 @@ export function PracticeSetup({
   onBuild: () => void;
   onOpenSaved: () => void;
 }) {
+  // One noun instead of a ternary at every use.
+  const noun = kind === "summary" ? "summary" : kind === "flashcards" ? "deck" : kind === "graph" ? "graph" : "test";
   const [noteQuery, setNoteQuery] = useState("");
   // Notes and sections never hold a choice at the same time, so what the
   // reader picked always means one thing when the request arrives.
@@ -86,7 +97,7 @@ export function PracticeSetup({
     <Card>
       <CardSection className="space-y-6 py-8">
         <div className="space-y-1.5 text-center">
-          <Eyebrow>Set up the {kind === "summary" ? "summary" : kind === "flashcards" ? "deck" : "test"}</Eyebrow>
+          <Eyebrow>Set up the {noun}</Eyebrow>
           <p className="mx-auto max-w-md text-sm leading-relaxed text-ink-muted">
             {kind === "practice"
               ? "Every question comes from notes this class shared. Nothing outside the Pot goes in."
@@ -254,11 +265,36 @@ export function PracticeSetup({
           </fieldset>
         ) : null}
 
+        {kind === "graph" && onTier ? (
+          <fieldset className="space-y-2">
+            <legend className="text-[13px] font-medium text-ink">How carefully</legend>
+            <div className="flex flex-wrap gap-2">
+              {GRAPH_TIERS.map((entry) => (
+                <button
+                  key={entry.key}
+                  type="button"
+                  aria-pressed={tier === entry.key}
+                  onClick={() => onTier(entry.key)}
+                  className={cn(
+                    CHOICE,
+                    tier === entry.key
+                      ? "border-primary bg-primary-soft text-primary"
+                      : "border-edge-strong bg-surface text-ink-muted hover:bg-sunken",
+                  )}
+                >
+                  {entry.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[12px] text-ink-faint">
+              {GRAPH_TIERS.find((entry) => entry.key === tier)?.hint}
+            </p>
+          </fieldset>
+        ) : null}
+
         <Field
           label="Anything to concentrate on"
-          hint={`Optional. Name a topic and the ${
-            kind === "summary" ? "summary" : kind === "flashcards" ? "deck" : "test"
-          } leans that way.`}
+          hint={`Optional. Name a topic and the ${noun} leans that way.`}
         >
           {(props) => (
             <Input
@@ -285,7 +321,7 @@ export function PracticeSetup({
             {hasSaved ? (
               <>
                 <Button onClick={onOpenSaved}>
-                  Open the saved {kind === "summary" ? "summary" : kind === "flashcards" ? "deck" : "test"}
+                  Open the saved {noun}
                 </Button>
                 <Button variant="secondary" onClick={onBuild} disabled={busy}>
                   {busy ? (
@@ -303,10 +339,10 @@ export function PracticeSetup({
                 {busy ? (
                   <>
                     <Stir size={16} tone="on-primary" />
-                    {kind === "practice" ? "Writing the test" : "Building the " + (kind === "summary" ? "summary" : "deck")}
+                    {kind === "practice" ? "Writing the test" : `Building the ${noun}`}
                   </>
                 ) : (
-                  kind === "practice" ? "Write the test" : kind === "summary" ? "Build the summary" : "Build the deck"
+                  kind === "practice" ? "Write the test" : `Build the ${noun}`
                 )}
               </Button>
             )}

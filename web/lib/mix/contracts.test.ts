@@ -4,6 +4,7 @@ import {
   normalizeBlurt,
   normalizeFeynmanQuestion,
   normalizeFeynmanWrap,
+  normalizeGraph,
   normalizeOrganizedNote,
   normalizeStudyResult,
 } from "@/lib/mix/contracts";
@@ -217,5 +218,47 @@ describe("normalizeFeynmanWrap", () => {
     );
     expect(out.gaps[0].noteTitle).toBe("Not traced to a note");
     expect(out.summary).toBe("");
+  });
+});
+
+describe("normalizeGraph", () => {
+  const nodes = [
+    { id: "a", label: "Osmosis" },
+    { id: "b", label: "Tonicity" },
+    { id: "c", label: "Membrane" },
+  ];
+
+  it("drops edges that name nodes nobody sent, self edges, and duplicates", () => {
+    const out = normalizeGraph({
+      title: "Cells",
+      nodes,
+      edges: [
+        { from: "a", to: "b", label: "measured by" },
+        { from: "a", to: "ghost", label: "" },
+        { from: "a", to: "a", label: "itself" },
+        { from: "b", to: "a", label: "measured by" },
+      ],
+      stillToConfirm: [],
+    }) as { edges: unknown[] };
+    expect(out.edges).toHaveLength(1);
+  });
+
+  it("requires a label, deduplicates node ids, and caps both lists", () => {
+    const many = Array.from({ length: 20 }, (_, i) => ({ id: `n${i}`, label: `Node ${i}` }));
+    const out = normalizeGraph({
+      title: "Big",
+      nodes: [...many, { id: "n1", label: "Duplicate id" }, { id: "x", label: "" }],
+      edges: Array.from({ length: 30 }, (_, i) => ({
+        from: "n1", to: "n2", label: `edge ${i}`,
+      })),
+      stillToConfirm: [],
+    }) as { nodes: unknown[]; edges: unknown[] };
+    expect(out.nodes).toHaveLength(12);
+    expect(out.edges).toHaveLength(1);
+  });
+
+  it("names an untitled graph", () => {
+    const out = normalizeGraph({ title: "", nodes, edges: [], stillToConfirm: [] }) as { title: string };
+    expect(out.title).toBe("Concept map");
   });
 });

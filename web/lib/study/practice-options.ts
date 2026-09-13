@@ -120,7 +120,7 @@ export function difficultyBrief(difficulty: PracticeDifficulty): string {
 export function describeOptions(
   options: PracticeOptions,
   sectionTitles: Map<string, string> = new Map(),
-  kind: "practice" | "summary" | "flashcards" = "practice",
+  kind: "practice" | "summary" | "flashcards" | "graph" = "practice",
 ): string {
   const difficulty = DIFFICULTIES.find((entry) => entry.key === options.difficulty);
   const sections = options.sectionIds

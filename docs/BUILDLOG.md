@@ -376,3 +376,7 @@ Known follow-ups, documented not built (feature gaps or minor polish, no securit
 - Blurting arrived: pick notes, write everything you remember, and the notes answer back in three fixed groups, what you covered, what you missed, what you had wrong, every item traced to the note it rests on and an untraceable one labelled honestly. Decision 038.
 - The Feynman method arrived as a tutor that talks back: pick a note, explain it out loud, one probing question at a time, and end with where the explanation came apart. The screen holds one question at a time and folds earlier turns away; it is not a chat. Voice in is the browser's own recognition where it exists, with the typed box always beside it; voice out is the browser's own synthesis with a stored mute. The microphone is the one permission this opened: `Permissions-Policy` moved to `microphone=(self)`, camera and geolocation stay closed.
 
+## The Pot, drawn (2026-09-12)
+
+- A new study kind draws the Pot as a concept map: up to twelve labelled ideas and eighteen labelled connections, rendered as hand-rolled SVG where tapping a box lifts its threads and dims the rest. The setup asks one new question, how carefully to draw it, in words that say what the reader gets rather than what the machinery is. A careful drawing that times out says so instead of quietly becoming a quick one. The layout is layers, not forces, so the same map always draws the same way. Decision 039.
+

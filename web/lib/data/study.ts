@@ -20,18 +20,27 @@ export type SavedStudySet = {
   itemCount: number;
 };
 
-function payloadTitle(payload: unknown, kind: StudyKind, count: number): string {
+/** What a stored set can be, including the daily quiz the route generates. */
+type StoredSetKind = StudyKind | "daily";
+
+function payloadTitle(payload: unknown, kind: StoredSetKind, count: number): string {
   if (payload && typeof payload === "object" && !Array.isArray(payload)) {
     const title = (payload as Record<string, unknown>).title;
     if (typeof title === "string" && title.trim()) return title.trim();
   }
-  return kind === "practice" ? `${count} question test` : `${count} cards`;
+  if (kind === "graph") return "Concept map";
+  return kind === "practice" || kind === "daily" ? `${count} question test` : `${count} cards`;
 }
 
-function countItems(payload: unknown, kind: StudyKind): number {
+function countItems(payload: unknown, kind: StoredSetKind): number {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) return 0;
   const record = payload as Record<string, unknown>;
-  const list = kind === "practice" ? record.questions : record.cards;
+  const list =
+    kind === "practice" || kind === "daily"
+      ? record.questions
+      : kind === "graph"
+        ? record.nodes
+        : record.cards;
   return Array.isArray(list) ? list.length : 0;
 }
 

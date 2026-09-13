@@ -11,10 +11,12 @@ import {
   Check,
   ClockCounterClockwise,
   FloppyDisk,
+  Graph,
   Sparkle,
   TrashSimple,
 } from "@phosphor-icons/react";
 import { FlashcardSession } from "@/components/study/flashcard-session";
+import { GraphView } from "@/components/study/graph-view";
 import { PracticeSession } from "@/components/study/practice-session";
 import { PracticeSetup } from "@/components/study/practice-setup";
 import { Button } from "@/components/ui/button";
@@ -28,6 +30,8 @@ import type { Json } from "@/lib/database.types";
 import type { StudyKind } from "@/lib/mix/contracts";
 import type { SavedStudySet } from "@/lib/data/study";
 import type { StudyCard } from "@/lib/study/flashcard-session";
+import { graphOptionsKey, type GraphTier } from "@/lib/study/graph-options";
+import type { GraphResult } from "@/lib/mix/contracts";
 import {
   markLocally,
   type PracticeMark,
@@ -50,7 +54,7 @@ type SummaryResult = {
 };
 type FlashcardResult = { cards: StudyCard[] };
 type PracticeResult = { title: string; questions: PracticeQuestion[] };
-type StudyResult = SummaryResult | FlashcardResult | PracticeResult;
+type StudyResult = SummaryResult | FlashcardResult | PracticeResult | GraphResult;
 
 type Loaded = {
   result: StudyResult;
@@ -99,6 +103,13 @@ const copy = {
     build: "Write the test",
     rebuild: "Write a new test",
   },
+  graph: {
+    title: "Graph",
+    description: "Draw the Pot's ideas and how they connect.",
+    icon: Graph,
+    build: "Draw the graph",
+    rebuild: "Draw a new graph",
+  },
 } as const;
 
 /**
@@ -131,11 +142,20 @@ const waiting = {
     "Checking each answer against the notes",
     "Putting them in order",
   ],
+  graph: [
+    "Drawing your graph",
+    "Reading what the class shared",
+    "Picking the ideas that hold it up",
+    "Naming what connects them",
+    "Placing everything on the map",
+    "Checking it against the notes",
+  ],
 } as const;
 
 function message(
   error: string | undefined,
   detail: string | undefined,
+  kind?: StudyKind,
 ): string {
   if (error === "mixing_unavailable") {
     return "Mixing is not set up on this server yet, so nothing new can be built. Anything the Pot already has still opens.";
@@ -151,6 +171,9 @@ function message(
   // A timeout is the one failure with a next step the reader can actually
   // take, so it says what that is rather than naming the machinery.
   if (detail?.includes("timed out")) {
+    if (kind === "graph") {
+      return "That took longer than the server allows. The quicker drawing usually gets through.";
+    }
     return "That took longer than the server allows. A shorter test, or one drawn from fewer sections, usually gets through.";
   }
   if (error === "rate_limited") {
@@ -219,6 +242,8 @@ export function StudyWorkspace({
   const [options, setOptions] = useState<PracticeOptions>(
     DEFAULT_PRACTICE_OPTIONS,
   );
+  // Only a graph asks this: how carefully it should be drawn.
+  const [tier, setTier] = useState<GraphTier>("fast");
   // A test is set up before it is written, so the settings are a screen of
   // their own that the reader can come back to.
   // Every kind is set up before it is built, so all three open on the setup
@@ -232,7 +257,7 @@ export function StudyWorkspace({
 
   const mode = copy[kind];
   const Icon = mode.icon;
-  const optionsKey = practiceOptionsKey(options);
+  const optionsKey = kind === "graph" ? graphOptionsKey(tier) : practiceOptionsKey(options);
   const sectionTitles = new Map(
     sections.map((section) => [section.id, section.title]),
   );
@@ -242,12 +267,19 @@ export function StudyWorkspace({
       peek?: boolean;
       regenerate?: boolean;
       options?: PracticeOptions;
+      tier?: GraphTier;
     }) => {
-      const { options: chosen, ...flags } = request;
+      const { options: chosen, tier: chosenTier, ...flags } = request;
       const response = await fetch("/api/ai/study", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ potId, kind, ...flags, options: chosen }),
+        body: JSON.stringify({
+          potId,
+          kind,
+          ...flags,
+          options: chosen,
+          ...(kind === "graph" ? { tier: chosenTier } : {}),
+        }),
       });
       const payload = (await response.json().catch(() => null)) as {
         result?: StudyResult;
@@ -288,7 +320,7 @@ export function StudyWorkspace({
     firstLook.current = false;
     const timer = setTimeout(
       () => {
-        void load({ peek: true, options }).then((outcome) => {
+        void load({ peek: true, options, tier }).then((outcome) => {
           if (!live) return;
           setPeeked(outcome.loaded ?? null);
           // A summary and a deck have nothing to configure, so whatever the Pot
@@ -320,7 +352,7 @@ export function StudyWorkspace({
     // only ever cleared on the happy path would leave the cover up with no way
     // out. A stuck button is an annoyance; a stuck cover is a trap.
     try {
-      const outcome = await load({ regenerate, options });
+      const outcome = await load({ regenerate, options, tier });
       if (!outcome.loaded) {
         // The reply is missing, which is not the same as the work being
         // missing. A generation can finish and be stored and still lose its
@@ -340,7 +372,7 @@ export function StudyWorkspace({
           router.refresh();
           return;
         }
-        setError(message(outcome.failure, outcome.detail));
+        setError(message(outcome.failure, outcome.detail, kind));
         setErrorCode(outcome.failure ?? null);
         return;
       }
@@ -633,6 +665,8 @@ export function StudyWorkspace({
           onChange={setOptions}
           sections={sections}
           notes={notes}
+          tier={tier}
+          onTier={setTier}
           hasSaved={Boolean(peeked)}
           checking={checking}
           busy={busy}
@@ -709,7 +743,9 @@ export function StudyWorkspace({
                   ? "Change the test"
                   : kind === "summary"
                     ? "Change the summary"
-                    : "Change the deck"}
+                    : kind === "graph"
+                      ? "Change the graph"
+                      : "Change the deck"}
               </Button>
               {opened.studySetId ? (
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-3 h-8 text-[13px] font-medium text-success">
@@ -773,6 +809,9 @@ export function StudyWorkspace({
                 }
               />
             </div>
+          ) : null}
+          {kind === "graph" ? (
+            <GraphView result={opened.result as GraphResult} />
           ) : null}
           {kind === "practice" ? (
             <div data-no-shortcuts>

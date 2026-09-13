@@ -7,7 +7,7 @@ export type AttachmentAnalysis = {
   usefulForNote: boolean;
 };
 
-export type StudyKind = "summary" | "flashcards" | "practice";
+export type StudyKind = "summary" | "flashcards" | "practice" | "graph";
 
 export const attachmentAnalysisSchema = {
   type: "object",
@@ -126,6 +126,41 @@ export const studySchemas = {
     required: ["title", "questions"],
     additionalProperties: false,
   },
+  graph: {
+    type: "object",
+    properties: {
+      title: { type: "string" },
+      nodes: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            id: { type: "string" },
+            label: { type: "string" },
+            summary: { type: "string" },
+          },
+          required: ["id", "label"],
+          additionalProperties: false,
+        },
+      },
+      edges: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            from: { type: "string" },
+            to: { type: "string" },
+            label: { type: "string" },
+          },
+          required: ["from", "to"],
+          additionalProperties: false,
+        },
+      },
+      stillToConfirm: { type: "array", items: { type: "string" } },
+    },
+    required: ["title", "nodes", "edges", "stillToConfirm"],
+    additionalProperties: false,
+  },
 } as const;
 
 function text(value: unknown, max: number): string {
@@ -208,6 +243,9 @@ export function normalizeStudyResult(
   maxQuestions = 15,
 ): unknown {
   const item = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  if (kind === "graph") {
+    return normalizeGraph(value);
+  }
   if (kind === "summary") {
     const topics = Array.isArray(item.keyTopics) ? item.keyTopics : [];
     return {
@@ -302,6 +340,60 @@ export function normalizeTeachingReadout(value: unknown): TeachingReadout {
         tryThis: text(row.tryThis, 400),
       };
     }).filter((entry) => entry.topic && entry.reading),
+  };
+}
+
+/* ---- Drawn graphs ---- */
+
+/**
+ * A drawn concept map: a handful of labelled nodes joined by labelled edges.
+ * Kept small on purpose: a map that fills more than one screen is a wall of
+ * names, not something a reader can hold.
+ */
+export type GraphResult = {
+  title: string;
+  nodes: Array<{ id: string; label: string; summary: string }>;
+  edges: Array<{ from: string; to: string; label: string }>;
+  stillToConfirm: string[];
+};
+
+const MAX_GRAPH_NODES = 12;
+const MAX_GRAPH_EDGES = 18;
+
+/** Drops everything the drawing cannot use: unknown endpoints, self edges, duplicates. */
+export function normalizeGraph(value: unknown): GraphResult {
+  const item = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  const nodes: GraphResult["nodes"] = [];
+  const seenIds = new Set<string>();
+  for (const candidate of Array.isArray(item.nodes) ? item.nodes.slice(0, MAX_GRAPH_NODES) : []) {
+    if (!candidate || typeof candidate !== "object") continue;
+    const row = candidate as Record<string, unknown>;
+    const id = text(row.id, 60);
+    const label = text(row.label, 80);
+    // A node nobody could label is a node nobody could draw.
+    if (!id || !label || seenIds.has(id)) continue;
+    seenIds.add(id);
+    nodes.push({ id, label, summary: text(row.summary, 400) });
+  }
+  const edges: GraphResult["edges"] = [];
+  const seenEdges = new Set<string>();
+  for (const candidate of Array.isArray(item.edges) ? item.edges.slice(0, MAX_GRAPH_EDGES) : []) {
+    if (!candidate || typeof candidate !== "object") continue;
+    const row = candidate as Record<string, unknown>;
+    const from = text(row.from, 60);
+    const to = text(row.to, 60);
+    // An edge must join two nodes that exist, and never a node to itself.
+    if (!seenIds.has(from) || !seenIds.has(to) || from === to) continue;
+    const key = [from, to].sort().join("→");
+    if (seenEdges.has(key)) continue;
+    seenEdges.add(key);
+    edges.push({ from, to, label: text(row.label, 60) });
+  }
+  return {
+    title: text(item.title, 160) || "Concept map",
+    nodes,
+    edges,
+    stillToConfirm: textList(item.stillToConfirm, 6, 300),
   };
 }
 

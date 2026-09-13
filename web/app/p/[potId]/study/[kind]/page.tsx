@@ -5,7 +5,7 @@ import { StudyWorkspace } from "@/components/study/study-workspace";
 import { listNoteTitles, listStudySets } from "@/lib/data/study";
 import type { StudyKind } from "@/lib/mix/contracts";
 
-const KINDS = new Set<StudyKind>(["summary", "flashcards", "practice"]);
+const KINDS = new Set<StudyKind>(["summary", "flashcards", "practice", "graph"]);
 
 export default async function StudyPage({ params }: PageProps<"/p/[potId]/study/[kind]">) {
   const { potId, kind: requestedKind } = await params;
