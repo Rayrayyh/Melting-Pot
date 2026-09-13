@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Brain, CalendarCheck, Cards, Sparkle, Timer } from "@phosphor-icons/react/dist/ssr";
+import { Brain, CalendarCheck, ChalkboardTeacher, Cards, Sparkle, Timer } from "@phosphor-icons/react/dist/ssr";
 import { UserShell } from "@/components/shell/user-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardSection, Eyebrow } from "@/components/ui/card";
@@ -15,6 +15,8 @@ const KINDS = [
   { kind: "practice", label: "Practice test", blurb: "Sit a test, marked on the server.", icon: <Brain weight="fill" /> },
   { kind: "focus", label: "Focus", blurb: "A quiet timed run that lands on your record.", icon: <Timer weight="fill" /> },
   { kind: "daily", label: "Daily quiz", blurb: "Five questions a day, the same for the whole class.", icon: <CalendarCheck weight="fill" /> },
+  { kind: "blurt", label: "Blurt", blurb: "Write what you remember, hear what you missed.", icon: <Sparkle weight="fill" /> },
+  { kind: "feynman", label: "Feynman", blurb: "Explain a note out loud, one question at a time.", icon: <ChalkboardTeacher weight="fill" /> },
 ] as const;
 
 /**

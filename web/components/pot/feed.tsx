@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Brain, CalendarCheck, Cards, FileText, Plus, Sparkle, Timer, Tray } from "@phosphor-icons/react/dist/ssr";
+import { Brain, CalendarCheck, Cards, ChalkboardTeacher, FileText, Plus, Sparkle, Timer, Tray } from "@phosphor-icons/react/dist/ssr";
 import { NoteCard } from "@/components/pot/note-card";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -68,6 +68,8 @@ export function PotFeed({
               <StudyTile href={`/p/${pot.id}/study/practice`} title="Practice" description="Set the length and difficulty, then sit it." icon={<Brain />} />
               <StudyTile href={`/p/${pot.id}/study/focus`} title="Focus" description="A quiet timer for a study run." icon={<Timer />} />
               <StudyTile href={`/p/${pot.id}/study/daily`} title="Daily quiz" description="Five questions, the same for everyone today." icon={<CalendarCheck />} />
+              <StudyTile href={`/p/${pot.id}/study/blurt`} title="Blurt" description="Write what you remember, hear what you missed." icon={<Sparkle />} />
+              <StudyTile href={`/p/${pot.id}/study/feynman`} title="Feynman" description="Explain it out loud, one question at a time." icon={<ChalkboardTeacher />} />
             </div>
           </section>
         </>

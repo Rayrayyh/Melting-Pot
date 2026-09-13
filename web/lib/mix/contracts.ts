@@ -304,3 +304,159 @@ export function normalizeTeachingReadout(value: unknown): TeachingReadout {
     }).filter((entry) => entry.topic && entry.reading),
   };
 }
+
+/* ---- The coach: blurt review and the Feynman tutor ---- */
+
+/**
+ * One item of the blurt read-back. Every item names the note it rests on, so
+ * a reader can go and check the source; a claim the model cannot trace to a
+ * supplied note arrives as "Not traced to a note", said rather than invented.
+ */
+const tracedItemSchema = {
+  type: "object",
+  properties: {
+    point: { type: "string" },
+    noteTitle: { type: "string" },
+  },
+  required: ["point", "noteTitle"],
+  additionalProperties: false,
+} as const;
+
+export const blurtSchema = {
+  type: "object",
+  properties: {
+    covered: { type: "array", items: tracedItemSchema },
+    missed: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          point: { type: "string" },
+          noteTitle: { type: "string" },
+          where: { type: "string" },
+        },
+        required: ["point", "noteTitle", "where"],
+        additionalProperties: false,
+      },
+    },
+    wrong: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          claim: { type: "string" },
+          correction: { type: "string" },
+          noteTitle: { type: "string" },
+        },
+        required: ["claim", "correction", "noteTitle"],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ["covered", "missed", "wrong"],
+  additionalProperties: false,
+} as const;
+
+export type BlurtResult = {
+  covered: { point: string; noteTitle: string }[];
+  missed: { point: string; noteTitle: string; where: string }[];
+  wrong: { claim: string; correction: string; noteTitle: string }[];
+};
+
+/**
+ * A blurt is compared against the notes the reader named, so a note title that
+ * does not match one of them is replaced with the honest label rather than
+ * passed through to a reader who cannot check it.
+ */
+function tracedTitle(value: unknown, noteTitles: Set<string>): string {
+  const title = sourceTitle(value);
+  return title && noteTitles.has(title.toLowerCase()) ? title : "Not traced to a note";
+}
+
+export function normalizeBlurt(value: unknown, noteTitles: string[]): BlurtResult {
+  const item = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  const titles = new Set(noteTitles.map((title) => title.toLowerCase()));
+  const rows = (list: unknown) => (Array.isArray(list) ? list : []);
+  return {
+    covered: rows(item.covered).slice(0, 15).map((entry) => {
+      const row = entry && typeof entry === "object" ? entry as Record<string, unknown> : {};
+      return { point: text(row.point, 400), noteTitle: tracedTitle(row.noteTitle, titles) };
+    }).filter((entry) => entry.point),
+    missed: rows(item.missed).slice(0, 15).map((entry) => {
+      const row = entry && typeof entry === "object" ? entry as Record<string, unknown> : {};
+      return {
+        point: text(row.point, 400),
+        noteTitle: tracedTitle(row.noteTitle, titles),
+        where: text(row.where, 300),
+      };
+    }).filter((entry) => entry.point),
+    wrong: rows(item.wrong).slice(0, 10).map((entry) => {
+      const row = entry && typeof entry === "object" ? entry as Record<string, unknown> : {};
+      return {
+        claim: text(row.claim, 400),
+        correction: text(row.correction, 400),
+        noteTitle: tracedTitle(row.noteTitle, titles),
+      };
+    }).filter((entry) => entry.claim && entry.correction),
+  };
+}
+
+export const feynmanQuestionSchema = {
+  type: "object",
+  properties: {
+    question: { type: "string" },
+  },
+  required: ["question"],
+  additionalProperties: false,
+} as const;
+
+export type FeynmanQuestion = { question: string };
+
+export function normalizeFeynmanQuestion(value: unknown): FeynmanQuestion {
+  const item = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  return { question: text(item.question, 500) };
+}
+
+export const feynmanWrapSchema = {
+  type: "object",
+  properties: {
+    gaps: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          gap: { type: "string" },
+          noteTitle: { type: "string" },
+          tryThis: { type: "string" },
+        },
+        required: ["gap", "noteTitle", "tryThis"],
+        additionalProperties: false,
+      },
+    },
+    summary: { type: "string" },
+  },
+  required: ["gaps", "summary"],
+  additionalProperties: false,
+} as const;
+
+export type FeynmanWrap = {
+  gaps: { gap: string; noteTitle: string; tryThis: string }[];
+  summary: string;
+};
+
+export function normalizeFeynmanWrap(value: unknown, noteTitles: string[]): FeynmanWrap {
+  const item = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  const titles = new Set(noteTitles.map((title) => title.toLowerCase()));
+  const gaps = Array.isArray(item.gaps) ? item.gaps : [];
+  return {
+    gaps: gaps.slice(0, 6).map((entry) => {
+      const row = entry && typeof entry === "object" ? entry as Record<string, unknown> : {};
+      return {
+        gap: text(row.gap, 400),
+        noteTitle: tracedTitle(row.noteTitle, titles),
+        tryThis: text(row.tryThis, 300),
+      };
+    }).filter((entry) => entry.gap && entry.tryThis),
+    summary: text(item.summary, 800),
+  };
+}

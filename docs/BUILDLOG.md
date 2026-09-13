@@ -371,3 +371,8 @@ Known follow-ups, documented not built (feature gaps or minor polish, no securit
 
 - Every Pot now has one quiz a day: five questions from the class's notes, the same for everyone, brought in by whoever opens the page first and spent from their own build quota. The fingerprint is the day itself, cut in UTC, so the store's existing uniqueness enforces the "one per day" without a new table. Taken once per person, marked on the server, and its answers feed what the class is shaky on. Decision 037.
 
+## The coach: blurt and the Feynman tutor (2026-09-12)
+
+- Blurting arrived: pick notes, write everything you remember, and the notes answer back in three fixed groups, what you covered, what you missed, what you had wrong, every item traced to the note it rests on and an untraceable one labelled honestly. Decision 038.
+- The Feynman method arrived as a tutor that talks back: pick a note, explain it out loud, one probing question at a time, and end with where the explanation came apart. The screen holds one question at a time and folds earlier turns away; it is not a chat. Voice in is the browser's own recognition where it exists, with the typed box always beside it; voice out is the browser's own synthesis with a stored mute. The microphone is the one permission this opened: `Permissions-Policy` moved to `microphone=(self)`, camera and geolocation stay closed.
+

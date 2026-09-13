@@ -73,8 +73,10 @@ const nextConfig: NextConfig = {
           },
           { key: "X-Frame-Options", value: "DENY" },
           {
+            // microphone=(self) so the Feynman tutor can listen. Camera and
+            // geolocation stay closed: nothing in the product asks for them.
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
+            value: "camera=(), microphone=(self), geolocation=()",
           },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
