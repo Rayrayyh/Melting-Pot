@@ -252,6 +252,29 @@ export type Database = {
           },
         ];
       };
+      google_tokens: {
+        Row: {
+          user_id: string;
+          access_token: string;
+          refresh_token: string;
+          expires_at: string;
+          scope: string;
+          account_email: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: "google_tokens_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       memberships: {
         Row: {
           created_at: string;
@@ -765,6 +788,20 @@ export type Database = {
     };
     Views: { [_ in never]: never };
     Functions: {
+      forget_google_token: { Args: never; Returns: undefined };
+      has_google_token: { Args: never; Returns: boolean };
+      meter_classroom_push: { Args: never; Returns: undefined };
+      my_google_token: { Args: never; Returns: Json };
+      store_google_token: {
+        Args: {
+          p_access_token: string;
+          p_account_email: string;
+          p_expires_at: string;
+          p_refresh_token: string;
+          p_scope: string;
+        };
+        Returns: undefined;
+      };
       create_game_room: {
         Args: { p_pot_id: string; p_set_id: string };
         Returns: Json;

@@ -1,3 +1,4 @@
+import { GoogleClassroom } from "@/components/pot/google-classroom";
 import { SectionsPanel } from "@/components/pot/sections-panel";
 import { SettingsPanel } from "@/components/pot/settings-panel";
 import { PotShell } from "@/components/shell/pot-shell";
@@ -8,7 +9,7 @@ export default async function SettingsPage({ params }: PageProps<"/p/[potId]/set
   const { potId } = await params;
   const user = await requireUser();
   const supabase = await supabaseServer();
-  const [{ data: pot }, { data: sectionRows }] = await Promise.all([
+  const [{ data: pot }, { data: sectionRows }, { data: pushableRows }] = await Promise.all([
     supabase.from("pots").select("owner_id").eq("id", potId).maybeSingle(),
     supabase
       .from("sections")
@@ -16,6 +17,15 @@ export default async function SettingsPage({ params }: PageProps<"/p/[potId]/set
       .eq("pot_id", potId)
       .order("position", { ascending: true })
       .order("title", { ascending: true }),
+    // What could be posted to Classroom: saved tests and decks, newest first.
+    supabase
+      .from("study_sets")
+      .select("id, kind, payload")
+      .eq("pot_id", potId)
+      .in("kind", ["practice", "flashcards"])
+      .is("removed_at", null)
+      .order("created_at", { ascending: false })
+      .limit(20),
   ]);
 
   return (
@@ -40,6 +50,22 @@ export default async function SettingsPage({ params }: PageProps<"/p/[potId]/set
               ) : undefined
             }
           />
+          {potContext.role !== "member" ? (
+            <GoogleClassroom
+              potId={potContext.id}
+              potTitle={potContext.title}
+              pushableSets={(pushableRows ?? []).map((row) => {
+                const payload = row.payload as { title?: unknown } | null;
+                const title =
+                  typeof payload?.title === "string" && payload.title.trim()
+                    ? payload.title.trim()
+                    : row.kind === "practice"
+                      ? "Practice test"
+                      : "Flashcards";
+                return { id: row.id, title, kind: row.kind as "practice" | "flashcards" };
+              })}
+            />
+          ) : null}
         </div>
       )}
     </PotShell>

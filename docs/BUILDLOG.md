@@ -386,3 +386,9 @@ Known follow-ups, documented not built (feature gaps or minor polish, no securit
 - Playing a saved test alone runs through the same screens and the same marking path as the practice page, so a sitting is recorded once and never twice.
 - The room's clients react to one row. Answers landing and players joining bump the room's version, push says look again, and a poll runs underneath at all times, which is also how the e2e suite drives the feature in the container where websockets cannot reach.
 
+## The push to Classroom (2026-09-12)
+
+- A maintainer can connect a Google account on the Pot's settings page and post a saved test or deck to one of their classes. What Google receives is an assignment carrying a link into the app; the material, the secured answer keys and the marking all stay here, where the enforcement layer already is. Nothing is posted with a due date, and the unit test asserts that stays true. Decisions 042 and 043.
+- The card says plainly that Google only lets test users on the project grant the scopes until the app is verified, so the owner's accounts work and nobody else is surprised by Google's warning screen. The token lives in a table with no policies, the study_set_keys pattern, reachable only through definer functions that return the caller's own row.
+- Saved sets gained permalinks, which the push needed and the product quietly lacked: a set was reachable only through the study tab's settings key. A permalink opens one set for a member and marks it exactly as the study pages do.
+
