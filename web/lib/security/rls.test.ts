@@ -71,6 +71,11 @@ const CLOSED = [
   "study_responses",
   "note_flashcards",
   "admin_events",
+  "game_rooms",
+  "game_players",
+  "game_answers",
+  "google_tokens",
+  "rate_limits",
 ] as const;
 
 online("an anonymous client", () => {
@@ -104,6 +109,56 @@ online("an anonymous client", () => {
       p_pot_id: "00000000-0000-0000-0000-000000000000",
     });
     expect(error).not.toBeNull();
+  });
+
+  it("cannot open a game room or read a room's state", async () => {
+    const calls = [
+      {
+        name: "create_game_room" as const,
+        args: {
+          p_pot_id: "00000000-0000-0000-0000-000000000000",
+          p_set_id: "00000000-0000-0000-0000-000000000000",
+        },
+      },
+      {
+        name: "game_state" as const,
+        args: { p_room_id: "00000000-0000-0000-0000-000000000000" },
+      },
+    ];
+    for (const call of calls) {
+      const { error } = await anon!.rpc(call.name, call.args);
+      expect(error).not.toBeNull();
+    }
+  });
+
+  it("cannot record a study run, hand in the daily quiz, or touch a Google token", async () => {
+    const attempt = "00000000-0000-0000-0000-000000000000";
+    const calls = [
+      {
+        name: "record_study_run" as const,
+        args: { p_attempt_id: attempt, p_pot_id: attempt, p_kind: "focus" },
+      },
+      {
+        name: "submit_daily_quiz" as const,
+        args: { p_attempt_id: attempt, p_set_id: attempt, p_answers: {} },
+      },
+      {
+        name: "store_google_token" as const,
+        args: {
+          p_access_token: "forged",
+          p_refresh_token: "forged",
+          p_expires_at: new Date().toISOString(),
+          p_scope: "",
+          p_account_email: "forged@example.com",
+        },
+      },
+      { name: "my_google_token" as const, args: {} },
+      { name: "meter_classroom_push" as const, args: {} },
+    ];
+    for (const call of calls) {
+      const { error } = await anon!.rpc(call.name, call.args);
+      expect(error).not.toBeNull();
+    }
   });
 
   it("still gets the one thing the join flow needs, and only that", async () => {

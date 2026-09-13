@@ -3,13 +3,14 @@ import { SectionsPanel } from "@/components/pot/sections-panel";
 import { SettingsPanel } from "@/components/pot/settings-panel";
 import { PotShell } from "@/components/shell/pot-shell";
 import { requireUser } from "@/lib/data/user";
+import { getGoogleAccount } from "@/lib/google/token";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export default async function SettingsPage({ params }: PageProps<"/p/[potId]/settings">) {
   const { potId } = await params;
   const user = await requireUser();
   const supabase = await supabaseServer();
-  const [{ data: pot }, { data: sectionRows }, { data: pushableRows }] = await Promise.all([
+  const [{ data: pot }, { data: sectionRows }, { data: pushableRows }, google] = await Promise.all([
     supabase.from("pots").select("owner_id").eq("id", potId).maybeSingle(),
     supabase
       .from("sections")
@@ -26,6 +27,9 @@ export default async function SettingsPage({ params }: PageProps<"/p/[potId]/set
       .is("removed_at", null)
       .order("created_at", { ascending: false })
       .limit(20),
+    // Server-side read of the caller's own connection. The card gets whether
+    // an account is connected and the email to name it by, and nothing more.
+    getGoogleAccount(),
   ]);
 
   return (
@@ -64,6 +68,8 @@ export default async function SettingsPage({ params }: PageProps<"/p/[potId]/set
                       : "Flashcards";
                 return { id: row.id, title, kind: row.kind as "practice" | "flashcards" };
               })}
+              connected={google.connected}
+              accountEmail={google.accountEmail}
             />
           ) : null}
         </div>

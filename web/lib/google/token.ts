@@ -24,11 +24,8 @@ export async function getGoogleAccessToken(): Promise<{
   accessToken: string;
   accountEmail: string;
 } | null> {
-  const supabase = await supabaseServer();
-  const { data, error } = await supabase.rpc("my_google_token");
-  if (error || !data) return null;
-  const row = data as unknown as GoogleCredentials;
-  if (!row.accessToken || !row.refreshToken) return null;
+  const row = await readOwnTokenRow();
+  if (!row) return null;
 
   if (!needsRefresh(row.expiresAt)) {
     return { accessToken: row.accessToken, accountEmail: row.accountEmail };
@@ -50,6 +47,7 @@ export async function getGoogleAccessToken(): Promise<{
   } | null;
   if (!response.ok || !body?.access_token) return null;
 
+  const supabase = await supabaseServer();
   const expiresAt = new Date(Date.now() + (body.expires_in ?? 3600) * 1000).toISOString();
   await supabase.rpc("store_google_token", {
     p_access_token: body.access_token,
@@ -59,4 +57,27 @@ export async function getGoogleAccessToken(): Promise<{
     p_account_email: row.accountEmail,
   });
   return { accessToken: body.access_token, accountEmail: row.accountEmail };
+}
+
+/**
+ * What the settings card needs: whether an account is connected, and the
+ * email to name it by. Deliberately not the token: the card renders on the
+ * server, and nothing about the connection's credentials belongs in a prop,
+ * an RSC payload, or a browser console.
+ */
+export async function getGoogleAccount(): Promise<{
+  connected: boolean;
+  accountEmail: string | null;
+}> {
+  const row = await readOwnTokenRow();
+  return { connected: row !== null, accountEmail: row?.accountEmail ?? null };
+}
+
+async function readOwnTokenRow(): Promise<GoogleCredentials | null> {
+  const supabase = await supabaseServer();
+  const { data, error } = await supabase.rpc("my_google_token");
+  if (error || !data) return null;
+  const row = data as unknown as GoogleCredentials;
+  if (!row.accessToken || !row.refreshToken) return null;
+  return row;
 }

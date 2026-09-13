@@ -24,14 +24,17 @@ export function GoogleClassroom({
   potId,
   potTitle,
   pushableSets,
+  connected,
+  accountEmail,
 }: {
   potId: string;
   potTitle: string;
   pushableSets: PushSet[];
+  /** Read on the server from the definer functions; no token ever rides here. */
+  connected: boolean;
+  accountEmail: string | null;
 }) {
   const router = useRouter();
-  const [connected, setConnected] = useState<boolean | null>(null);
-  const [accountEmail, setAccountEmail] = useState<string | null>(null);
   const [courses, setCourses] = useState<Course[] | null>(null);
   const [courseId, setCourseId] = useState<string>("");
   const [setId, setSetId] = useState<string>(pushableSets[0]?.id ?? "");
@@ -40,10 +43,8 @@ export function GoogleClassroom({
   const [pushed, setPushed] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!connected) return;
     void (async () => {
-      const { data } = await supabaseBrowser().rpc("has_google_token");
-      setConnected(data === true);
-      if (data !== true) return;
       const response = await fetch("/api/google/classes");
       if (response.ok) {
         const body = (await response.json()) as { courses?: Course[] };
@@ -52,11 +53,8 @@ export function GoogleClassroom({
       } else {
         setCourses([]);
       }
-      const me = await supabaseBrowser().rpc("my_google_token");
-      const row = me.data as { accountEmail?: string } | null;
-      setAccountEmail(row?.accountEmail ?? null);
     })();
-  }, []);
+  }, [connected]);
 
   async function push() {
     if (!courseId || !setId || pushing) return;
@@ -91,9 +89,8 @@ export function GoogleClassroom({
 
   async function disconnect() {
     await supabaseBrowser().rpc("forget_google_token");
-    setConnected(false);
-    setAccountEmail(null);
     setCourses(null);
+    // The page re-renders with the server's answer: not connected.
     router.refresh();
   }
 
@@ -108,9 +105,7 @@ export function GoogleClassroom({
           </p>
         </div>
 
-        {connected === null ? (
-          <p className="text-[12px] text-ink-faint">Checking the connection.</p>
-        ) : connected === false ? (
+        {!connected ? (
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-[13px] text-ink-muted">Not connected.</p>
             <a
